@@ -10,6 +10,81 @@ Globals:
     Timeout: 3
 
 Resources:
+  EventsApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: EventApi
+      StageName: Prod
+
+  AddEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: crud_events/
+      Handler: app.insert_event
+      Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Architectures:
+        - x86_64
+      Events:
+        CreateEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventsApi
+            Path: /events
+            Method: POST
+
+  UpdateEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: crud_events/
+      Handler: app.update_event
+      Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Architectures:
+        - x86_64
+      Events:
+        CreateEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventsApi
+            Path: /events
+            Method: UPDATE
+
+  GetEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: crud_events/
+      Handler: app.get_event
+      Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Architectures:
+        - x86_64
+      Events:
+        CreateEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventsApi
+            Path: /events
+            Method: GET
+
+  DeleteEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: crud_events/
+      Handler: app.insert_event
+      Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Architectures:
+        - x86_64
+      Events:
+        CreateEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventsApi
+            Path: /events
+            Method: DELETE
+
+
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -25,26 +100,7 @@ Resources:
             Path: /hello
             Method: get
 
-  CrudEvents:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: crud_events/
-      Handler: get_event.lambda_handler
-      Runtime: python3.12
-      Architectures:
-        - x86_64
-      Events:
-        GetEvent:
-          Type: Api
-          Properties:
-            Path: /event
-            Method: GET
-      Environment:
-        Variables:
-          RDS_PROXY_HOST: !Ref RDSProxyHost
-          USER_NAME: !Ref DBUserName
-          PASSWORD: !Ref DBPassword
-          DB_NAME: !Ref DBName
+
 
 Parameters:
   RDSProxyHost:
@@ -75,4 +131,4 @@ Outputs:
 
   CrudEventApi:
     Description: "API Gateway endpoint URL for Prod stage for Get Event function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/event/"
+    Value: !Sub "https://${EventsApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/event/"
