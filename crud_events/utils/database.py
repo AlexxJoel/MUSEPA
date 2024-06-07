@@ -4,10 +4,10 @@ import pymysql
 import os
 
 # rds settings
-user_name = os.environ['USER_NAME']
-password = os.environ['PASSWORD']
-rds_proxy_host = os.environ['RDS_PROXY_HOST']
-db_name = os.environ['DB_NAME']
+user_name = os.environ['default']
+password = os.environ['pnQI1h7sNfFK']
+proxy_host = os.environ['ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech']
+db_name = os.environ['verceldb']
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -16,7 +16,7 @@ logger.setLevel(logging.INFO)
 # re-used by subsequent function invocations.
 
 try:
-    conn = pymysql.connect(host=rds_proxy_host, user=user_name, passwd=password, db=db_name, connect_timeout=5)
+    conn = pymysql.connect(host=proxy_host, user=user_name, passwd=password, db=db_name, connect_timeout=5)
 except pymysql.MySQLError as e:
     logger.error("ERROR: Unexpected error: Could not connect to MySQL instance.")
     logger.error(e)

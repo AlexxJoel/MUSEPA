@@ -21,8 +21,7 @@ Resources:
     Properties:
       CodeUri: crud_events/
       Handler: app.insert_event
-      Runtime: python3.12
-      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.11
       Architectures:
         - x86_64
       Events:
@@ -38,8 +37,7 @@ Resources:
     Properties:
       CodeUri: crud_events/
       Handler: app.update_event
-      Runtime: python3.12
-      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.11
       Architectures:
         - x86_64
       Events:
@@ -55,8 +53,7 @@ Resources:
     Properties:
       CodeUri: crud_events/
       Handler: app.get_event
-      Runtime: python3.12
-      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.11
       Architectures:
         - x86_64
       Events:
@@ -72,8 +69,7 @@ Resources:
     Properties:
       CodeUri: crud_events/
       Handler: app.insert_event
-      Runtime: python3.12
-      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.11
       Architectures:
         - x86_64
       Events:
@@ -90,7 +86,7 @@ Resources:
     Properties:
       CodeUri: hello_world/
       Handler: app.lambda_handler
-      Runtime: python3.12
+      Runtime: python3.11
       Architectures:
         - x86_64
       Events:
@@ -102,19 +98,19 @@ Resources:
 
 
 
-Parameters:
-  RDSProxyHost:
-    Type: String
-    Description: 'El host del RDS Proxy'
-  DBUserName:
-    Type: String
-    Description: 'El nombre de usuario de la base de datos'
-  DBPassword:
-    Type: String
-    Description: 'La contraseña de la base de datos'
-  DBName:
-    Type: String
-    Description: 'El nombre de la base de datos'
+#Parameters:
+#  RDSProxyHost:
+#    Type: String
+#    Description: 'El host del RDS Proxy'
+#  DBUserName:
+#    Type: String
+#    Description: 'El nombre de usuario de la base de datos'
+#  DBPassword:
+#    Type: String
+#    Description: 'La contraseña de la base de datos'
+#  DBName:
+#    Type: String
+#    Description: 'El nombre de la base de datos'
 
 Outputs:
   HelloWorldApi:
