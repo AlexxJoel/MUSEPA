@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "4d9cf6e4-60dc-4ec3-8e81-547e1fd657a2",
+		"_postman_id": "22fb0320-3527-4fd6-af48-2f7e841509ee",
 		"name": "museepa",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "23758009"
+		"_exporter_id": "23793614"
 	},
 	"item": [
 		{
@@ -135,6 +135,83 @@
 							"path": [
 								"Stage",
 								"events"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "museums",
+			"item": [
+				{
+					"name": "getMuseums",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"new museum 3\",\r\n    \"location\": null,\r\n    \"tariffs\": null,\r\n    \"schedules\": null,\r\n    \"contact_number\": null,\r\n    \"contact_email\": null,\r\n    \"id_owner\": null,\r\n    \"pictures\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://ucc5a6l2a8.execute-api.us-east-1.amazonaws.com/Prod/museum",
+							"protocol": "https",
+							"host": [
+								"ucc5a6l2a8",
+								"execute-api",
+								"us-east-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Prod",
+								"museum"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 1,\r\n    \"name\": \"Updated Event\",\r\n    \"description\": \"Updated Description\",\r\n    \"start_date\": \"2024-06-06\",\r\n    \"end_date\": \"2024-06-07\",\r\n    \"category\": \"Exposición\",\r\n    \"pictures\": null,\r\n    \"id_museum\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://ucc5a6l2a8.execute-api.us-east-1.amazonaws.com/Prod/museum",
+							"protocol": "https",
+							"host": [
+								"ucc5a6l2a8",
+								"execute-api",
+								"us-east-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Prod",
+								"museum"
 							]
 						}
 					},
