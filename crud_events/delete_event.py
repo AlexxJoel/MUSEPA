@@ -1,37 +1,41 @@
 import psycopg2
 import json
-from utils.database import get_db_connection
+import logging
+from crud_events.utils.database import conn
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
-    body = json.loads(event['body'])
-    data = delete_event(body)
-    if data is None:
-        # Handle error case (e.g., log or return specific error message)
+    try:
+        body = json.loads(event['body'])
+        data = delete_event(body)
+        return {
+            "statusCode": 200,
+            "body": json.dumps({
+                "message": data,
+            }),
+        }
+    except Exception as e:
+        logger.error(f"Error updating events: {e}")
         return {
             "statusCode": 500,
-            "body": json.dumps({"message": "Error delete events."})
+            "body": json.dumps({"message": "Error updating events."})
         }
 
-    # Success case: include retrieved events in the body
-    return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": data,
-        }),
-    }
+
 
 def delete_event(event):
-    id_event = event.get('id')
+    id_event = event.get('id_event')
     try:
-        conn = get_db_connection()
         with conn.cursor() as cursor:
             sql = """DELETE FROM events  WHERE id =%s"""
-            cursor.execute(sql,(id_event))
+            cursor.execute(sql,(id_event,))
+            conn.commit()
             return "Delete event successfully."
     except psycopg2.Error as e:
-        print(e)
-        raise RuntimeError("ERROR EN DELETE")
+        logger.error(f"Error delete event: {e}")
+        return "Error delete event."
     finally:
         conn.close()
 
