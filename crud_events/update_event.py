@@ -1,8 +1,6 @@
 import json
 import logging
-
 import psycopg2
-
 from crud_events.utils.database import get_db_connection
 
 logger = logging.getLogger()
