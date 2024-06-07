@@ -1,41 +1,45 @@
 import psycopg2
 import json
-from utils.database import get_db_connection
+from crud_events.utils.database import conn
+import logging
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
-    body = json.loads(event['body'])
-    data = insert_event(body)
-    if data is None:
+    try:
+        body = json.loads(event['body'])
+        data = insert_event(body)
+        return {
+            "statusCode": 200,
+            "body": json.dumps({
+                "message": data
+            })
+        }
+    except Exception as e:
+        logger.error(f"Error updating events: {e}")
         return {
             "statusCode": 500,
-            "body": json.dumps({"message": "Error insert events."}),
+            "body": json.dumps({"message": "Error updating events."})
         }
 
-    return {
-        "statusCode": 200,
-        "body": json.dumps({"message": data})
-    }
 
 def insert_event(event):
     name = event.get('name')
     description = event.get('description')
     start_date = event.get('start_date')
     end_date = event.get('end_date')
-    category = event.get('event')
+    category = event.get('category')
     pictures = event.get('pictures')
+    id_museum = event.get('id_museum')
     try:
-        conn = get_db_connection()
         with conn.cursor() as cursor:
-            sql = """INSERT INTO events(name,description,start_date,end_date,category,pictures) VALUES (%s,%s,%s,%s,%s,%s)"""
-            cursor.execute(sql,(name,description,start_date,end_date,category,pictures))
+            sql = """INSERT INTO events(name,description,start_date,end_date,category,pictures,id_museum) VALUES (%s,%s,%s,%s,%s,%s,%s)"""
+            cursor.execute(sql,(name,description,start_date,end_date,category,pictures,id_museum))
             conn.commit()
             return "Inserted event successfully."
     except psycopg2.Error as e:
-        print(e)
-        raise RuntimeError("ERROR EN INSERT")
+        logger.error(f"Error updating event: {e}")
+        return "Error updating event."
     finally:
         conn.close()
-
-
-
