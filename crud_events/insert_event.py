@@ -1,6 +1,6 @@
-import pymysql
+import psycopg2
 import json
-from utils.database import conn, logger
+from utils.database import get_db_connection
 
 
 def lambda_handler(event, context):
@@ -25,15 +25,15 @@ def insert_event(event):
     category = event.get('event')
     pictures = event.get('pictures')
     try:
+        conn = get_db_connection()
         with conn.cursor() as cursor:
             sql = """INSERT INTO events(name,description,start_date,end_date,category,pictures) VALUES (%s,%s,%s,%s,%s,%s)"""
             cursor.execute(sql,(name,description,start_date,end_date,category,pictures))
             conn.commit()
             return "Inserted event successfully."
-    except pymysql.MySQLError as e:
-        logger.error("ERROR: Could not retrieve events.")
-        logger.error(e)
-        return None  # Indicate error
+    except psycopg2.Error as e:
+        print(e)
+        raise RuntimeError("ERROR EN INSERT")
     finally:
         conn.close()
 

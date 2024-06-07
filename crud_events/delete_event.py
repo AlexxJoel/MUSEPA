@@ -1,6 +1,6 @@
-import pymysql
+import psycopg2
 import json
-from utils.database import conn, logger
+from utils.database import get_db_connection
 
 
 def lambda_handler(event, context):
@@ -24,14 +24,14 @@ def lambda_handler(event, context):
 def delete_event(event):
     id_event = event.get('id')
     try:
+        conn = get_db_connection()
         with conn.cursor() as cursor:
             sql = """DELETE FROM events  WHERE id =%s"""
             cursor.execute(sql,(id_event))
             return "Delete event successfully."
-    except pymysql.MySQLError as e:
-        logger.error("ERROR: Could not retrieve events.")
-        logger.error(e)
-        return None  # Indicate error
+    except psycopg2.Error as e:
+        print(e)
+        raise RuntimeError("ERROR EN DELETE")
     finally:
         conn.close()
 

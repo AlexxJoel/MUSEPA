@@ -32,22 +32,6 @@ Resources:
             Path: /events
             Method: POST
 
-  UpdateEventFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: crud_events/
-      Handler: app.update_event
-      Runtime: python3.11
-      Architectures:
-        - x86_64
-      Events:
-        CreateEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref EventsApi
-            Path: /events
-            Method: UPDATE
-
   GetEventFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -57,7 +41,7 @@ Resources:
       Architectures:
         - x86_64
       Events:
-        CreateEvent:
+        GetEvent:
           Type: Api
           Properties:
             RestApiId: !Ref EventsApi
@@ -68,12 +52,12 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: crud_events/
-      Handler: app.insert_event
+      Handler: app.delete_event
       Runtime: python3.11
       Architectures:
         - x86_64
       Events:
-        CreateEvent:
+        DeleteEvent:
           Type: Api
           Properties:
             RestApiId: !Ref EventsApi
@@ -97,20 +81,6 @@ Resources:
             Method: get
 
 
-
-#Parameters:
-#  RDSProxyHost:
-#    Type: String
-#    Description: 'El host del RDS Proxy'
-#  DBUserName:
-#    Type: String
-#    Description: 'El nombre de usuario de la base de datos'
-#  DBPassword:
-#    Type: String
-#    Description: 'La contraseña de la base de datos'
-#  DBName:
-#    Type: String
-#    Description: 'El nombre de la base de datos'
 
 Outputs:
   HelloWorldApi:

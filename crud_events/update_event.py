@@ -1,6 +1,6 @@
-import pymysql
+import psycopg2
 import json
-from utils.database import conn, logger
+from utils.database import get_db_connection
 
 
 def lambda_handler(event, context):
@@ -30,14 +30,14 @@ def update_event(event):
     category = event.get('event')
     pictures = event.get('pictures')
     try:
+        conn = get_db_connection()
         with conn.cursor() as cursor:
             sql = """UPDATE events SET name=%s,description=%s,start_date=%s,end_date=%s,category=%s,pictures=%s WHERE id =%s"""
             cursor.execute(sql,(name,description,start_date,end_date,category,pictures,id_event))
             return "Update event successfully."
-    except pymysql.MySQLError as e:
-        logger.error("ERROR: Could not retrieve events.")
-        logger.error(e)
-        return None  # Indicate error
+    except psycopg2.Error as e:
+        print(e)
+        raise RuntimeError("ERROR EN ACTUALIZAR")
     finally:
         conn.close()
 

@@ -1,27 +1,29 @@
-import sys
 import logging
-import pymysql
+import psycopg2
 import os
 
-# rds settings
-user_name = os.environ['default']
-password = os.environ['pnQI1h7sNfFK']
-proxy_host = os.environ['ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech']
-db_name = os.environ['verceldb']
-
+# Configuración de los registros
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# create the database connection outside of the handler to allow connections to be
-# re-used by subsequent function invocations.
+# Variables de entorno
+user_name = os.environ.get('default')
+password = os.environ.get('pnQI1h7sNfFK')
+host = os.environ.get('ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech')
+db_name = os.environ.get('verceldb')
 
-try:
-    conn = pymysql.connect(host=proxy_host, user=user_name, passwd=password, db=db_name, connect_timeout=5)
-except pymysql.MySQLError as e:
-    logger.error("ERROR: Unexpected error: Could not connect to MySQL instance.")
-    logger.error(e)
-    sys.exit(1)
+# Función para obtener eventos desde la base de datos
 
-logger.info("SUCCESS: Connection to RDS for MySQL instance succeeded")
-
-
+def get_db_connection():
+    try:
+        # Crear la conexión a la base de datos
+        conn = psycopg2.connect(
+            host=host,
+            user=user_name,
+            password=password,
+            database=db_name,
+            connect_timeout=5
+        )
+    except psycopg2.Error as e:
+        print(e)
+        raise RuntimeError("ERROR EN CONEXION")
