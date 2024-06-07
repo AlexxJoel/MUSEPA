@@ -32,6 +32,22 @@ Resources:
             Path: /events
             Method: POST
 
+  UpdateEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: crud_events/
+      Handler: app.update_event
+      Runtime: python3.11
+      Architectures:
+        - x86_64
+      Events:
+        UpdateEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventsApi
+            Path: /events
+            Method: PUT
+
   GetEventFunction:
     Type: AWS::Serverless::Function
     Properties:
