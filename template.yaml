@@ -11,6 +11,62 @@ Globals:
     Timeout: 3
 
 Resources:
+  MuseumsApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: MuseumApi
+      StageName: Prod
+
+
+  AddMuseumFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: crud_museums/
+      Handler: app.insert_museum
+      Runtime: python3.11
+      Architectures:
+        - x86_64
+      Events:
+        CreateMuseum:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MuseumsApi
+            Path: /museum
+            Method: POST
+
+  UpdateMuseumFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: crud_museums/
+      Handler: app.update_museum
+      Runtime: python3.11
+      Architectures:
+        - x86_64
+      Events:
+        CreateMuseum:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MuseumsApi
+            Path: /museum
+            Method: PUT
+
+
+  GetMuseumFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: crud_museums/
+      Handler: app.get_museum
+      Runtime: python3.11
+      Architectures:
+        - x86_64
+      Events:
+        CreateMuseum:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MuseumsApi
+            Path: /museum
+            Method: GET
+
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:

@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from crud_museums.instert_museum import lambda_handler
+from crud_museums.insert_museum import lambda_handler
 
 
 # Fixture para el mock de la conexión a la base de datos
