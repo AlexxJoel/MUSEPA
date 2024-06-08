@@ -63,7 +63,7 @@ def lambda_handler(event, __):
 
         return {
             'statusCode': 200,
-            'body': json.dumps({"message": "Event updated successfully yeah!"})
+            'body': json.dumps({"message": "Event updated successfully!"})
         }
 
     except Exception as e:
