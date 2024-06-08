@@ -51,10 +51,6 @@ def lambda_handler(event, _context):
 
         manager['user'] = user
 
-        # # execute the query
-        cur.close()
-        conn.close()
-        #
         if len(user) == 0:
             return {
                 'statusCode': 404,
@@ -66,8 +62,6 @@ def lambda_handler(event, _context):
             'body': json.dumps(manager, default=datetime_serializer)
         }
     except Exception as e:
-        if conn is not None:
-            conn.rollback()
         return {
             'statusCode': 500,
             'body': json.dumps(str(e))

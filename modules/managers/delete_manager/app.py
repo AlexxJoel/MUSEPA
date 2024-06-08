@@ -42,12 +42,9 @@ def lambda_handler(event, _context):
                 "body": json.dumps({"error": "Manager not found"})
             }
 
-        cur.execute("DELETE FROM visitors WHERE id = %s", (request_id,))
+        cur.execute("DELETE FROM managers WHERE id = %s", (request_id,))
         cur.execute("DELETE FROM users WHERE id = %s", (manager['id_user'],))
         conn.commit()
-
-        cur.close()
-        conn.close()
 
         return {
             'statusCode': 200,

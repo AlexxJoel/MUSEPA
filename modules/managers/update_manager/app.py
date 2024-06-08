@@ -62,8 +62,10 @@ def lambda_handler(event, _context):
         cur.execute("SELECT id_user FROM managers WHERE id = %s", (id,))
         result = cur.fetchone()
         if not result:
-            print("Manager no encontrado")
-            return
+            return {
+                "statusCode": 404,
+                "body": json.dumps({"error": "Manager not found"})
+            }
         user_id = result[0]
 
         # Actualizar el usuario en la tabla users
@@ -88,9 +90,6 @@ def lambda_handler(event, _context):
         ))
 
         conn.commit()
-
-        cur.close()
-        conn.close()
 
         return {
             'statusCode': 200,
