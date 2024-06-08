@@ -18,7 +18,7 @@ capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 resolve_s3 = true
 s3_prefix = "museepa"
-region = "us-east-1"
+region = "us-west-1"
 profile = "default"
 disable_rollback = true
 parameter_overrides = "RDSProxyHost=\"\" DBUserName=\"\" DBPassword=\"\" DBName=\"\""
