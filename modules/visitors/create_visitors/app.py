@@ -1,16 +1,18 @@
 import json
+
 import psycopg2
-from functions import (datetime_serializer, serialize_rows)
 
-def lambda_handler(event, __):
+
+def lambda_handler(event, _context):
+    conn = None
+    cur = None
     try:
-
         # Conexión a la base de datos
         conn = psycopg2.connect(
             host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
-            user = 'default',
-            password = 'pnQI1h7sNfFK',
-            database = 'verceldb'
+            user='default',
+            password='pnQI1h7sNfFK',
+            database='verceldb'
         )
 
         # check if the connection is successful
@@ -46,7 +48,7 @@ def lambda_handler(event, __):
         email = request_body['email']
         password = request_body['password']
         username = request_body['username']
-        id_role = 1
+        id_role = 2
         name = request_body['name']
         surname = request_body['surname']
         lastname = request_body['lastname']
@@ -69,17 +71,19 @@ def lambda_handler(event, __):
         cur.execute(insert_visitor_query, (name, surname, lastname, id_user))
 
         conn.commit()
-
-        cur.close()
-        conn.close()
-
-        return  {
+        return {
             'statusCode': 200,
             'body': json.dumps("Visitor created successfully")
         }
-
     except Exception as e:
+        if conn is not None:
+            conn.rollback()
         return {
             'statusCode': 500,
             'body': json.dumps(str(e))
         }
+    finally:
+        if conn is not None:
+            conn.close()
+        if cur is not None:
+            cur.close()
