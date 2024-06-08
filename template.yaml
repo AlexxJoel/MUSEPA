@@ -23,6 +23,12 @@ Resources:
       Name: MuseumApi
       StageName: Dev
 
+  WorkApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: WorkApi
+      StageName: Dev
+
   GetDataEventFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -176,6 +182,83 @@ Resources:
             Path: /museums/{id}
             Method: GET
 
+# ------------ Work ------------
+  GetDataWorkFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/works/get_works/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        GetEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WorkApi
+            Path: /works
+            Method: GET
+  CreateDataWorkFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/works/create_work/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        CreateEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WorkApi
+            Path: /works
+            Method: POST
+  DeleteDataWorkFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/works/delete_work/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        DeleteEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WorkApi
+            Path: /works/{id}
+            Method: DELETE
+  UpdateDataWorkFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/works/update_work/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        UpdateEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WorkApi
+            Path: /works
+            Method: PUT
+  FindDataWorkFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/works/find_work/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        FindEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WorkApi
+            Path: /works/{id}
+            Method: GET
+
 Outputs:
     EventApi:
         Description: "API Gateway endpoint URL for Prod stage for museepa function"
@@ -183,4 +266,7 @@ Outputs:
     MuseumApi:
         Description: "API Gateway endpoint URL for Prod stage for museepa function"
         Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    WorkApi:
+      Description: "API Gateway endpoint URL for Prod stage for museepa function"
+      Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
 
