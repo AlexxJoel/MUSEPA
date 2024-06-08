@@ -39,4 +39,4 @@ jobs:
 
       - name: Deploy SAM application
         run: |
-          sam deploy --stack-name Dev --region us-west-1 --capabilities CAPABILITY_IAM --no-confirm-changeset --no-fail-on-empty-changeset --resolve-s3 --config-env GitHubActions
+          sam deploy --stack-name museepa --region us-west-1 --capabilities CAPABILITY_IAM --no-confirm-changeset --no-fail-on-empty-changeset --resolve-s3 --config-env GitHubActions
