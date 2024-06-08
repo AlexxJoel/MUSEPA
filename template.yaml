@@ -10,163 +10,103 @@ Globals:
     Timeout: 3
 
 Resources:
-  MuseumsApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      Name: MuseumApi
-      StageName: Prod
 
-
-  AddMuseumFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: crud_museums/
-      Handler: app.insert_museum
-      Runtime: python3.11
-      Architectures:
-        - x86_64
-      Events:
-        CreateMuseum:
-          Type: Api
-          Properties:
-            RestApiId: !Ref MuseumsApi
-            Path: /museum
-            Method: POST
-
-  UpdateMuseumFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: crud_museums/
-      Handler: app.update_museum
-      Runtime: python3.11
-      Architectures:
-        - x86_64
-      Events:
-        CreateMuseum:
-          Type: Api
-          Properties:
-            RestApiId: !Ref MuseumsApi
-            Path: /museum
-            Method: PUT
-
-
-  GetMuseumFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: crud_museums/
-      Handler: app.get_museum
-      Runtime: python3.11
-      Architectures:
-        - x86_64
-      Events:
-        CreateMuseum:
-          Type: Api
-          Properties:
-            RestApiId: !Ref MuseumsApi
-            Path: /museum
-            Method: GET
-
-  EventsApi:
+  EventApi:
     Type: AWS::Serverless::Api
     Properties:
       Name: EventApi
-      StageName: Prod
+      StageName: Dev
 
-  AddEventFunction:
+
+  GetDataEventFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: crud_events/
-      Handler: app.insert_event
-      Runtime: python3.11
-      Architectures:
-        - x86_64
-      Events:
-        CreateEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref EventsApi
-            Path: /events
-            Method: POST
-
-  UpdateEventFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: crud_events/
-      Handler: app.update_event
-      Runtime: python3.11
-      Architectures:
-        - x86_64
-      Events:
-        UpdateEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref EventsApi
-            Path: /events
-            Method: PUT
-
-  GetEventFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: crud_events/
-      Handler: app.get_event
-      Runtime: python3.11
+      CodeUri: get_events/
+      Handler: app.lambda_handler
+      Runtime: python3.12
       Architectures:
         - x86_64
       Events:
         GetEvent:
           Type: Api
           Properties:
-            RestApiId: !Ref EventsApi
+            RestApiId: !Ref EventApi
             Path: /events
             Method: GET
 
-  DeleteEventFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: crud_events/
-      Handler: app.delete_event
-      Runtime: python3.11
-      Architectures:
-        - x86_64
-      Events:
-        DeleteEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref EventsApi
-            Path: /events
-            Method: DELETE
 
-
-  HelloWorldFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: hello_world/
-      Handler: app.lambda_handler
-      Runtime: python3.11
-      Architectures:
-        - x86_64
-      Events:
-        HelloWorld:
-          Type: Api
-          Properties:
-            Path: /hello
-            Method: get
-
-
+#  EventsApi:
+#    Type: AWS::Serverless::Api
+#    Properties:
+#      Name: EventApi
+#      StageName: Prod
+#
+#  AddEventFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: crud_events/
+#      Handler: app.insert_event
+#      Runtime: python3.12
+#      Architectures:
+#        - x86_64
+#      Events:
+#        CreateEvent:
+#          Type: Api
+#          Properties:
+#            RestApiId: !Ref EventsApi
+#            Path: /events
+#            Method: POST
+#
+#  UpdateEventFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: crud_events/
+#      Handler: app.update_event
+#      Runtime: python3.12
+#      Architectures:
+#        - x86_64
+#      Events:
+#        UpdateEvent:
+#          Type: Api
+#          Properties:
+#            RestApiId: !Ref EventsApi
+#            Path: /events
+#            Method: PUT
+#
+#  GetEventFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: crud_events/
+#      Handler: app.get_event
+#      Runtime: python3.12
+#      Architectures:
+#        - x86_64
+#      Events:
+#        GetEvent:
+#          Type: Api
+#          Properties:
+#            RestApiId: !Ref EventsApi
+#            Path: /events
+#            Method: GET
+#
+#  DeleteEventFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      CodeUri: crud_events/
+#      Handler: app.delete_event
+#      Runtime: python3.12
+#      Architectures:
+#        - x86_64
+#      Events:
+#        DeleteEvent:
+#          Type: Api
+#          Properties:
+#            RestApiId: !Ref EventsApi
+#            Path: /events
+#            Method: DELETE
 
 Outputs:
-  HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+    EventApi:
+        Description: "API Gateway endpoint URL for Prod stage for museepa function"
+        Value: !Sub "https://${EventApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
 
-  HelloWorldFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
-
-  CrudEventApi:
-    Description: "API Gateway endpoint URL for Prod stage for Get Event function"
-    Value: !Sub "https://${EventsApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/event/"
