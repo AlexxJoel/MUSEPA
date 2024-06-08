@@ -23,6 +23,19 @@ Resources:
       Name: MuseumApi
       StageName: Dev
 
+  VisitorApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: VisitorApi
+      StageName: Dev
+
+  ManagerApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: ManagerApi
+      StageName: Dev
+
+  # ------------ Event ------------
   GetDataEventFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -176,11 +189,185 @@ Resources:
             Path: /museums/{id}
             Method: GET
 
-Outputs:
-    EventApi:
-        Description: "API Gateway endpoint URL for Prod stage for museepa function"
-        Value: !Sub "https://${EventApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-    MuseumApi:
-        Description: "API Gateway endpoint URL for Prod stage for museepa function"
-        Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  # ------------ Visitor ------------
+  GetDataVisitorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/visitors/get_visitors/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        GetVisitor:
+          Type: Api
+          Properties:
+            RestApiId: !Ref VisitorApi
+            Path: /visitors
+            Method: GET
+  CreateDataVisitorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/visitors/create_visitor/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        CreateVisitor:
+          Type: Api
+          Properties:
+            RestApiId: !Ref VisitorApi
+            Path: /visitors
+            Method: POST
+  DeleteDataVisitorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/visitors/delete_visitor/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        DeleteVisitor:
+          Type: Api
+          Properties:
+            RestApiId: !Ref VisitorApi
+            Path: /visitors/{id}
+            Method: DELETE
+  UpdateDataVisitorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/visitors/update_visitor/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        UpdateVisitor:
+          Type: Api
+          Properties:
+            RestApiId: !Ref VisitorApi
+            Path: /visitors
+            Method: PUT
+  FindDataVisitorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/visitors/find_visitor/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        FindVisitor:
+          Type: Api
+          Properties:
+            RestApiId: !Ref VisitorApi
+            Path: /visitors/{id}
+            Method: GET
+  UpdateFavoriteVisitorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/visitors/update_favorite_visitor/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        UpdateFavoriteVisitor:
+          Type: Api
+          Properties:
+            RestApiId: !Ref VisitorApi
+            Path: /visitors/{id}/favorite
+            Method: PUT
 
+  # ------------ Manager ------------
+  GetDataManagerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/managers/get_managers
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        GetVisitor:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ManagerApi
+            Path: /managers
+            Method: GET
+  CreateDataManagerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/managers/create_manager/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        CreateVisitor:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ManagerApi
+            Path: /managers
+            Method: POST
+  DeleteDataManagerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/managers/delete_manager/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        DeleteVisitor:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ManagerApi
+            Path: /managers/{id}
+            Method: DELETE
+  UpdateDataManagerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/managers/update_manager/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        UpdateVisitor:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ManagerApi
+            Path: /managers
+            Method: PUT
+  FindDataManagerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/managers/find_manager/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        FindVisitor:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ManagerApi
+            Path: /managers/{id}
+            Method: GET
+
+Outputs:
+  EventApi:
+    Description: "API Gateway endpoint URL for Prod stage for museepa function"
+    Value: !Sub "https://${EventApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  MuseumApi:
+    Description: "API Gateway endpoint URL for Prod stage for museepa function"
+    Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  VisitorApi:
+    Description: "API Gateway endpoint URL for Prod stage for museepa function"
+    Value: !Sub "https://${VisitorApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  ManagerApi:
+    Description: "API Gateway endpoint URL for Prod stage for museepa function"
+    Value: !Sub "https://${ManagerApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
