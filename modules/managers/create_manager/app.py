@@ -5,6 +5,7 @@ import psycopg2
 
 def lambda_handler(event, _context):
     cur = None
+    conn = None
     try:
 
         # Conexión a la base de datos
@@ -74,22 +75,19 @@ def lambda_handler(event, _context):
         cur.execute(insert_visitor_query, (name, surname, lastname, phone_number, address, birthdate, id_user))
 
         conn.commit()
-
-        cur.close()
-        conn.close()
-
         return {
             'statusCode': 200,
             'body': json.dumps("Manager created successfully")
         }
-
     except Exception as e:
-        if cur is not None:
-            cur.rollback()
+        if conn is not None:
+            conn.rollback()
         return {
             'statusCode': 500,
             'body': json.dumps(str(e))
         }
     finally:
+        if conn is not None:
+            conn.close()
         if cur is not None:
             cur.close()

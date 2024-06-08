@@ -4,6 +4,8 @@ import psycopg2
 
 
 def lambda_handler(event, _context):
+    conn = None
+    cur = None
     try:
 
         # Conexión a la base de datos
@@ -94,9 +96,15 @@ def lambda_handler(event, _context):
             'statusCode': 200,
             'body': json.dumps({"message": "Manager updated successfully"})
         }
-
     except Exception as e:
+        if conn is not None:
+            conn.rollback()
         return {
             'statusCode': 500,
             'body': json.dumps(str(e))
         }
+    finally:
+        if conn is not None:
+            conn.close()
+        if cur is not None:
+            cur.close()
