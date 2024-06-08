@@ -3,7 +3,7 @@ name: Deploy Lambda to AWS
 on:
   push:
     branches:
-      - main  # Cambia esto al nombre de tu rama principal si es diferente
+      - master  # Cambia esto al nombre de tu rama principal si es diferente
 
 jobs:
   deploy:
@@ -20,17 +20,22 @@ jobs:
           aws-region: us-west-1
 
       - name: Install Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.12'
 
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
       - name: Install SAM CLI
+        run: pip install aws-sam-cli
+
+      - name: Install dependencies
         run: |
-          pip install aws-sam-cli
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Build SAM application
-        run: |
-          sam build
+        run: sam build
 
       - name: Deploy SAM application
         run: |
