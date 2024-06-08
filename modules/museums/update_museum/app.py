@@ -55,7 +55,7 @@ def lambda_handler(event, __):
 
         # execute the query
         sql = """UPDATE museums SET name=%s, location=%s, tariffs=%s, schedules=%s, contact_number=%s, contact_email=%s, id_owner=%s, pictures=%s WHERE id=%s"""
-        cur.execute(sql, (name, location, tariffs, schedules, contact_number, contact_email, id_owner, pictures, id_museum))
+        cur.execute(sql, (name, location, tariffs, schedules, contact_number, contact_email, id_owner, pictures, id))
 
         conn.commit()
 
