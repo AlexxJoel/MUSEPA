@@ -21,7 +21,7 @@ Resources:
   GetDataEventFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: get_events/
+      CodeUri: modules/events/get_events/
       Handler: app.lambda_handler
       Runtime: python3.12
       Architectures:
@@ -33,6 +33,68 @@ Resources:
             RestApiId: !Ref EventApi
             Path: /events
             Method: GET
+  CreateDataEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/events/create_event/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        CreateEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventApi
+            Path: /events
+            Method: POST
+  DeleteDataEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/events/delete_event/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        DeleteEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventApi
+            Path: /events/{id}
+            Method: DELETE
+  UpdateDataEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/events/update_event/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        UpdateEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventApi
+            Path: /events
+            Method: PUT
+  FindDataEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/events/find_event/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        FindEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EventApi
+            Path: /events/{id}
+            Method: GET
+
+
 
 
 #  EventsApi:

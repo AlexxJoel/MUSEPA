@@ -2,7 +2,6 @@ import json
 import psycopg2
 from functions import (datetime_serializer, serialize_rows)
 
-
 def lambda_handler(event, context):
     try:
         # Conexión a la base de datos
@@ -22,8 +21,6 @@ def lambda_handler(event, context):
 
         cur.close()
         conn.close()
-
-
 
         return  {
             'statusCode': 200,
