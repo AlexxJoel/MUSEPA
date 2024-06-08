@@ -17,6 +17,11 @@ Resources:
       Name: EventApi
       StageName: Dev
 
+  MuseumApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: MuseumApi
+      StageName: Dev
 
   GetDataEventFunction:
     Type: AWS::Serverless::Function
@@ -94,81 +99,88 @@ Resources:
             Path: /events/{id}
             Method: GET
 
-
-
-
-#  EventsApi:
-#    Type: AWS::Serverless::Api
-#    Properties:
-#      Name: EventApi
-#      StageName: Prod
-#
-#  AddEventFunction:
-#    Type: AWS::Serverless::Function
-#    Properties:
-#      CodeUri: crud_events/
-#      Handler: app.insert_event
-#      Runtime: python3.12
-#      Architectures:
-#        - x86_64
-#      Events:
-#        CreateEvent:
-#          Type: Api
-#          Properties:
-#            RestApiId: !Ref EventsApi
-#            Path: /events
-#            Method: POST
-#
-#  UpdateEventFunction:
-#    Type: AWS::Serverless::Function
-#    Properties:
-#      CodeUri: crud_events/
-#      Handler: app.update_event
-#      Runtime: python3.12
-#      Architectures:
-#        - x86_64
-#      Events:
-#        UpdateEvent:
-#          Type: Api
-#          Properties:
-#            RestApiId: !Ref EventsApi
-#            Path: /events
-#            Method: PUT
-#
-#  GetEventFunction:
-#    Type: AWS::Serverless::Function
-#    Properties:
-#      CodeUri: crud_events/
-#      Handler: app.get_event
-#      Runtime: python3.12
-#      Architectures:
-#        - x86_64
-#      Events:
-#        GetEvent:
-#          Type: Api
-#          Properties:
-#            RestApiId: !Ref EventsApi
-#            Path: /events
-#            Method: GET
-#
-#  DeleteEventFunction:
-#    Type: AWS::Serverless::Function
-#    Properties:
-#      CodeUri: crud_events/
-#      Handler: app.delete_event
-#      Runtime: python3.12
-#      Architectures:
-#        - x86_64
-#      Events:
-#        DeleteEvent:
-#          Type: Api
-#          Properties:
-#            RestApiId: !Ref EventsApi
-#            Path: /events
-#            Method: DELETE
+# ------------ Museum ------------
+  GetDataMuseumFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/museums/get_museums/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        GetMuseum:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MuseumApi
+            Path: /museums
+            Method: GET
+  CreateDataMuseumFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/museums/create_museum/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        CreateMuseum:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MuseumApi
+            Path: /museums
+            Method: POST
+  DeleteDataMuseumFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/museums/delete_museum/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        DeleteMuseum:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MuseumApi
+            Path: /museums/{id}
+            Method: DELETE
+  UpdateDataMuseumFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/museums/update_museum/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        UpdateMuseum:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MuseumApi
+            Path: /museums
+            Method: PUT
+  FindDataMuseumFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/museums/find_museum/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        FindMuseum:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MuseumApi
+            Path: /museums/{id}
+            Method: GET
 
 Outputs:
     EventApi:
         Description: "API Gateway endpoint URL for Prod stage for museepa function"
         Value: !Sub "https://${EventApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    MuseumApi:
+        Description: "API Gateway endpoint URL for Prod stage for museepa function"
+        Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
 
