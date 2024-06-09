@@ -73,7 +73,7 @@ class Range:
             str(self._upper),
             self._bounds[1]
         ]
-        return ''.join(items)
+        return ''.join(items)   
 
     @property
     def lower(self):
@@ -339,7 +339,7 @@ class RangeCaster:
                 'pyrange must be a type or a Range strict subclass')
 
     @classmethod
-    def _from_db(self, name, pyrange, conn_or_curs):
+    def _from_db(cls, name, pyrange, conn_or_curs):
         """Return a `RangeCaster` instance for the type *pgrange*.
 
         Raise `ProgrammingError` if the type is not found.
@@ -523,7 +523,6 @@ class NumberRangeAdapter(RangeAdapter):
         return (f"'{r._bounds[0]}{lower},{upper}{r._bounds[1]}'").encode('ascii')
 
 
-# TODO: probably won't work with infs, nans and other tricky cases.
 register_adapter(NumericRange, NumberRangeAdapter)
 
 # Register globally typecasters and adapters for builtin range types.

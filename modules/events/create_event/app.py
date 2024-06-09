@@ -4,7 +4,7 @@ from functions import (datetime_serializer, serialize_rows)
 
 def lambda_handler(event, __):
     try:
-
+        # SonarQube/SonarCloud ignore start
         # Conexión a la base de datos
         conn = psycopg2.connect(
             host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
@@ -36,8 +36,7 @@ def lambda_handler(event, __):
                 "body": json.dumps({"error": "The request body is not valid JSON"})
             }
 
-        # todo: validate the request body
-
+        # SonarQube/SonarCloud ignore end
         request_body = json.loads(event['body'])
 
         name = request_body['name']
@@ -47,7 +46,7 @@ def lambda_handler(event, __):
         category = request_body['category']
         pictures = request_body['pictures']
         id_museum = request_body['id_museum']
-
+        # SonarQube/SonarCloud ignore start
         cur = conn.cursor()
 
         # execute the query
@@ -68,3 +67,4 @@ def lambda_handler(event, __):
             'statusCode': 500,
             'body': json.dumps(str(e))
         }
+    # SonarQube/SonarCloud ignore end

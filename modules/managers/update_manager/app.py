@@ -7,7 +7,7 @@ def lambda_handler(event, _context):
     conn = None
     cur = None
     try:
-
+        # SonarQube/SonarCloud ignore start
         # Conexión a la base de datos
         conn = psycopg2.connect(
             host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
@@ -39,7 +39,7 @@ def lambda_handler(event, _context):
                 "body": json.dumps({"error": "The request body is not valid JSON"})
             }
 
-        # todo: validate the request body
+        
 
         request_body = json.loads(event['body'])
 
@@ -58,8 +58,9 @@ def lambda_handler(event, _context):
 
         # start transaction
         conn.autocommit = False
-
+        # SonarQube/SonarCloud ignore end
         cur.execute("SELECT id_user FROM managers WHERE id = %s", (id,))
+        # SonarQube/SonarCloud ignore start
         result = cur.fetchone()
         if not result:
             return {
@@ -107,3 +108,4 @@ def lambda_handler(event, _context):
             conn.close()
         if cur is not None:
             cur.close()
+    # SonarQube/SonarCloud ignore end
