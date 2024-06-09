@@ -35,8 +35,13 @@ Resources:
       Name: VisitorApi
       StageName: Dev
 
-  # ------------ Event ------------
+  ManagerApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: ManagerApi
+      StageName: Dev
 
+  # ------------ Event ------------
   GetDataEventFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -363,6 +368,83 @@ Resources:
             Path: /works/{id}
             Method: GET
 
+  # ------------ Manager ------------
+  GetDataManagerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/managers/get_managers/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        GetManagers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ManagerApi
+            Path: /managers
+            Method: GET
+  CreateDataManagerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/managers/create_manager/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        CreateManager:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ManagerApi
+            Path: /managers
+            Method: POST
+  DeleteDataManagerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/managers/delete_manager/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        DeleteManager:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ManagerApi
+            Path: /managers/{id}
+            Method: DELETE
+  UpdateDataManagerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/managers/update_manager/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        UpdateManager:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ManagerApi
+            Path: /managers
+            Method: PUT
+  FindDataManagerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/managers/find_manager/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        FindManager:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ManagerApi
+            Path: /managers/{id}
+            Method: GET
+
 Outputs:
     EventApi:
         Description: "API Gateway endpoint URL for Prod stage for museepa function"
@@ -371,9 +453,12 @@ Outputs:
         Description: "API Gateway endpoint URL for Prod stage for museepa function"
         Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
     WorkApi:
-      Description: "API Gateway endpoint URL for Prod stage for museepa function"
-      Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+        Description: "API Gateway endpoint URL for Prod stage for museepa function"
+        Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
     VisitorApi:
-      Description: "API Gateway endpoint URL for Prod stage for museepa function"
-      Value: !Sub "https://${VisitorApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+        Description: "API Gateway endpoint URL for Prod stage for museepa function"
+        Value: !Sub "https://${VisitorApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    ManagerApi:
+        Description: "API Gateway endpoint URL for Prod stage for museepa function"
+        Value: !Sub "https://${ManagerApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
 
