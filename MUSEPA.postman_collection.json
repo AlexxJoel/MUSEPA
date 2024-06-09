@@ -1,0 +1,779 @@
+{
+	"info": {
+		"_postman_id": "a1a3d870-0887-420e-b8a6-ab227ed9d2de",
+		"name": "MUSEPA",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "36195023"
+	},
+	"item": [
+		{
+			"name": "EVENTS",
+			"item": [
+				{
+					"name": "get-all",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://yzf3vzp6xa.execute-api.us-west-1.amazonaws.com/Dev/events",
+							"protocol": "https",
+							"host": [
+								"yzf3vzp6xa",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-one",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://yzf3vzp6xa.execute-api.us-west-1.amazonaws.com/Dev/events/7",
+							"protocol": "https",
+							"host": [
+								"yzf3vzp6xa",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"events",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"More\",\r\n    \"description\": \"Esculturas inspiradas en JoJos\",\r\n    \"start_date\": \"2024-06-06\",\r\n    \"end_date\": \"2024-06-07\",\r\n    \"category\": \"Exposición\",\r\n    \"pictures\": null,\r\n    \"id_museum\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://yzf3vzp6xa.execute-api.us-west-1.amazonaws.com/Dev/events",
+							"protocol": "https",
+							"host": [
+								"yzf3vzp6xa",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 12,\r\n    \"name\": \"MoreJoJo\",\r\n    \"description\": \"Esculturas inspiradas en JoJos SBR\",\r\n    \"start_date\": \"2024-06-06\",\r\n    \"end_date\": \"2024-06-07\",\r\n    \"category\": \"Exposición\",\r\n    \"pictures\": null,\r\n    \"id_museum\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://yzf3vzp6xa.execute-api.us-west-1.amazonaws.com/Dev/events",
+							"protocol": "https",
+							"host": [
+								"yzf3vzp6xa",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://yzf3vzp6xa.execute-api.us-west-1.amazonaws.com/Dev/events/12",
+							"protocol": "https",
+							"host": [
+								"yzf3vzp6xa",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"events",
+								"12"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "MUSEUMS",
+			"item": [
+				{
+					"name": "get-all",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://ftn4e8el38.execute-api.us-west-1.amazonaws.com/Dev/museums",
+							"protocol": "https",
+							"host": [
+								"ftn4e8el38",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"museums"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-one",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://ftn4e8el38.execute-api.us-west-1.amazonaws.com/Dev/museums/11",
+							"protocol": "https",
+							"host": [
+								"ftn4e8el38",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"museums",
+								"11"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"MUSEPPA JoJo\",\r\n    \"location\": null,\r\n    \"tariffs\": null,\r\n    \"schedules\": null,\r\n    \"contact_number\": null,\r\n    \"contact_email\": null,\r\n    \"id_owner\": null,\r\n    \"pictures\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://ftn4e8el38.execute-api.us-west-1.amazonaws.com/Dev/museums",
+							"protocol": "https",
+							"host": [
+								"ftn4e8el38",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"museums"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 11,\r\n    \"name\": \"Updated museum JoJo SBR\",\r\n    \"location\": null,\r\n    \"tariffs\": null,\r\n    \"schedules\": null,\r\n    \"contact_number\": null,\r\n    \"contact_email\": null,\r\n    \"id_owner\": null,\r\n    \"pictures\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://ftn4e8el38.execute-api.us-west-1.amazonaws.com/Dev/museums",
+							"protocol": "https",
+							"host": [
+								"ftn4e8el38",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"museums"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete Copy",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://ftn4e8el38.execute-api.us-west-1.amazonaws.com/Dev/museums/11",
+							"protocol": "https",
+							"host": [
+								"ftn4e8el38",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"museums",
+								"11"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "WORKS",
+			"item": [
+				{
+					"name": "get-all",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://vfzcolouw9.execute-api.us-west-1.amazonaws.com/Dev/works",
+							"protocol": "https",
+							"host": [
+								"vfzcolouw9",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"works"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-one",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://vfzcolouw9.execute-api.us-west-1.amazonaws.com/Dev/works/3",
+							"protocol": "https",
+							"host": [
+								"vfzcolouw9",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"works",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Flor\",\r\n    \"description\": \"Flor bonita\",\r\n    \"creation_date\": \"2024-01-01\",\r\n    \"technique\": \"puntos\",\r\n    \"artists\": [\"More\"],\r\n    \"id_museum\": 1,\r\n    \"pictures\": [\"da\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://vfzcolouw9.execute-api.us-west-1.amazonaws.com/Dev/works",
+							"protocol": "https",
+							"host": [
+								"vfzcolouw9",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"works"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 3,\r\n    \"title\": \"FlorModificada\",\r\n    \"description\": \"Flor muy bonita\",\r\n    \"creation_date\": \"2024-01-01\",\r\n    \"technique\": \"puntos\",\r\n    \"artists\": [\"More\"],\r\n    \"id_museum\": 1,\r\n    \"pictures\": [\"da\", \"do\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://vfzcolouw9.execute-api.us-west-1.amazonaws.com/Dev/works",
+							"protocol": "https",
+							"host": [
+								"vfzcolouw9",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"works"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://vfzcolouw9.execute-api.us-west-1.amazonaws.com/Dev/works/3",
+							"protocol": "https",
+							"host": [
+								"vfzcolouw9",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"works",
+								"3"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "VISITORS",
+			"item": [
+				{
+					"name": "get-all",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://6yfzw6jc67.execute-api.us-west-1.amazonaws.com/Dev/visitors",
+							"protocol": "https",
+							"host": [
+								"6yfzw6jc67",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"visitors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-one",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://6yfzw6jc67.execute-api.us-west-1.amazonaws.com/Dev/visitors/4",
+							"protocol": "https",
+							"host": [
+								"6yfzw6jc67",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"visitors",
+								"4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n        \"email\": \"MORE@example.com\",\r\n        \"password\": \"MORE123\",\r\n        \"username\": \"MORE\",\r\n        \"id_role\": 2,\r\n        \"name\": \"Alejandro\",\r\n        \"surname\": \"Morellano\",\r\n        \"lastname\": \"Alvarez\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://6yfzw6jc67.execute-api.us-west-1.amazonaws.com/Dev/visitors",
+							"protocol": "https",
+							"host": [
+								"6yfzw6jc67",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"visitors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 5,\r\n    \"email\": \"MOREjojo@example.com\",\r\n    \"password\": \"MOREjojo123\",\r\n    \"username\": \"MOREjojo\",\r\n    \"id_role\": 2,\r\n    \"name\": \"Alejandrojojo\",\r\n    \"surname\": \"Morellanojojo\",\r\n    \"lastname\": \"Alvarezjojo\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://6yfzw6jc67.execute-api.us-west-1.amazonaws.com/Dev/visitors",
+							"protocol": "https",
+							"host": [
+								"6yfzw6jc67",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"visitors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateFavorites",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 4, \r\n    \"favorites\": [2]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://6yfzw6jc67.execute-api.us-west-1.amazonaws.com/Dev/visitors/4/favorite",
+							"protocol": "https",
+							"host": [
+								"6yfzw6jc67",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"visitors",
+								"4",
+								"favorite"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://6yfzw6jc67.execute-api.us-west-1.amazonaws.com/Dev/visitors/5",
+							"protocol": "https",
+							"host": [
+								"6yfzw6jc67",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"visitors",
+								"5"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "MANAGERS",
+			"item": [
+				{
+					"name": "get-all",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://8mvwhgwpba.execute-api.us-west-1.amazonaws.com/Dev/managers",
+							"protocol": "https",
+							"host": [
+								"8mvwhgwpba",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"managers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-one",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://8mvwhgwpba.execute-api.us-west-1.amazonaws.com/Dev/managers/7",
+							"protocol": "https",
+							"host": [
+								"8mvwhgwpba",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"managers",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n        \"email\": \"MORE@example.com\",\r\n        \"password\": \"MORE123\",\r\n        \"username\": \"MORE\",\r\n        \"id_role\": 1,\r\n        \"name\": \"Alejandro\",\r\n        \"surname\": \"Morellano\",\r\n        \"lastname\": \"Alvarez\",\r\n        \"phone_number\": \"+1234567870\",\r\n        \"address\": \"123 Main St, Anytoiwn, USA\",\r\n        \"birthdate\": \"1990-02-01\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://8mvwhgwpba.execute-api.us-west-1.amazonaws.com/Dev/managers",
+							"protocol": "https",
+							"host": [
+								"8mvwhgwpba",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"managers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 6,\r\n    \"email\": \"MOREEE@example.com\",\r\n    \"password\": \"MOREMORE123\",\r\n    \"username\": \"MOREALVA\",\r\n    \"id_role\": 1,\r\n    \"name\": \"Alejaddndro\",\r\n    \"surname\": \"Morellassno\",\r\n    \"lastname\": \"Alvarezzz\",\r\n    \"phone_number\": \"+1234567870\",\r\n    \"address\": \"123 Main St, Anytoiwn, USA\",\r\n    \"birthdate\": \"1990-02-01\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://8mvwhgwpba.execute-api.us-west-1.amazonaws.com/Dev/managers",
+							"protocol": "https",
+							"host": [
+								"8mvwhgwpba",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"managers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://8mvwhgwpba.execute-api.us-west-1.amazonaws.com/Dev/managers/6",
+							"protocol": "https",
+							"host": [
+								"8mvwhgwpba",
+								"execute-api",
+								"us-west-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"Dev",
+								"managers",
+								"6"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
