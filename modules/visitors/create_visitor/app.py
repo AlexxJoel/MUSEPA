@@ -38,7 +38,7 @@ def lambda_handler(event, _context):
                 "body": json.dumps({"error": "The request body is not valid JSON"})
             }
 
-        # todo: validate the request body
+        # TODO: validate the request body
 
         # start transaction
         conn.autocommit = False

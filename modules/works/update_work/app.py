@@ -37,7 +37,7 @@ def lambda_handler(event, __):
                 "body": json.dumps({"error": "The request body is not valid JSON"})
             }
 
-        # todo: validate the request body
+        # TODO: validate the request body
 
         request_body = json.loads(event['body'])
 
