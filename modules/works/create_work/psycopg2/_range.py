@@ -339,7 +339,7 @@ class RangeCaster:
                 'pyrange must be a type or a Range strict subclass')
 
     @classmethod
-    def _from_db(self, name, pyrange, conn_or_curs):
+    def _from_db(cls, name, pyrange, conn_or_curs):
         """Return a `RangeCaster` instance for the type *pgrange*.
 
         Raise `ProgrammingError` if the type is not found.
