@@ -1,8 +1,11 @@
 import json
 import psycopg2
-from functions import (datetime_serializer, serialize_rows)
+from functions import datetime_serializer
+from psycopg2.extras import RealDictCursor
 
-def lambda_handler(event, context):
+def lambda_handler(_event, _context):
+    conn = None
+    cur = None
     try:
         # Conexión a la base de datos
         conn = psycopg2.connect(
@@ -12,19 +15,22 @@ def lambda_handler(event, context):
             database = 'verceldb'
         )
 
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
 
         # Ejecutar una consulta (ejemplo: seleccionar todos los registros de una tabla)
-        cur.execute("SELECT * FROM museums;")
+        cur.execute("SELECT * FROM managers;")
+        managers = cur.fetchall()
 
-        rows = cur.fetchall()
-
-        cur.close()
-        conn.close()
-
-        return  {
+        rows = []
+        for manager in managers:
+            cur.execute("SELECT * FROM museums WHERE id_owner = %s", (manager["id"],))
+            museum = cur.fetchone()
+            if museum is not None:
+                museum["manager"] = manager
+                rows.append(museum)
+        return {
             'statusCode': 200,
-            'body': json.dumps(serialize_rows(rows, cur), default=datetime_serializer)
+            'body': json.dumps(rows, default=datetime_serializer)
         }
 
     except Exception as e:
@@ -32,3 +38,8 @@ def lambda_handler(event, context):
             'statusCode': 500,
             'body': json.dumps(str(e))
         }
+    finally:
+        if conn is not None:
+            conn.close()
+        if cur is not None:
+            cur.close()

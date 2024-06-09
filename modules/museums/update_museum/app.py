@@ -1,9 +1,10 @@
 import json
 import psycopg2
-from functions import (datetime_serializer, serialize_rows)
 
 
-def lambda_handler(event, __):
+def lambda_handler(event, _context):
+    conn = None
+    cur = None
     try:
 
         # Conexión a la base de datos
@@ -23,6 +24,12 @@ def lambda_handler(event, __):
 
         # Check if the event has a body
         if 'body' not in event:
+            return {
+                'statusCode': 400,
+                'body': json.dumps("No body provided")
+            }
+
+        if event['body'] is None:
             return {
                 'statusCode': 400,
                 'body': json.dumps("No body provided")
@@ -53,22 +60,26 @@ def lambda_handler(event, __):
 
         cur = conn.cursor()
 
+        conn.autocommit = False
+
         # execute the query
         sql = """UPDATE museums SET name=%s, location=%s, tariffs=%s, schedules=%s, contact_number=%s, contact_email=%s, id_owner=%s, pictures=%s WHERE id=%s"""
         cur.execute(sql, (name, location, tariffs, schedules, contact_number, contact_email, id_owner, pictures, id))
-
         conn.commit()
-
-        cur.close()
-        conn.close()
-
         return {
             'statusCode': 200,
             'body': json.dumps({"message": "Museum updated successfully"})
         }
 
     except Exception as e:
+        if conn is not None:
+            conn.rollback()
         return {
             'statusCode': 500,
             'body': json.dumps(str(e))
         }
+    finally:
+        if conn is not None:
+            conn.close()
+        if cur is not None:
+            cur.close()

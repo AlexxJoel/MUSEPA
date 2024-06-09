@@ -1,16 +1,16 @@
 import json
 import psycopg2
-from functions import (datetime_serializer, serialize_rows)
 
 def lambda_handler(event, __):
+    conn = None
+    cur = None
     try:
-
         # Conexión a la base de datos
         conn = psycopg2.connect(
             host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
-            user = 'default',
-            password = 'pnQI1h7sNfFK',
-            database = 'verceldb'
+            user='default',
+            password='pnQI1h7sNfFK',
+            database='verceldb'
         )
 
         # check if the connection is successful
@@ -27,6 +27,12 @@ def lambda_handler(event, __):
                 'body': json.dumps("No body provided")
             }
 
+        if event['body'] is None:
+            return {
+                'statusCode': 500,
+                'body': json.dumps("Connection to the database failed")
+            }
+
         # Try to load the JSON body from the event
         try:
             request_body = json.loads(event['body'])
@@ -37,6 +43,8 @@ def lambda_handler(event, __):
             }
 
         
+
+        conn.autocommit = False
 
         request_body = json.loads(event['body'])
 
@@ -57,16 +65,20 @@ def lambda_handler(event, __):
 
         conn.commit()
 
-        cur.close()
-        conn.close()
-
-        return  {
+        return {
             'statusCode': 200,
             'body': json.dumps("Museum created successfully")
         }
 
     except Exception as e:
+        if conn is not None:
+            conn.rollback()
         return {
             'statusCode': 500,
             'body': json.dumps(str(e))
         }
+    finally:
+        if conn is not None:
+            conn.close()
+        if cur is not None:
+            cur.close()
