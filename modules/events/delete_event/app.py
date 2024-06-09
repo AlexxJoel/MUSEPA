@@ -29,7 +29,9 @@ def lambda_handler(event, context):
         if event["pathParameters"]["id"] is None:
             return {"statusCode": 400, "body": json.dumps({"error": "Request ID is missing from the path parameters."})}
 
-        if not isinstance(event['pathParameters']['id'], int):
+        try:
+            event['pathParameters']['id'] = int(event['pathParameters']['id'])
+        except ValueError:
             return {"statusCode": 400, "body": json.dumps({"error": "Request ID data type is wrong."})}
 
         if event['pathParameters']['id'] <= 0:
