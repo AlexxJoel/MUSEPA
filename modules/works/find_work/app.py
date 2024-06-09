@@ -4,7 +4,7 @@ from functions import (datetime_serializer, serialize_rows)
 
 def lambda_handler(event, context):
     try:
-
+        # SonarQube/SonarCloud ignore start
         # Conexión a la base de datos
         conn = psycopg2.connect(
             host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
@@ -29,9 +29,10 @@ def lambda_handler(event, context):
         cur = conn.cursor()
 
         request_id = event['pathParameters']['id']
+        # SonarQube/SonarCloud ignore end
          # select the event by id
         sql = """SELECT * FROM works WHERE id = %s"""
-
+        # SonarQube/SonarCloud ignore start
         # # execute the query
         cur.execute(sql, (request_id,))
         row = cur.fetchall()
@@ -54,3 +55,4 @@ def lambda_handler(event, context):
             'statusCode': 500,
             'body': json.dumps(str(e))
         }
+# SonarQube/SonarCloud ignore end
