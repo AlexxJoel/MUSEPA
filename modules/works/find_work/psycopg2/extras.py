@@ -848,7 +848,7 @@ class HstoreAdapter:
     """, _re.VERBOSE)
 
     @classmethod
-    def parse(self, s, cur, _bsdec=_re.compile(r"\\(.)")):
+    def parse(cls, s, cur, _bsdec=_re.compile(r"\\(.)")):
         """Parse an hstore representation in a Python string.
 
         The hstore is represented as something like::
@@ -862,7 +862,7 @@ class HstoreAdapter:
 
         rv = {}
         start = 0
-        for m in self._re_hstore.finditer(s):
+        for m in cls._re_hstore.finditer(s):
             if m is None or m.start() != start:
                 raise psycopg2.InterfaceError(
                     f"error parsing hstore pair at char {start}")
@@ -881,16 +881,16 @@ class HstoreAdapter:
         return rv
 
     @classmethod
-    def parse_unicode(self, s, cur):
+    def parse_unicode(cls, s, cur):
         """Parse an hstore returning unicode keys and values."""
         if s is None:
             return None
 
         s = s.decode(_ext.encodings[cur.connection.encoding])
-        return self.parse(s, cur)
+        return cls.parse(s, cur)
 
     @classmethod
-    def get_oids(self, conn_or_curs):
+    def get_oids(cls, conn_or_curs):
         """Return the lists of OID of the hstore and hstore[] types.
         """
         conn, curs = _solve_conn_curs(conn_or_curs)
@@ -1042,15 +1042,15 @@ class CompositeCaster:
     _re_undouble = _re.compile(r'(["\\])\1')
 
     @classmethod
-    def tokenize(self, s):
+    def tokenize(cls, s):
         rv = []
-        for m in self._re_tokenize.finditer(s):
+        for m in cls._re_tokenize.finditer(s):
             if m is None:
                 raise psycopg2.InterfaceError(f"can't parse type: {s!r}")
             if m.group(1) is not None:
                 rv.append(None)
             elif m.group(2) is not None:
-                rv.append(self._re_undouble.sub(r"\1", m.group(2)))
+                rv.append(cls._re_undouble.sub(r"\1", m.group(2)))
             else:
                 rv.append(m.group(3))
 
@@ -1062,7 +1062,7 @@ class CompositeCaster:
         self._ctor = self.type._make
 
     @classmethod
-    def _from_db(self, name, conn_or_curs):
+    def _from_db(cls, name, conn_or_curs):
         """Return a `CompositeCaster` instance for the type *name*.
 
         Raise `ProgrammingError` if the type is not found.
@@ -1140,7 +1140,7 @@ ORDER BY attnum;
         array_oid = recs[0][1]
         type_attrs = [(r[2], r[3]) for r in recs]
 
-        return self(tname, type_oid, type_attrs,
+        return cls(tname, type_oid, type_attrs,
             array_oid=array_oid, schema=schema)
 
 
