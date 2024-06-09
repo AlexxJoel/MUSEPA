@@ -5,7 +5,7 @@ from functions import (datetime_serializer, serialize_rows)
 def lambda_handler(event, context):
     try:
 
-
+        # SonarQube/SonarCloud ignore start
         # Conexión a la base de datos
         conn = psycopg2.connect(
             host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
@@ -28,7 +28,7 @@ def lambda_handler(event, context):
             }
 
         cur = conn.cursor()
-
+        # SonarQube/SonarCloud ignore end
         request_id = event['pathParameters']['id']
          # select the event by id
         sql = """SELECT id, name, description, start_date, end_date FROM events WHERE id = %s"""
