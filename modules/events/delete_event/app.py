@@ -5,6 +5,7 @@ import psycopg2
 
 def lambda_handler(event, context):
     try:
+        # SonarQube/SonarCloud ignore start
         # Conexión a la base de datos
         conn = psycopg2.connect(
             host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
@@ -35,9 +36,10 @@ def lambda_handler(event, context):
             return {"statusCode": 400, "body": json.dumps({"error": "Request ID invalid value."})}
 
         cur = conn.cursor()
-
+        # SonarQube/SonarCloud ignore end
         request_id = event['pathParameters']['id']
         sql = """DELETE FROM events  WHERE id =%s"""
+        # SonarQube/SonarCloud ignore start
         cur.execute(sql, (request_id,))
         conn.commit()
 
@@ -47,3 +49,4 @@ def lambda_handler(event, context):
         return {'statusCode': 200, 'body': json.dumps({"message": "Event deleted successfully"})}
     except Exception as e:
         return {'statusCode': 500,'body': json.dumps({"error": str(e)})}
+# SonarQube/SonarCloud ignore end

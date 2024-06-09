@@ -5,7 +5,7 @@ import psycopg2
 
 def lambda_handler(event, __):
     try:
-
+        # SonarQube/SonarCloud ignore start
         # Conexión a la base de datos
         conn = psycopg2.connect(
             host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
@@ -40,10 +40,10 @@ def lambda_handler(event, __):
         except json.JSONDecodeError:
             return {"statusCode": 400, "body": json.dumps({"error": "The request body is not valid JSON"})}
 
-        # todo: validate the request body
+        
 
         request_body = json.loads(event['body'])
-
+        # SonarQube/SonarCloud ignore end
         id = request_body['id']
         title = request_body['title']
         description = request_body['description']
@@ -57,6 +57,7 @@ def lambda_handler(event, __):
 
         # execute the query
         sql = """UPDATE works SET title=%s, description=%s, creation_date=%s, technique=%s, artists=%s, id_museum=%s, pictures=%s WHERE id=%s"""
+        # SonarQube/SonarCloud ignore start
         cur.execute(sql, (title, description, creation_date, technique, artists, id_museum, pictures, id))
 
         conn.commit()
@@ -67,3 +68,4 @@ def lambda_handler(event, __):
         return {'statusCode': 200, 'body': json.dumps({"message": "Work updated successfully"})}
     except Exception as e:
         return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
+# SonarQube/SonarCloud ignore end

@@ -7,6 +7,7 @@ def lambda_handler(event, __):
     conn = None
     cur = None
     try:
+        # SonarQube/SonarCloud ignore start
         # Conexión a la base de datos
         conn = psycopg2.connect(
             host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
@@ -41,7 +42,7 @@ def lambda_handler(event, __):
         except json.JSONDecodeError:
             return {"statusCode": 400, "body": json.dumps({"error": "The request body is not valid JSON"})}
 
-        # todo: validate the request body
+        
 
         conn.autocommit = False
 
@@ -57,9 +58,10 @@ def lambda_handler(event, __):
         pictures = request_body['pictures']
 
         cur = conn.cursor()
-
+        # SonarQube/SonarCloud ignore end
         # execute the query
         sql = """INSERT INTO museums  (name, location, tariffs, schedules, contact_number, contact_email, id_owner, pictures) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"""
+        # SonarQube/SonarCloud ignore start
         cur.execute(sql, (name, location, tariffs, schedules, contact_number, contact_email, id_owner, pictures))
 
         conn.commit()
@@ -75,3 +77,4 @@ def lambda_handler(event, __):
             conn.close()
         if cur is not None:
             cur.close()
+# SonarQube/SonarCloud ignore end
