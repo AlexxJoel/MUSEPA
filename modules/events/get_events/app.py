@@ -14,7 +14,6 @@ def lambda_handler(event, context):
 
         cur = conn.cursor()
 
-        # Ejecutar una consulta (ejemplo: seleccionar todos los registros de una tabla)
         cur.execute("SELECT * FROM events;")
 
         rows = cur.fetchall()
