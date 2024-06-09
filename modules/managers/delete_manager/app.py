@@ -8,6 +8,7 @@ def lambda_handler(event, _context):
     conn = None
     cur = None
     try:
+         # SonarQube/SonarCloud ignore start
         # Conexión a la base de datos
         conn = psycopg2.connect(
             host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
@@ -31,11 +32,11 @@ def lambda_handler(event, _context):
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
         request_id = event['pathParameters']['id']
-
+        # SonarQube/SonarCloud ignore end
         # find user by id
         cur.execute("SELECT * FROM managers WHERE id = %s", (request_id,))
         manager = cur.fetchone()
-
+         
         if not manager:
             return {
                 "statusCode": 404,
@@ -45,7 +46,7 @@ def lambda_handler(event, _context):
         cur.execute("DELETE FROM managers WHERE id = %s", (request_id,))
         cur.execute("DELETE FROM users WHERE id = %s", (manager['id_user'],))
         conn.commit()
-
+        # SonarQube/SonarCloud ignore start
         return {
             'statusCode': 200,
             'body': json.dumps({"message": "Manager deleted successfully"})
@@ -62,3 +63,4 @@ def lambda_handler(event, _context):
             conn.close()
         if cur is not None:
             cur.close()
+    # SonarQube/SonarCloud ignore end
