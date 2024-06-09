@@ -272,7 +272,7 @@ Resources:
   UpdateFavoriteVisitorFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: modules/visitors/update_favorite_visitor/
+      CodeUri: modules/visitors/update_favorites_visitor/
       Handler: app.lambda_handler
       Runtime: python3.12
       Architectures:
