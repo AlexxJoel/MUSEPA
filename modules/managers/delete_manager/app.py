@@ -8,7 +8,7 @@ def lambda_handler(event, _context):
     conn = None
     cur = None
     try:
-         # SonarQube/SonarCloud ignore start
+        # SonarQube/SonarCloud ignore start
         # Conexión a la base de datos
         conn = psycopg2.connect(
             host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
@@ -32,7 +32,9 @@ def lambda_handler(event, _context):
         if event["pathParameters"]["id"] is None:
             return {"statusCode": 400, "body": json.dumps({"error": "Request ID is missing from the path parameters."})}
 
-        if not isinstance(event['pathParameters']['id'], int):
+        try:
+            event['pathParameters']['id'] = int(event['pathParameters']['id'])
+        except ValueError:
             return {"statusCode": 400, "body": json.dumps({"error": "Request ID data type is wrong."})}
 
         if event['pathParameters']['id'] <= 0:
@@ -45,7 +47,7 @@ def lambda_handler(event, _context):
         # find user by id
         cur.execute("SELECT * FROM managers WHERE id = %s", (request_id,))
         manager = cur.fetchone()
-         
+
         if not manager:
             return {"statusCode": 404, "body": json.dumps({"error": "Manager not found"})}
 
