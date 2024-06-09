@@ -18,16 +18,25 @@ def lambda_handler(event, _context):
         )
 
         if not conn:
-            return {
-                "statusCode": 500,
-                "body": json.dumps({"error": "Failed to connect to the database"})
-            }
+            return {"statusCode": 500, "body": json.dumps({"error": "Failed to connect to the database."})}
 
-        if event['pathParameters'] is None or 'id' not in event['pathParameters']:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"error": "Request ID is missing from the request body"})
-            }
+        if "pathParameters" not in event:
+            return {"statusCode": 400, "body": json.dumps({"error": "Path parameters is missing from the request."})}
+
+        if not event["pathParameters"]:
+            return {"statusCode": 400, "body": json.dumps({"error": "Path parameters is null."})}
+
+        if "id" not in event["pathParameters"]:
+            return {"statusCode": 400, "body": json.dumps({"error": "Request ID is missing from the path parameters."})}
+
+        if event["pathParameters"]["id"] is None:
+            return {"statusCode": 400, "body": json.dumps({"error": "Request ID is missing from the path parameters."})}
+
+        if not isinstance(event['pathParameters']['id'], int):
+            return {"statusCode": 400, "body": json.dumps({"error": "Request ID data type is wrong."})}
+
+        if event['pathParameters']['id'] <= 0:
+            return {"statusCode": 400, "body": json.dumps({"error": "Request ID invalid value."})}
 
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -39,25 +48,16 @@ def lambda_handler(event, _context):
         visitor = cur.fetchone()
 
         if not visitor:
-            return {
-                "statusCode": 404,
-                "body": json.dumps({"error": "Visitor not found"})
-            }
+            return {"statusCode": 404, "body": json.dumps({"error": "Visitor not found"})}
 
         cur.execute("DELETE FROM visitors WHERE id = %s", (request_id,))
         cur.execute("DELETE FROM users WHERE id = %s", (visitor['id_user'],))
         conn.commit()
-        return {
-            'statusCode': 200,
-            'body': json.dumps({"message": "Visitor deleted successfully"})
-        }
+        return {'statusCode': 200,'body': json.dumps({"message": "Visitor deleted successfully"})}
     except Exception as e:
         if conn is not None:
             conn.rollback()
-        return {
-            'statusCode': 500,
-            'body': json.dumps(str(e))
-        }
+        return {'statusCode': 500,'body': json.dumps({"error": str(e)})}
     finally:
         if conn is not None:
             conn.close()

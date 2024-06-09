@@ -1,6 +1,8 @@
 import json
+
 import psycopg2
 from psycopg2.extras import RealDictCursor
+
 
 def lambda_handler(event, _context):
     conn = None
@@ -16,17 +18,25 @@ def lambda_handler(event, _context):
         )
 
         if not conn:
-            return {
-                "statusCode": 500,
-                "body": json.dumps({"error": "Failed to connect to the database"})
-            }
+            return {"statusCode": 500, "body": json.dumps({"error": "Failed to connect to the database."})}
 
-        if event['pathParameters'] is None or 'id' not in event['pathParameters']:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"error": "Request ID is missing from the request body"})
-            }
+        if "pathParameters" not in event:
+            return {"statusCode": 400, "body": json.dumps({"error": "Path parameters is missing from the request."})}
 
+        if not event["pathParameters"]:
+            return {"statusCode": 400, "body": json.dumps({"error": "Path parameters is null."})}
+
+        if "id" not in event["pathParameters"]:
+            return {"statusCode": 400, "body": json.dumps({"error": "Request ID is missing from the path parameters."})}
+
+        if event["pathParameters"]["id"] is None:
+            return {"statusCode": 400, "body": json.dumps({"error": "Request ID is missing from the path parameters."})}
+
+        if not isinstance(event['pathParameters']['id'], int):
+            return {"statusCode": 400, "body": json.dumps({"error": "Request ID data type is wrong."})}
+
+        if event['pathParameters']['id'] <= 0:
+            return {"statusCode": 400, "body": json.dumps({"error": "Request ID invalid value."})}
 
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -38,26 +48,16 @@ def lambda_handler(event, _context):
         museum = cur.fetchone()
 
         if not museum:
-            return {
-                "statusCode": 404,
-                "body": json.dumps({"error": "Museum not found"})
-            }
+            return {"statusCode": 404, "body": json.dumps({"error": "Museum not found"})}
 
         cur.execute("DELETE FROM museums WHERE id = %s", (request_id))
         conn.commit()
 
-        return  {
-            'statusCode': 200,
-            'body': json.dumps({"message": "Museum deleted successfully"})
-        }
-
+        return {'statusCode': 200, 'body': json.dumps({"message": "Museum deleted successfully"})}
     except Exception as e:
-        if conn is not  None:
+        if conn is not None:
             conn.rollback()
-        return {
-            'statusCode': 500,
-            'body': json.dumps(str(e))
-        }
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
     finally:
         if conn is not None:
             conn.close()

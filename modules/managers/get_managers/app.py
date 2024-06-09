@@ -31,15 +31,9 @@ def lambda_handler(_event, _context):
             if manager is not None:
                 manager["user"] = user
                 rows.append(manager)
-        return {
-            "statusCode": 200,
-            "body": json.dumps(rows, default=datetime_serializer),
-        }
+        return {"statusCode": 200, "body": json.dumps(rows, default=datetime_serializer)}
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'body': json.dumps(str(e))
-        }
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
     finally:
         if conn is not None:
             conn.close()

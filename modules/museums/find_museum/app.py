@@ -1,7 +1,9 @@
 import json
+
 import psycopg2
 from functions import datetime_serializer
 from psycopg2.extras import RealDictCursor
+
 
 def lambda_handler(event, _context):
     conn = None
@@ -16,18 +18,26 @@ def lambda_handler(event, _context):
             database='verceldb'
         )
 
-
         if not conn:
-            return {
-                "statusCode": 500,
-                "body": json.dumps({"error": "Failed to connect to the database"})
-            }
+            return {"statusCode": 500, "body": json.dumps({"error": "Failed to connect to the database."})}
 
-        if event['pathParameters'] is None or 'id' not in event['pathParameters']:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"error": "Request ID is missing from the request body"})
-            }
+        if "pathParameters" not in event:
+            return {"statusCode": 400, "body": json.dumps({"error": "Path parameters is missing from the request."})}
+
+        if not event["pathParameters"]:
+            return {"statusCode": 400, "body": json.dumps({"error": "Path parameters is null."})}
+
+        if "id" not in event["pathParameters"]:
+            return {"statusCode": 400, "body": json.dumps({"error": "Request ID is missing from the path parameters."})}
+
+        if event["pathParameters"]["id"] is None:
+            return {"statusCode": 400, "body": json.dumps({"error": "Request ID is missing from the path parameters."})}
+
+        if not isinstance(event['pathParameters']['id'], int):
+            return {"statusCode": 400, "body": json.dumps({"error": "Request ID data type is wrong."})}
+
+        if event['pathParameters']['id'] <= 0:
+            return {"statusCode": 400, "body": json.dumps({"error": "Request ID invalid value."})}
 
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -41,10 +51,8 @@ def lambda_handler(event, _context):
         museum = cur.fetchone()
 
         if not museum:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"error": "Museum not found"})
-            }
+            return {"statusCode": 400, "body": json.dumps({"error": "Museum not found"})}
+
         sql = "SELECT * FROM managers WHERE id = %s"
         cur.execute(sql, (museum['id_owner'],))
         manager = cur.fetchone()
@@ -52,20 +60,11 @@ def lambda_handler(event, _context):
         museum['manager'] = manager
 
         if len(manager) == 0:
-            return {
-                "statusCode": 404,
-                "body": json.dumps({"error": "Owner not found"})
-            }
+            return {"statusCode": 404, "body": json.dumps({"error": "Owner not found"})}
 
-        return {
-            "statusCode": 200,
-            "body": json.dumps(museum, default=datetime_serializer)
-        }
+        return {"statusCode": 200, "body": json.dumps(museum, default=datetime_serializer)}
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'body': json.dumps(str(e))
-        }
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
     finally:
         if conn is not None:
             conn.close()
