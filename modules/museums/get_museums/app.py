@@ -1,7 +1,9 @@
 import json
+
 import psycopg2
 from functions import datetime_serializer
 from psycopg2.extras import RealDictCursor
+
 
 def lambda_handler(_event, _context):
     conn = None
@@ -10,9 +12,9 @@ def lambda_handler(_event, _context):
         # Conexión a la base de datos
         conn = psycopg2.connect(
             host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
-            user = 'default',
-            password = 'pnQI1h7sNfFK',
-            database = 'verceldb'
+            user='default',
+            password='pnQI1h7sNfFK',
+            database='verceldb'
         )
 
         cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -28,16 +30,9 @@ def lambda_handler(_event, _context):
             if museum is not None:
                 museum["manager"] = manager
                 rows.append(museum)
-        return {
-            'statusCode': 200,
-            'body': json.dumps(rows, default=datetime_serializer)
-        }
-
+        return {'statusCode': 200, 'body': json.dumps(rows, default=datetime_serializer)}
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'body': json.dumps(str(e))
-        }
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
     finally:
         if conn is not None:
             conn.close()
