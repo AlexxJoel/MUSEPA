@@ -1042,7 +1042,7 @@ class CompositeCaster:
     _re_undouble = _re.compile(r'(["\\])\1')
 
     @classmethod
-    def tokenize(self, s):
+    def tokenize(cls, s):
         rv = []
         for m in self._re_tokenize.finditer(s):
             if m is None:
@@ -1050,10 +1050,9 @@ class CompositeCaster:
             if m.group(1) is not None:
                 rv.append(None)
             elif m.group(2) is not None:
-                rv.append(self._re_undouble.sub(r"\1", m.group(2)))
+                rv.append(cls._re_undouble.sub(r"\1", m.group(2)))
             else:
                 rv.append(m.group(3))
-
         return rv
 
     def _create_type(self, name, attnames):
