@@ -17,7 +17,7 @@ def lambda_handler(event, _context):
             database='verceldb'
         )
 
-        # validate connection
+        # Validate connection
         valid_conn_res = validate_connection(conn)
         if valid_conn_res is not None:
             return valid_conn_res
@@ -49,7 +49,7 @@ def lambda_handler(event, _context):
         # Start transaction
         conn.autocommit = False
 
-        # Execute the query
+        # Insert event
         sql = """INSERT INTO events(name,description,start_date,end_date,category,pictures,id_museum) VALUES (%s,%s,%s,%s,%s,%s,%s)"""
         cur.execute(sql, (name, description, start_date, end_date, category, pictures, id_museum))
 

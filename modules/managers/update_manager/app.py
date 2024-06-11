@@ -52,14 +52,16 @@ def lambda_handler(event, _context):
         # Start transaction
         conn.autocommit = False
 
-        # Search manager by id_user
+        # Find manager by id_user
         cur.execute("SELECT id_user FROM managers WHERE id = %s", (id,))
         result = cur.fetchone()
+
         if not result:
             return {"statusCode": 404, "body": json.dumps({"error": "Manager not found"})}
+
         user_id = result[0]
 
-        # Udate user by user_id
+        # Update user by user_id
         update_user_query = """UPDATE users SET email = %s, password = %s, username = %s WHERE id = %s """
         cur.execute(update_user_query, (email, password, username, user_id))
 

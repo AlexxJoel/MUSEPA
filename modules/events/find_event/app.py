@@ -1,13 +1,17 @@
 import json
 
 import psycopg2
-from functions import (datetime_serializer, serialize_rows)
+from functions import datetime_serializer
+from psycopg2.extras import RealDictCursor
+from validations import validate_connection, validate_event_path_params
 
 
-def lambda_handler(event, context):
+def lambda_handler(event, _context):
+    conn = None
+    cur = None
     try:
         # SonarQube/SonarCloud ignore start
-        # Conexión a la base de datos
+        # Database connection
         conn = psycopg2.connect(
             host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
             user='default',
@@ -15,45 +19,38 @@ def lambda_handler(event, context):
             database='verceldb'
         )
 
-        if not conn:
-            return {"statusCode": 500, "body": json.dumps({"error": "Failed to connect to the database."})}
+        # Validate connection
+        valid_conn_res = validate_connection(conn)
+        if valid_conn_res is not None:
+            return valid_conn_res
 
-        if "pathParameters" not in event:
-            return {"statusCode": 400, "body": json.dumps({"error": "Path parameters is missing from the request."})}
+        # Validate path params in event
+        valid_path_params_res = validate_event_path_params(event)
+        if valid_path_params_res is not None:
+            return valid_path_params_res
 
-        if not event["pathParameters"]:
-            return {"statusCode": 400, "body": json.dumps({"error": "Path parameters is null."})}
-
-        if "id" not in event["pathParameters"]:
-            return {"statusCode": 400, "body": json.dumps({"error": "Request ID is missing from the path parameters."})}
-
-        if event["pathParameters"]["id"] is None:
-            return {"statusCode": 400, "body": json.dumps({"error": "Request ID is missing from the path parameters."})}
-
-        try:
-            event['pathParameters']['id'] = int(event['pathParameters']['id'])
-        except ValueError:
-            return {"statusCode": 400, "body": json.dumps({"error": "Request ID data type is wrong."})}
-
-        if event['pathParameters']['id'] <= 0:
-            return {"statusCode": 400, "body": json.dumps({"error": "Request ID invalid value."})}
-
-        cur = conn.cursor()
         # SonarQube/SonarCloud ignore end
+        # Get values from path params
         request_id = event['pathParameters']['id']
-        # select the event by id
-        sql = """SELECT id, name, description, start_date, end_date FROM events WHERE id = %s"""
         # SonarQube/SonarCloud ignore start
-        # # execute the query
+        # Create cursor
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # Find event by id
+        sql = """SELECT id, name, description, start_date, end_date FROM events WHERE id = %s"""
         cur.execute(sql, (request_id,))
-        row = cur.fetchall()
-        cur.close()
-        conn.close()
-        #
-        if len(row) == 0:
+        event = cur.fetchone()
+
+        if not event:
             return {'statusCode': 404, 'body': json.dumps({"error": "Event not found"})}
 
-        return {'statusCode': 200, 'body': json.dumps(serialize_rows(row, cur), default=datetime_serializer)}
+        return {'statusCode': 200, 'body': json.dumps({"data": json.dumps(event, default=datetime_serializer)})}
     except Exception as e:
-        return {'statusCode': 500, 'body': json.dumps(str(e))}
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
+    finally:
+        # Close connection and cursor
+        if conn is not None:
+            conn.close()
+        if cur is not None:
+            cur.close()
     # SonarQube/SonarCloud ignore end

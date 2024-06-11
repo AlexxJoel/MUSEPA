@@ -50,9 +50,10 @@ def lambda_handler(event, _context):
         # Start transaction
         conn.autocommit = False
 
-        # Search event by id
+        # Find event by id
         cur.execute("SELECT id FROM events WHERE id = %s", (id,))
         result = cur.fetchone()
+
         if not result:
             return {"statusCode": 404, "body": json.dumps({"error": "Event not found"})}
 

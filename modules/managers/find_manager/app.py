@@ -11,7 +11,7 @@ def lambda_handler(event, _context):
     cur = None
     try:
         # SonarQube/SonarCloud ignore start
-        # Connection dalabase
+        # Database connection
         conn = psycopg2.connect(
             host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
             user='default',
@@ -36,7 +36,7 @@ def lambda_handler(event, _context):
         # Create cursor
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        # Search manager by id
+        # Find manager by id
         sql = "SELECT * FROM managers WHERE id = %s"
         cur.execute(sql, (request_id,))
         manager = cur.fetchone()
@@ -49,10 +49,10 @@ def lambda_handler(event, _context):
         cur.execute(sql, (manager['id_user'],))
         user = cur.fetchone()
 
-        manager['user'] = user
-
         if not user:
             return {'statusCode': 404, 'body': json.dumps({"error": "Manager not found"})}
+
+        manager['user'] = user
 
         return {'statusCode': 200, 'body': json.dumps({"data": json.dumps(manager, default=datetime_serializer)})}
     except Exception as e:
@@ -63,4 +63,4 @@ def lambda_handler(event, _context):
             conn.close()
         if cur is not None:
             cur.close()
-# SonarQube/SonarCloud ignore end
+    # SonarQube/SonarCloud ignore end
