@@ -23,6 +23,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   deploy:
+    if: github.ref == 'refs/heads/master'
     name: Deploy to AWS
     runs-on: ubuntu-latest
     needs: test
@@ -64,5 +65,3 @@ jobs:
 
       - name: Deploy SAM application
         run: sam deploy --stack-name museepa --region us-west-1 --capabilities CAPABILITY_IAM --no-confirm-changeset --no-fail-on-empty-changeset --resolve-s3 --config-env GitHubActions
-
-        if: github.ref == 'refs/heads/master'
