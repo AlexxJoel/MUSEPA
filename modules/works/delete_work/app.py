@@ -1,12 +1,17 @@
 import json
 
 import psycopg2
+from psycopg2.extras import RealDictCursor
+
+from validations import validate_connection, validate_event_path_params
 
 
-def lambda_handler(event, context):
+def lambda_handler(event, _context):
+    conn = None
+    cur = None
     try:
         # SonarQube/SonarCloud ignore start
-        # Conexión a la base de datos
+        # Database connection
         conn = psycopg2.connect(
             host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
             user='default',
@@ -14,42 +19,48 @@ def lambda_handler(event, context):
             database='verceldb'
         )
 
-        if not conn:
-            return {"statusCode": 500, "body": json.dumps({"error": "Failed to connect to the database."})}
+        # Validate connection
+        valid_conn_res = validate_connection(conn)
+        if valid_conn_res is not None:
+            return valid_conn_res
 
-        if "pathParameters" not in event:
-            return {"statusCode": 400, "body": json.dumps({"error": "Path parameters is missing from the request."})}
+        # Validate path params in event
+        valid_path_params_res = validate_event_path_params(event)
+        if valid_path_params_res is not None:
+            return valid_path_params_res
 
-        if not event["pathParameters"]:
-            return {"statusCode": 400, "body": json.dumps({"error": "Path parameters is null."})}
-
-        if "id" not in event["pathParameters"]:
-            return {"statusCode": 400, "body": json.dumps({"error": "Request ID is missing from the path parameters."})}
-
-        if event["pathParameters"]["id"] is None:
-            return {"statusCode": 400, "body": json.dumps({"error": "Request ID is missing from the path parameters."})}
-
-        try:
-            event['pathParameters']['id'] = int(event['pathParameters']['id'])
-        except ValueError:
-            return {"statusCode": 400, "body": json.dumps({"error": "Request ID data type is wrong."})}
-
-        if event['pathParameters']['id'] <= 0:
-            return {"statusCode": 400, "body": json.dumps({"error": "Request ID invalid value."})}
-
-        cur = conn.cursor()
-
-        request_id = event['pathParameters']['id']
         # SonarQube/SonarCloud ignore end
-        sql = """DELETE FROM works  WHERE id =%s"""
+        # Get values from path params
+        request_id = event['pathParameters']['id']
         # SonarQube/SonarCloud ignore start
-        cur.execute(sql, (request_id,))
+        # Create cursor
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+
+        # Start transaction
+        conn.autocommit = False
+
+        # Find work by id
+        cur.execute("SELECT * FROM works WHERE id = %s", (id,))
+        work = cur.fetchone()
+
+        if not work:
+            return {"statusCode": 404, "body": json.dumps({"error": "Work not found"})}
+
+        # Delete work
+        cur.execute("DELETE FROM works WHERE id =%s", (request_id,))
+
+        # Commit query
         conn.commit()
-
-        cur.close()
-        conn.close()
-
         return {'statusCode': 200, 'body': json.dumps({"message": "Work deleted successfully"})}
     except Exception as e:
-        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
-# SonarQube/SonarCloud ignore end
+        # Handle rollback
+        if conn is not None:
+            conn.rollback()
+        return {'statusCode': 500, 'body': json.dumps({"message": str(e)})}
+    finally:
+        # Close connection and cursor
+        if conn is not None:
+            conn.close()
+        if cur is not None:
+            cur.close()
+    # SonarQube/SonarCloud ignore end

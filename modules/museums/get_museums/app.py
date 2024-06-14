@@ -10,7 +10,7 @@ def lambda_handler(_event, _context):
     cur = None
     try:
         # SonarQube/SonarCloud ignore start
-        # Conexión a la base de datos
+        # Database connection
         conn = psycopg2.connect(
             host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
             user='default',
@@ -18,14 +18,17 @@ def lambda_handler(_event, _context):
             database='verceldb'
         )
 
+        # Create cursor
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        # Ejecutar una consulta (ejemplo: seleccionar todos los registros de una tabla)
         # SonarQube/SonarCloud ignore end
-        cur.execute("SELECT * FROM managers;")
+        # Find all managers
+        cur.execute("SELECT * FROM managers")
         # SonarQube/SonarCloud ignore start
+
         managers = cur.fetchall()
 
+        # Find all museums by manager id
         rows = []
         for manager in managers:
             cur.execute("SELECT * FROM museums WHERE id_owner = %s", (manager["id"],))
@@ -33,10 +36,12 @@ def lambda_handler(_event, _context):
             if museum is not None:
                 museum["manager"] = manager
                 rows.append(museum)
-        return {'statusCode': 200, 'body': json.dumps(rows, default=datetime_serializer)}
+    
+        return {'statusCode': 200, 'body': json.dumps({{"data": json.dumps(rows, default=datetime_serializer)}})}
     except Exception as e:
         return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
     finally:
+        # Close connection and cursor
         if conn is not None:
             conn.close()
         if cur is not None:
