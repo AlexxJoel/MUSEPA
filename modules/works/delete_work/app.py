@@ -40,7 +40,7 @@ def lambda_handler(event, _context):
         conn.autocommit = False
 
         # Find work by id
-        cur.execute("SELECT * FROM works WHERE id = %s", (id,))
+        cur.execute("SELECT * FROM works WHERE id = %s", (request_id,))
         work = cur.fetchone()
 
         if not work:
