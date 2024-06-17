@@ -1,9 +1,8 @@
 import json
 
 import psycopg2
-from psycopg2.extras import RealDictCursor
-
 from functions import datetime_serializer
+from psycopg2.extras import RealDictCursor
 
 
 def lambda_handler(_event, _context):
@@ -38,7 +37,7 @@ def lambda_handler(_event, _context):
                 visitor["user"] = user
                 rows.append(visitor)
 
-        return {"statusCode": 200, "body": json.dumps(rows, default=datetime_serializer)}
+        return {"statusCode": 200, "body": json.dumps({"data": rows}, default=datetime_serializer)}
     except Exception as e:
         return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
     finally:

@@ -38,7 +38,7 @@ def lambda_handler(event, _context):
         conn.autocommit = False
 
         # Find event by id
-        cur.execute("SELECT id FROM events WHERE id = %s", (id,))
+        cur.execute("SELECT id FROM events WHERE id = %s", (request_id,))
         result = cur.fetchone()
 
         if not result:

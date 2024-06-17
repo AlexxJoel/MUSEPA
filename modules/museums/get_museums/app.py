@@ -36,8 +36,8 @@ def lambda_handler(_event, _context):
             if museum is not None:
                 museum["manager"] = manager
                 rows.append(museum)
-    
-        return {'statusCode': 200, 'body': json.dumps({{"data": json.dumps(rows, default=datetime_serializer)}})}
+
+        return {'statusCode': 200, 'body': json.dumps({"data": rows}, default=datetime_serializer)}
     except Exception as e:
         return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
     finally:
