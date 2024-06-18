@@ -1,5 +1,5 @@
 import json
-
+import re
 
 def validate_connection(conn):
     # check if the connection is successful
