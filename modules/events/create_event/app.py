@@ -2,7 +2,7 @@ import json
 
 import psycopg2
 from .validations import validate_connection, validate_event_body, validate_payload
-from .connect_db import connect_database
+from .connect_db import connect_database, close_connection
 
 
 def lambda_handler(event, _context):
@@ -53,7 +53,7 @@ def lambda_handler(event, _context):
         # Insert event
         sql = """INSERT INTO events(name,description,start_date,end_date,category,pictures,id_museum) VALUES (%s,%s,%s,%s,%s,%s,%s)"""
         cur.execute(sql, (name, description, start_date, end_date, category, pictures, id_museum))
-
+        connect_database(True)
         # Commit query
         conn.commit()
         return {'statusCode': 200, 'body': json.dumps({"message": "Event created successfully"})}
@@ -65,7 +65,7 @@ def lambda_handler(event, _context):
     finally:
         # Close connection and cursor
         if conn is not None:
-            conn.close()
+            close_connection(conn)
         if cur is not None:
             cur.close()
     # SonarQube/SonarCloud ignore end

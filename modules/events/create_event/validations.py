@@ -41,7 +41,7 @@ def validate_payload(payload):
     if "name" not in payload or not isinstance(payload["name"], str) or not letters_regex.match(payload["name"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'name'"})}
 
-    if "description" not in payload or not isinstance(payload["description"], int):
+    if "description" not in payload or not letters_regex.match(payload["description"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'description'"})}
 
     if "start_date" not in payload or not isinstance(payload["start_date"], str) or not date_regex.match(payload["start_date"]):
