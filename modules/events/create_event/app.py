@@ -1,7 +1,8 @@
 import json
 
 import psycopg2
-from validations import validate_connection, validate_event_body, validate_payload
+from .validations import validate_connection, validate_event_body, validate_payload
+from .connect_db import connect_database
 
 
 def lambda_handler(event, _context):
@@ -10,12 +11,12 @@ def lambda_handler(event, _context):
     try:
         # SonarQube/SonarCloud ignore start
         # Database connection
-        conn = psycopg2.connect(
-            host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
-            user='default',
-            password='pnQI1h7sNfFK',
-            database='verceldb'
-        )
+        host = 'ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
+        user = 'default',
+        password = 'pnQI1h7sNfFK',
+        database = 'verceldb'
+
+        conn = connect_database(host, user, password, database)
 
         # Validate connection
         valid_conn_res = validate_connection(conn)

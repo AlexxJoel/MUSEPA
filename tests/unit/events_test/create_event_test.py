@@ -11,18 +11,31 @@ mock_body = {
         "start_date": "AAAA-MM-DD",
         "end_date": "AAAA-MM-DD",
         "category": "Categoría del evento",
-        "pictures": [
-            "URL de la imagen 1",
-            "URL de la imagen 2",
-            "URL de la imagen 3"
-        ],
+        "pictures": "URL de la imagen 1",
         "id_museum": 12345
     })
 }
 
+
 class MyTestCase(unittest.TestCase):
-   
+
     @patch("modules.events.create_event.app.psycopg2.connect")
+    def test_create_event_connect(
+            self,
+            mock_psycopg2_connect
+    ):
+        # Configuración de los mocks
+        mock_psycopg2_connect.return_value = MagicMock()
+        # Mock del cursor y la conexión
+        mock_connection = MagicMock()
+        mock_cursor = MagicMock()
+        mock_connection.cursor.return_value = mock_cursor
+        mock_psycopg2_connect.return_value = mock_connection
+
+    @patch("modules.events.create_event.app.psycopg2.connect")
+    @patch("modules.events.create_event.validations.validate_payload")
+    @patch("modules.events.create_event.validations.validate_event_body")
+    @patch("modules.events.create_event.validations.validate_connection")
     def test_create_event_success(
             self,
             mock_psycopg2_connect,
@@ -54,19 +67,20 @@ class MyTestCase(unittest.TestCase):
         mock_connection.close.assert_called_once()
         mock_cursor.close.assert_called_once()
 
-    @patch("modules.events.create_event.app.psycopg2.connect")
+    @patch("modules.events.create_event.app.connect_database")
     @patch("modules.events.create_event.validations.validate_connection")
     @patch("modules.events.create_event.validations.validate_event_body")
     @patch("modules.events.create_event.validations.validate_payload")
     def test_create_event_database_error(
-        self,
-        mock_psycopg2_connect,
-        mock_validate_connection,
-        mock_validate_event_body,
-        mock_validate_payload,
+            self,
+            mock_connect_database,
+            mock_validate_connection,
+            mock_validate_event_body,
+            mock_validate_payload,
     ):
         # Configuración de los mocks
-        mock_psycopg2_connect.return_value = MagicMock()
+        mock_connect_database.return_value = {'host': 'host','user': 'usuario', 'password': '1234567',
+                                         'database': 3306}
         mock_validate_connection.return_value = None
         mock_validate_event_body.return_value = None
         mock_validate_payload.return_value = None
@@ -75,7 +89,7 @@ class MyTestCase(unittest.TestCase):
         mock_connection = MagicMock()
         mock_cursor = MagicMock()
         mock_connection.cursor.return_value = mock_cursor
-        mock_psycopg2_connect.return_value = mock_connection
+        mock_connect_database.return_value = mock_connection
 
         # Simulación de un error en la base de datos
         mock_cursor.execute.side_effect = Exception("Database error")
@@ -91,7 +105,7 @@ class MyTestCase(unittest.TestCase):
     @patch("modules.events.create_event.app.psycopg2.connect")
     @patch("modules.events.create_event.validations.validate_connection")
     def test_create_event_validation_error(
-        self, mock_psycopg2_connect, mock_validate_connection
+            self, mock_psycopg2_connect, mock_validate_connection
     ):
         # Configuración de los mocks
         mock_psycopg2_connect.return_value = MagicMock()
@@ -110,7 +124,7 @@ class MyTestCase(unittest.TestCase):
     @patch("modules.events.create_event.validations.validate_connection")
     @patch("modules.events.create_event.validations.validate_event_body")
     def test_create_event_invalid_body(
-        self, mock_psycopg2_connect, mock_validate_connection, mock_validate_event_body
+            self, mock_psycopg2_connect, mock_validate_connection, mock_validate_event_body
     ):
         # Configuración de los mocks
         mock_psycopg2_connect.return_value = MagicMock()
@@ -131,11 +145,11 @@ class MyTestCase(unittest.TestCase):
     @patch("modules.events.create_event.validations.validate_event_body")
     @patch("modules.events.create_event.validations.validate_payload")
     def test_create_event_invalid_payload(
-        self,
-        mock_psycopg2_connect,
-        mock_validate_connection,
-        mock_validate_event_body,
-        mock_validate_payload,
+            self,
+            mock_psycopg2_connect,
+            mock_validate_connection,
+            mock_validate_event_body,
+            mock_validate_payload,
     ):
         # Configuración de los mocks
         mock_psycopg2_connect.return_value = MagicMock()
@@ -151,6 +165,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(result["statusCode"], 400)
         self.assertIn("error", result["body"])
         mock_psycopg2_connect.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
