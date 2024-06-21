@@ -17,9 +17,15 @@ mock_body = {
 }
 
 # Simulación del provocación de fallas
-mock_body_test = {
+mock_body_payload = {
     "body": json.dumps({
-
+        "name": "Nombre del evento",
+        "description": "Descripcion del evento",
+        "start_date": "AAA-06-12",
+        "end_date": "2020-06-12",
+        "category": "Categoria del evento",
+        "pictures": "URL de la imagen 1",
+        "id_museum": "1"
     })
 }
 
@@ -43,6 +49,7 @@ class MyTestCase(unittest.TestCase):
         mock_connection.cursor.return_value = mock_cursor
         mock_connect_database.return_value = mock_connection
         result = lambda_handler(mock_body, None)
+        print(result)
         self.assertEqual(result["statusCode"], 200)
         self.assertEqual(result["body"], json.dumps({"message": "Event created successfully"}))
         mock_close_connection.assert_any_call(True)
@@ -73,7 +80,6 @@ class MyTestCase(unittest.TestCase):
 
         # Imprimir los resultados (puede eliminarse en el código de producción)
         print(result)
-        print(result["body"])
 
         # Verificar que el status code sea 400
         self.assertEqual(result["statusCode"], 400)
@@ -95,13 +101,12 @@ class MyTestCase(unittest.TestCase):
         mock_connect_database.return_value = True
         mock_validate_payload.return_value = {
             "statusCode": 400,
-            "body": json.dumps({"error": "Invalid or missing 'id_museum'"}),
+            "body": json.dumps({"error": "Invalid or missing"}),
         }
 
-        result = lambda_handler(mock_body, None)
+        result = lambda_handler(mock_body_payload, None)
 
         print(result)
-        print(result["body"])
         self.assertEqual(result["statusCode"], 400)
         result_body = json.loads(result["body"])
         self.assertIn("error", result_body)
