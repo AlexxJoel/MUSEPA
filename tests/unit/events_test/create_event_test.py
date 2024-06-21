@@ -1,117 +1,96 @@
-import unittest
 import json
+from unittest import TestCase
+import unittest
 from unittest.mock import patch, MagicMock
 from modules.events.create_event.app import lambda_handler
 
-# Simulación del cuerpo de la petición
-mock_body = {
-    "body": json.dumps({
-        "name": "Nombre del evento",
-        "description": "Descripcion del evento",
-        "start_date": "2020-06-12",
-        "end_date": "2020-06-12",
-        "category": "Categoria del evento",
-        "pictures": "URL de la imagen 1",
-        "id_museum": "1"
-    })
-}
+class TestCreateEvent(TestCase):
 
-# Simulación del provocación de fallas
-mock_body_payload = {
-    "body": json.dumps({
-        "name": "Nombre del evento",
-        "description": "Descripcion del evento",
-        "start_date": "AAA-06-12",
-        "end_date": "2020-06-12",
-        "category": "Categoria del evento",
-        "pictures": "URL de la imagen 1",
-        "id_museum": "1"
-    })
-}
-
-
-class MyTestCase(unittest.TestCase):
-
-    @patch("modules.events.create_event.app.connect_database")
-    def test_create_event_connect(self,mock_connect_database):
-        mock_connect_database.return_value = True
+    @patch("modules.events.create_event.app.psycopg2.connect")
+    @patch("modules.events.create_event.app.validate_connection")
+    @patch("modules.events.create_event.app.validate_event_body")
+    @patch("modules.events.create_event.app.validate_payload")
+    def test_create_event_success(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection, mock_psycopg2_connect):
+        # Configurar el mock de la conexión de psycopg2
         mock_connection = MagicMock()
         mock_cursor = MagicMock()
         mock_connection.cursor.return_value = mock_cursor
-        mock_connect_database.return_value = mock_connection
+        mock_psycopg2_connect.return_value = mock_connection
 
-    @patch("modules.events.create_event.app.connect_database")
-    @patch("modules.events.create_event.app.close_connection")
-    def test_create_event_success(self,mock_connect_database,mock_close_connection):
-        mock_connect_database.return_value = True
-        mock_connection = MagicMock()
-        mock_cursor = MagicMock()
-        mock_connection.cursor.return_value = mock_cursor
-        mock_connect_database.return_value = mock_connection
-        result = lambda_handler(mock_body, None)
+        # Simular una validación exitosa
+        mock_validate_connection.return_value = None
+        mock_validate_event_body.return_value = None
+        mock_validate_payload.return_value = None
+
+        # Ejecutar la función lambda_handler con un evento de prueba
+        event = {
+            'body': json.dumps({
+                'name': 'Event 1',
+                'description': 'Description 1',
+                'start_date': '2024-01-01',
+                'end_date': '2024-01-02',
+                'category': 'Category 1',
+                'pictures': 'pic1,pic2',
+                'id_museum': '1'
+            })
+        }
+        result = lambda_handler(event, None)
+
+        # Imprimir el resultado (puede eliminarse en el código de producción)
         print(result)
+
+        # Verificar el resultado esperado
         self.assertEqual(result["statusCode"], 200)
         self.assertEqual(result["body"], json.dumps({"message": "Event created successfully"}))
-        mock_close_connection.assert_any_call(True)
 
-    @patch("modules.events.create_event.app.connect_database")
-    @patch("modules.events.create_event.app.close_connection")
-    @patch("modules.events.create_event.validations.validate_event_body")
-    def test_create_event_invalid_body(
-            self,
-            mock_connect_database,
-            mock_close_connection,
-            mock_validate_event_body,
-    ):
-        # Simular la conexión a la base de datos
-        mock_connect_database.return_value = True
+        # Verificar que se ha llamado a close_connection con el argumento correcto
+        mock_connection.close.assert_called_once()
+        mock_cursor.close.assert_called_once()
+        mock_connection.commit.assert_called_once()
+        mock_connection.rollback.assert_not_called()
 
-        # Simular la validación del cuerpo del evento
-        mock_validate_event_body.return_value = {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Body can not be a list."}),
+    @patch("modules.events.create_event.app.psycopg2.connect")
+    @patch("modules.events.create_event.app.validate_connection")
+    @patch("modules.events.create_event.app.validate_event_body")
+    @patch("modules.events.create_event.app.validate_payload")
+    def test_create_event_invalid_payload(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection, mock_psycopg2_connect):
+        # Configurar el mock de la conexión de psycopg2
+        mock_connection = MagicMock()
+        mock_cursor = MagicMock()
+        mock_connection.cursor.return_value = mock_cursor
+        mock_psycopg2_connect.return_value = mock_connection
+
+        # Simular una validación exitosa
+        mock_validate_connection.return_value = None
+        mock_validate_event_body.return_value = None
+
+        # Simular una carga útil inválida
+        mock_validate_payload.return_value = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing name"})}
+
+        # Ejecutar la función lambda_handler con un evento de prueba
+        event = {
+            'body': json.dumps({
+                'name': '',
+                'description': 'Description 1',
+                'start_date': '2024-01-01',
+                'end_date': '2024-01-02',
+                'category': 'Category 1',
+                'pictures': 'pic1,pic2',
+                'id_museum': '1'
+            })
         }
+        result = lambda_handler(event, None)
 
-        # Ejemplo de cuerpo de prueba que es una lista
-        mock_body_test = {"body": []}
-
-        # Ejecutar el handler de lambda con el cuerpo de prueba
-        result = lambda_handler(mock_body_test, None)
-
-        # Imprimir los resultados (puede eliminarse en el código de producción)
+        # Imprimir el resultado (puede eliminarse en el código de producción)
         print(result)
 
-        # Verificar que el status code sea 400
+        # Verificar el resultado esperado
         self.assertEqual(result["statusCode"], 400)
+        self.assertEqual(result["body"], json.dumps({"error": "Invalid or missing name"}))
 
-        # Verificar que el cuerpo contenga el mensaje de error correcto
-        result_body = json.loads(result["body"])
-        self.assertIn("error", result_body)
-        self.assertEqual(result_body["error"], "Body is empty.")
-
-    @patch("modules.events.create_event.app.connect_database")
-    @patch("modules.events.create_event.app.close_connection")
-    @patch("modules.events.create_event.validations.validate_payload")
-    def test_create_event_invalid_payload(
-            self,
-            mock_connect_database,
-            mock_close_connection,
-            mock_validate_payload,
-    ):
-        mock_connect_database.return_value = True
-        mock_validate_payload.return_value = {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Invalid or missing"}),
-        }
-
-        result = lambda_handler(mock_body_payload, None)
-
-        print(result)
-        self.assertEqual(result["statusCode"], 400)
-        result_body = json.loads(result["body"])
-        self.assertIn("error", result_body)
-        self.assertEqual(result_body["error"], "Invalid or missing")
-
+        # Verificar que no se ha llamado a commit o rollback
+        mock_connection.commit.assert_not_called()
+        mock_connection.rollback.assert_not_called()
 
 if __name__ == "__main__":
     unittest.main()

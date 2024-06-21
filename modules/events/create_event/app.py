@@ -2,7 +2,6 @@ import json
 
 import psycopg2
 from .validations import validate_connection, validate_event_body, validate_payload
-from .connect_db import connect_database, close_connection
 
 
 def lambda_handler(event, _context):
@@ -11,12 +10,12 @@ def lambda_handler(event, _context):
     try:
         # SonarQube/SonarCloud ignore start
         # Database connection
-        host = 'ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
-        user = 'default',
-        password = 'pnQI1h7sNfFK',
-        database = 'verceldb'
-
-        conn = connect_database(host, user, password, database)
+        conn = psycopg2.connect(
+            host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
+            user='default',
+            password='pnQI1h7sNfFK',
+            database='verceldb'
+        )
 
         # Validate connection
         valid_conn_res = validate_connection(conn)
@@ -53,7 +52,7 @@ def lambda_handler(event, _context):
         # Insert event
         sql = """INSERT INTO events(name,description,start_date,end_date,category,pictures,id_museum) VALUES (%s,%s,%s,%s,%s,%s,%s)"""
         cur.execute(sql, (name, description, start_date, end_date, category, pictures, id_museum))
-        connect_database(True)
+
         # Commit query
         conn.commit()
         return {'statusCode': 200, 'body': json.dumps({"message": "Event created successfully"})}
@@ -65,7 +64,7 @@ def lambda_handler(event, _context):
     finally:
         # Close connection and cursor
         if conn is not None:
-            close_connection(conn)
+            conn.close()
         if cur is not None:
             cur.close()
     # SonarQube/SonarCloud ignore end
