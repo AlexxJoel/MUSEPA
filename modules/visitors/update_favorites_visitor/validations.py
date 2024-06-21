@@ -1,5 +1,5 @@
 import json
-
+import re
 
 def validate_connection(conn):
     # check if the connection is successful
@@ -27,7 +27,7 @@ def validate_event_body(event):
 
     # Try to load the JSON body from the event
     try:
-        request_body = json.loads(event['body'])
+        json.loads(event['body'])
     except json.JSONDecodeError:
         return {"statusCode": 400, "body": json.dumps({"error": "The request body is not valid JSON"})}
 
@@ -35,4 +35,9 @@ def validate_event_body(event):
 
 
 def validate_payload(payload):
+    numbers_regex = re.compile(r"^\d+$")
+
+    if "id" not in payload or not isinstance(payload["id"], str) or not numbers_regex.match(payload["id"]):
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id'"})}
+
     return None
