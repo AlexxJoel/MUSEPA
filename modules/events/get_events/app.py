@@ -1,11 +1,12 @@
 import json
 
 import psycopg2
-from functions import datetime_serializer
+from .functions import datetime_serializer
 from psycopg2.extras import RealDictCursor
 
 
-def lambda_handler(_event, _context):
+
+def lambda_handler():
     conn = None
     cur = None
     try:
