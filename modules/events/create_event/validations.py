@@ -39,24 +39,24 @@ def validate_payload(payload):
     date_regex = re.compile(r"^\d{4}-\d{2}-\d{2}$")
     numbers_regex = re.compile(r"^\d+$")
     if "name" not in payload or not isinstance(payload["name"], str) or not letters_regex.match(payload["name"]):
-        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'name'"})}
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing"})}
 
     if "description" not in payload or not letters_regex.match(payload["description"]):
-        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'description'"})}
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing"})}
 
     if "start_date" not in payload or not isinstance(payload["start_date"], str) or not date_regex.match(payload["start_date"]):
-        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'start_date'"})}
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing"})}
 
     if "end_date" not in payload or not isinstance(payload["end_date"], str) or not date_regex.match(payload["end_date"]):
-        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'end_date'"})}
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing"})}
 
     if "category" not in payload or not isinstance(payload["category"], str) or not letters_regex.match(payload["category"]):
-        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'category'"})}
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing"})}
 
     if "pictures" not in payload or not isinstance(payload["pictures"], str) or not payload["pictures"].strip():
-        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'pictures'"})}
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing"})}
 
     if "id_museum" not in payload or not isinstance(payload["id_museum"], str) or not numbers_regex.match(payload["id_museum"]):
-        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id_museum'"})}
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing"})}
 
     return None
