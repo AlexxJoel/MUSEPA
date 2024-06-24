@@ -10,6 +10,52 @@ class TestCreateEvent(TestCase):
     @patch("modules.events.create_event.app.validate_connection")
     @patch("modules.events.create_event.app.validate_event_body")
     @patch("modules.events.create_event.app.validate_payload")
+    def test_lambda_handler_500_error(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection, mock_psycopg2_connect):
+        # Mock the connection and cursor
+        mock_connection = MagicMock()
+        mock_cursor = MagicMock()
+        mock_connection.cursor.return_value = mock_cursor
+        mock_psycopg2_connect.return_value = mock_connection
+
+        # Simulate successful validations
+        mock_validate_connection.return_value = None
+        mock_validate_event_body.return_value = None
+        mock_validate_payload.return_value = None
+
+        # Simulate an exception when executing the SQL query
+        mock_cursor.execute.side_effect = Exception("Simulated database error")
+
+        # Create a test event
+        event = {
+            'body': json.dumps({
+                'name': 'Event 1',
+                'description': 'Description 1',
+                'start_date': '2024-01-01',
+                'end_date': '2024-01-02',
+                'category': 'Category 1',
+                'pictures': 'pic1,pic2',
+                'id_museum': '1'
+            })
+        }
+
+        # Call the lambda_handler function
+        result = lambda_handler(event, None)
+        print(result)
+        # Verify the result
+        self.assertEqual(result['statusCode'], 500)
+        self.assertEqual(result["body"], json.dumps({"error": "Simulated database error"}))
+
+        # Verify that rollback was called
+        mock_connection.rollback.assert_called_once()
+
+        # Verify that connection and cursor were closed
+        mock_connection.close.assert_called_once()
+        mock_cursor.close.assert_called_once()
+
+    @patch("modules.events.create_event.app.psycopg2.connect")
+    @patch("modules.events.create_event.app.validate_connection")
+    @patch("modules.events.create_event.app.validate_event_body")
+    @patch("modules.events.create_event.app.validate_payload")
     def test_create_event_success(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection, mock_psycopg2_connect):
         # Configurar el mock de la conexión de psycopg2
         mock_connection = MagicMock()
