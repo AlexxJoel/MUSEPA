@@ -20,8 +20,8 @@ def lambda_handler(event,__):
     try:
         # Se colocan las credenciales que obtuvimos al generar lo de cognito
         # Configura el cliente de cognito
-        client = boto3.client('cognito-idp',region_name='us-esast-1')
-        user_pool_id = "us-east-1_bXBpM3EPU"
+        client = boto3.client('cognito-idp',region_name='us-west-1')
+        user_pool_id = "us-west-1_3onWfQPhK"
 
         # Crea el usuario con correo no verificado y contraseña temporal que se envia automaticamente a su correo
         client.admin_create_user(
