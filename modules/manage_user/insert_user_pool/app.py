@@ -4,19 +4,22 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-def lambda_handler(event,__):
+def lambda_handler(event,context):
     body_parameters = json.loads(event["body"])
     email = body_parameters.get('email')
-    phone_number = body_parameters.get('phone_nomber')
-    user_name = body_parameters('user_name')
+    phone_number = body_parameters.get('phone_number')
+    user_name = body_parameters.get('user_name')
     password = body_parameters.get('password')
-    role="visitor"
+    role = "visitor"
+
+    print("Extracted parameters:", email, phone_number, user_name, password)
 
     if email is None or phone_number is None or user_name is None or password is None:
         return {
-            "statusCode":400,
-            "body":json.dumps({"message":"missing input parameters"})
+            "statusCode": 400,
+            "body": json.dumps({"message": "missing input parameters"})
         }
+
     try:
         # Se colocan las credenciales que obtuvimos al generar lo de cognito
         # Configura el cliente de cognito

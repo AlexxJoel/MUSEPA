@@ -5,7 +5,7 @@ from botocore.exceptions import ClientError
 def lambda_handler(event,__):
     # Se colocan las credenciales que obtuvimos al generar lo de cognito
     # Configura el cliente de cognito
-    client = boto3.client('cognito-idp', region_name='us-esast-1')
+    client = boto3.client('cognito-idp', region_name='us-west-1')
     client_id = "2o20sdj0jd56hcfs13tjj28edg"
 
     try:
@@ -29,7 +29,7 @@ def lambda_handler(event,__):
         # Obten el grupo de usuarios
         user_groups = client.admin_list_groups_for_user(
             Username=username,
-            UserPoolId='us-esat-1 ADJASD' # Reemplaza las credenciales
+            UserPoolId='us-west-1_3onWfQPhK' # Reemplaza las credenciales
         )
 
         # Determina el rol basado en el grupo

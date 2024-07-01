@@ -4,7 +4,7 @@ from botocore.exceptions import ClientError
 
 def lambda_handler(event,__):
     client = boto3.client('cognito-idp', region_name='us-west-1')
-    user_pool_id = " us-west-1_3onWfQPhK"
+    user_pool_id = "us-west-1_3onWfQPhK"
     client_id = "2o20sdj0jd56hcfs13tjj28edg"
     try:
         #parsea el body del evento
@@ -24,14 +24,14 @@ def lambda_handler(event,__):
             }
         )
 
-        if response['challengeName'] == 'NEW_PASSWORD_REQUIRED':
+        if response['ChallengeName'] == 'NEW_PASSWORD_REQUIRED':
             client.respond_to_auth_challenge(
                 ClientId=client_id,
-                ChallengeNAme='NEW_PASSWORD_REQUIRED',
+                ChallengeName='NEW_PASSWORD_REQUIRED',
                 Session=response['Session'],
                 ChallengeResponses={
                     'USERNAME': username,
-                    'NEW_PASSWORD':new_password,
+                    'NEW_PASSWORD': new_password,
                     'email_verified':'true'
                 }
             )

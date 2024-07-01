@@ -4,8 +4,8 @@ from modules.manage_user.login import app
 
 mock_body = {
     "body": json.dumps({
-        "username":'Cris',
-        "password":"asdasd"
+        "username":'prueba',
+        "password":"Jimin*27"
     })
 }
 
