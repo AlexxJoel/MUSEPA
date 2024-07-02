@@ -5,11 +5,37 @@ Description: >
 
   Sample SAM Template for museepa
 
+
 Globals:
   Function:
-    Timeout: 3
+    Timeout: 25
+    MemorySize: 128
 
 Resources:
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: 'arn:aws:logs:*:*:*'
+
+  # API Gateway
 
   EventApi:
     Type: AWS::Serverless::Api
@@ -39,6 +65,12 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       Name: ManagerApi
+      StageName: Dev
+
+  AuthApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: AuthApi
       StageName: Dev
 
   # ------------ Event ------------
@@ -118,7 +150,7 @@ Resources:
             Path: /events/{id}
             Method: GET
 
-# ------------ Museum ------------
+  # ------------ Museum ------------
   GetDataMuseumFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -291,7 +323,7 @@ Resources:
             Method: PUT
 
 
-# ------------ Work ------------
+  # ------------ Work ------------
   GetDataWorkFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -445,20 +477,86 @@ Resources:
             Path: /managers/{id}
             Method: GET
 
-Outputs:
-    EventApi:
-        Description: "API Gateway endpoint URL for Prod stage for museepa function"
-        Value: !Sub "https://${EventApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-    MuseumApi:
-        Description: "API Gateway endpoint URL for Prod stage for museepa function"
-        Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-    WorkApi:
-        Description: "API Gateway endpoint URL for Prod stage for museepa function"
-        Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-    VisitorApi:
-        Description: "API Gateway endpoint URL for Prod stage for museepa function"
-        Value: !Sub "https://${VisitorApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-    ManagerApi:
-        Description: "API Gateway endpoint URL for Prod stage for museepa function"
-        Value: !Sub "https://${ManagerApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  # ------------ Auth ------------
+  InsertUserPoolFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/manage_user/insert_user_pool/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        InsertUserPool:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AuthApi
+            Path: /auth
+            Method: POST
+  LoginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/manage_user/login/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        Login:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AuthApi
+            Path: /auth/login
+            Method: POST
+  PermissionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/manage_user/perimission/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        Permission:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AuthApi
+            Path: /auth/permission
+            Method: POST
+  SetPasswordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/manage_user/set_password/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        SetPassword:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AuthApi
+            Path: /auth/set_password
+            Method: POST
 
+
+Outputs:
+  EventApi:
+    Description: "API Gateway endpoint URL for Prod stage for museepa function"
+    Value: !Sub "https://${EventApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/event"
+  MuseumApi:
+    Description: "API Gateway endpoint URL for Prod stage for museepa function"
+    Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/museum"
+  WorkApi:
+    Description: "API Gateway endpoint URL for Prod stage for museepa function"
+    Value: !Sub "https://${WorkApi}.execute-api.${AWS::Region}.amazonaws.com/Dev/work/"
+  VisitorApi:
+    Description: "API Gateway endpoint URL for Prod stage for museepa function"
+    Value: !Sub "https://${VisitorApi}.execute-api.${AWS::Region}.amazonaws.com/Dev/vistor/"
+  ManagerApi:
+    Description: "API Gateway endpoint URL for Prod stage for museepa function"
+    Value: !Sub "https://${ManagerApi}.execute-api.${AWS::Region}.amazonaws.com/Dev/manger/"
