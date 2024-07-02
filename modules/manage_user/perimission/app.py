@@ -15,45 +15,25 @@ def lambda_handler(event, context):
     # Rol requerido para acceso
     required_role = 'visitor'
 
-    # URL de las claves públicas de Cognito
-    keys_url = f'https://cognito-idp.us-west-1.amazonaws.com/{user_pool_id}/.well-known/jwks.json'
+    # Descarga el JWK del User Pool
+    url = f'https://cognito-idp.us-west-1.amazonaws.com/{user_pool_id}/.well-known/jwks.json'
 
-    # Obtén las claves públicas
-    response = urlopen(keys_url)
-    keys = json.loads(response.read())['keys']
+    with urlopen(url) as f:
+        jwks = json.loads(f.read())
 
-    # Obtén el encabezado del token para determinar cuál clave usar
-    headers = jwt.get_unverified_header(token)
-    kid = headers['kid']
+    # Obtiene la clave pública
+    jwk = PyJWKClient(jwks)
+    signing_key = jwk.get_signing_key_from_jwt(token)
 
-    # Encuentra la clave correspondiente
-    key = next((k for k in keys if k['kid'] == kid), None)
-    if key is None:
-        raise ValueError('Clave pública no encontrada')
+    # Decodifica el token JWT
+    decoded_token = jwt.decode(token, signing_key.key, algorithms=['RS256'], options={"verify_signature": True})
 
-    # Decodifica y valida el token
-    jwk_client = PyJWKClient(keys_url)
-    signing_key = jwk_client.get_signing_key_from_jwt(token)
-
-    try:
-        payload = jwt.decode(
-            token,
-            signing_key.key,
-            algorithms=['RS256'],
-            audience=app_client_id
-        )
-    except jwt.ExpiredSignatureError:
-        return {'statusCode': 401, 'body': json.dumps('Token expirado')}
-    except jwt.InvalidTokenError:
-        return {'statusCode': 401, 'body': json.dumps('Token inválido')}
+    # Verifica los roles en los claims del token
+    user_roles = decoded_token.get('cognito:groups', [])
 
     # Verifica si el usuario tiene el rol requerido
-    if 'cognito:groups' not in payload or required_role not in payload['cognito:groups']:
-        return {'statusCode': 403, 'body': json.dumps('Acceso denegado. Rol requerido no presente')}
+    if required_role not in user_roles:
+        return {'statusCode': 403, 'body': json.dumps('Forbidden')}
 
-    # Token válido y rol presente
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Token y rol válidos'),
-        'user': payload
-    }
+    return {'statusCode': 200, 'body': json.dumps('Authorized')}
+#
