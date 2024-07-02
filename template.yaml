@@ -41,6 +41,12 @@ Resources:
       Name: ManagerApi
       StageName: Dev
 
+  AuthApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: AuthApi
+      StageName: Dev
+
   # ------------ Event ------------
   GetDataEventFunction:
     Type: AWS::Serverless::Function
@@ -445,6 +451,54 @@ Resources:
             Path: /managers/{id}
             Method: GET
 
+# ------------ Auth ------------
+  InsertUserPoolFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/manage_user/insert_user_pool/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        InsertUserPool:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AuthApi
+            Path: /auth
+            Method: POST
+  LoginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/manage_user/login/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        Login:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AuthApi
+            Path: /auth/login
+            Method: POST
+  PermissionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/manage_user/perimission/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Events:
+        Permission:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AuthApi
+            Path: /auth/permission
+            Method: POST
+
+
 Outputs:
     EventApi:
         Description: "API Gateway endpoint URL for Prod stage for museepa function"
@@ -461,4 +515,7 @@ Outputs:
     ManagerApi:
         Description: "API Gateway endpoint URL for Prod stage for museepa function"
         Value: !Sub "https://${ManagerApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    AuthApi:
+        Description: "API Gateway endpoint URL for Prod stage for museepa function"
+        Value: !Sub "https://${AuthApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
 

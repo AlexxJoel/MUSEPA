@@ -1,16 +1,12 @@
 import json
+import boto3
+import jwt
+from jwt import PyJWKClient
 from urllib.request import urlopen
 
-import jwt
-import psycopg2
-from jwt import PyJWKClient
 
-from functions import datetime_serializer
-from psycopg2.extras import RealDictCursor
-
-
-def lambda_handler(_event, _context):
-    token = _event['headers']['Authorization'].split()[1]
+def lambda_handler(event, context):
+    token = event['headers']['Authorization'].split()[1]
 
     # Reemplaza con tu User Pool ID y App Client ID
     user_pool_id = 'us-west-1_3onWfQPhK'
@@ -55,44 +51,9 @@ def lambda_handler(_event, _context):
     if 'cognito:groups' not in payload or required_role not in payload['cognito:groups']:
         return {'statusCode': 403, 'body': json.dumps('Acceso denegado. Rol requerido no presente')}
 
-    conn = None
-    cur = None
-    try:
-        # SonarQube/SonarCloud ignore start
-        # Database connection
-        conn = psycopg2.connect(
-            host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
-            user='default',
-            password='pnQI1h7sNfFK',
-            database='verceldb'
-        )
-
-        # Create cursor
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-
-        # SonarQube/SonarCloud ignore end
-        # Find all managers
-        cur.execute("SELECT * FROM managers")
-        # SonarQube/SonarCloud ignore start
-
-        managers = cur.fetchall()
-
-        # Find all museums by manager id
-        rows = []
-        for manager in managers:
-            cur.execute("SELECT * FROM museums WHERE id_owner = %s", (manager["id"],))
-            museum = cur.fetchone()
-            if museum is not None:
-                museum["manager"] = manager
-                rows.append(museum)
-
-        return {'statusCode': 200, 'body': json.dumps({"data": rows}, default=datetime_serializer)}
-    except Exception as e:
-        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
-    finally:
-        # Close connection and cursor
-        if conn is not None:
-            conn.close()
-        if cur is not None:
-            cur.close()
-    # SonarQube/SonarCloud ignore end
+    # Token válido y rol presente
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Token y rol válidos'),
+        'user': payload
+    }
