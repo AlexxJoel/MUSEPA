@@ -50,11 +50,11 @@ def lambda_handler(event, _context):
         user = cur.fetchone()
 
         if not user:
-            return {'statusCode': 404, 'body': json.dumps({"error": "Manager not found"})}
+            return {'statusCode': 404, 'body': json.dumps({"error": "User not found"})}
 
         manager['user'] = user
 
-        return {'statusCode': 200, 'body': json.dumps({"data": json.dumps(manager, default=datetime_serializer)})}
+        return {'statusCode': 200, 'body': json.dumps({"data": manager}, default=datetime_serializer)}
     except Exception as e:
         return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
     finally:
