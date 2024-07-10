@@ -173,12 +173,22 @@ class TestValidations(TestCase):
             'id_museum': '1'
         }
 
-    @patch("modules.events.create_event.app.psycopg2.connect")
+    @patch("modules.events.update_event.app.psycopg2.connect")
     def test_validate_connection_failure(self, mock_psycopg2_connect):
         mock_psycopg2_connect.return_value = None
         result = validate_connection(mock_psycopg2_connect.return_value)
         self.assertEqual(result["statusCode"], 500)
         self.assertEqual(result["body"], json.dumps({"error": "Connection to the database failed"}))
+
+    def test_validate_connection_success(self):
+        conn = unittest.mock.MagicMock()
+        result = validate_connection(conn)
+        self.assertIsNone(result)
+
+    def test_validate_event_body_success(self):
+        event = {'body': json.dumps({"key": "value"})}
+        result = validate_event_body(event)
+        self.assertIsNone(result)
 
     def test_validate_event_body_no_body(self):
         event = {}
@@ -210,6 +220,9 @@ class TestValidations(TestCase):
         self.assertEqual(result['statusCode'], 400)
         self.assertEqual(result["body"], json.dumps({"error": "The request body is not valid JSON"}))
 
+    def test_validate_payload_valid(self):
+        self.assertIsNone(validate_payload(self.valid_payload))
+
     def test_validate_payload_missing_name(self):
         payload = self.valid_payload.copy()
         del payload["name"]
@@ -225,9 +238,9 @@ class TestValidations(TestCase):
     def test_validate_payload_missing_description(self):
         payload = self.valid_payload.copy()
         del payload['description']
-        
+
         expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'description'"})}
-        
+
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_invalid_description(self):
