@@ -7,8 +7,10 @@ from modules.events.get_events.app import lambda_handler
 from modules.events.get_events.validations import validate_connection
 from modules.events.get_events.functions import datetime_serializer
 
+
 def simulate_valid_validations(mock_validate_connection):
     mock_validate_connection.return_value = None
+
 
 class MyTestCase(TestCase):
     def setUp(self):
@@ -32,7 +34,7 @@ class MyTestCase(TestCase):
         ]
 
         # Ejecutar la función lambda_handle
-        result = lambda_handler(None,None)
+        result = lambda_handler(None, None)
 
         # Imprimir el resultado
         print(result)
@@ -75,6 +77,7 @@ class MyTestCase(TestCase):
         self.assertEqual(result['statusCode'], 500)
         self.assertEqual(result["body"], json.dumps({"error": "Simulated database error"}))
 
+
 class TestValidations(TestCase):
     def test_validate_connection_success(self):
         conn = MagicMock()
@@ -86,6 +89,7 @@ class TestValidations(TestCase):
         result = validate_connection(conn)
         self.assertEqual(result['statusCode'], 500)
         self.assertEqual(result["body"], json.dumps({"error": "Connection to the database failed"}))
+
 
 class TestFunctions(TestCase):
     def test_datetime_serializer_datetime(self):
@@ -100,6 +104,7 @@ class TestFunctions(TestCase):
     def test_datetime_serializer_invalid_type(self):
         with self.assertRaisesRegex(TypeError, "Type <class 'str'> not serializable"):
             datetime_serializer("invalid")
+
 
 if __name__ == "__main__":
     unittest.main()
