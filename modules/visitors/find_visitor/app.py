@@ -64,3 +64,7 @@ def lambda_handler(event, _context):
         if cur is not None:
             cur.close()
     # SonarQube/SonarCloud ignore end
+
+# execute lambda_handler(event, None)
+print(lambda_handler({'pathParameters': {'id': '3'}}, None))
+
