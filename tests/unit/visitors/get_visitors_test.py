@@ -21,12 +21,37 @@ class TestGetVisitors(TestCase):
 
     @patch("modules.visitors.get_visitors.app.psycopg2.connect")
     @patch("modules.visitors.get_visitors.app.validate_connection")
-    def test_get_managers_success(self, mock_validate_connection, mock_psycopg2_connect):
+    def test_get_visitors_success(self, mock_validate_connection, mock_psycopg2_connect):
         # Simular conexión
         mock_psycopg2_connect.return_value = self.mock_connection
 
         # Simular una validación exitosa
         simulate_valid_validations(mock_validate_connection)
+
+        # Simualar fetchall
+        self.mock_cursor.fetchall.return_value = [
+            {
+                "id": 3,
+                "name": "José",
+                "surname": "Perez",
+                "lastname": "Lopez",
+                "favorites": [
+                    1,
+                    2
+                ],
+                "id_user": 10,
+            }
+        ]
+
+        self.mock_cursor.fetchone.side_effect = [
+            {
+                "id": 10,
+                "email": "jose@example.com",
+                "password": "securepassword123",
+                "username": "usuario",
+                "id_role": 2
+            }
+        ]
 
         # Ejecutar la función lambda_handle
         result = lambda_handler(None, None)
@@ -39,6 +64,18 @@ class TestGetVisitors(TestCase):
         # Verificar que se ha llamado a close_connection con el argumento correcto
         self.mock_connection.close.assert_called_once()
         self.mock_cursor.close.assert_called_once()
+
+    @patch("modules.visitors.get_visitors.app.psycopg2.connect")
+    def test_lambda_invalid_conn(self, mock_psycopg2_connect):
+        # Simular conexión
+        mock_psycopg2_connect.return_value = None
+
+        # Simular una validación fallida
+        event = {'pathParameters': {'id': '1'}}
+        result = lambda_handler(event, None)
+
+        self.assertEqual(result["statusCode"], 500)
+        self.assertEqual(result["body"], json.dumps({"error": "Connection to the database failed"}))
 
     @patch("modules.visitors.get_visitors.app.psycopg2.connect")
     @patch("modules.visitors.get_visitors.app.validate_connection")
