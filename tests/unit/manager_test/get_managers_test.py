@@ -28,6 +28,47 @@ class TestGetManagers(TestCase):
         # Simular una validación exitosa
         simulate_valid_validations(mock_validate_connection)
 
+        # Simular fetchall
+        self.mock_cursor.fetchall.return_value = [
+            {
+                "id": 1,
+                "name": "manager 1",
+                "surname": "manager 1",
+                "lastname": "manager 1",
+                "phone_number": "7771112233",
+                "address": "address",
+                "birthdate": "1990-02-01",
+                "id_user": 1,
+            },
+            {
+                "id": 2,
+                "name": "manager 2",
+                "surname": "manager 2",
+                "lastname": "manager 2",
+                "phone_number": "7778889922",
+                "address": "address",
+                "birthdate": "1990-02-01",
+                "id_user": 2,
+            }
+        ]
+
+        self.mock_cursor.fetchone.side_effect = [
+            {
+                "id": 1,
+                "email": "user1@gmail.com",
+                "password": "USER1",
+                "username": "USER1",
+                "id_role": 1
+            },
+            {
+                "id": 2,
+                "email": "user2@gmail.com",
+                "password": "USRE2",
+                "username": "USER2",
+                "id_role": 1
+            }
+        ]
+
         # Ejecutar la función lambda_handle
         result = lambda_handler(None, None)
 
@@ -39,6 +80,15 @@ class TestGetManagers(TestCase):
         # Verificar que se ha llamado a close_connection con el argumento correcto
         self.mock_connection.close.assert_called_once()
         self.mock_cursor.close.assert_called_once()
+
+    @patch("modules.managers.get_managers.app.psycopg2.connect")
+    def test_lambda_invalid_conn(self, mock_psycopg2_connect):
+        mock_psycopg2_connect.return_value = None
+
+        result = lambda_handler(None, None)
+
+        self.assertEqual(result['statusCode'], 500)
+        self.assertEqual(result["body"], json.dumps({"error": "Connection to the database failed"}))
 
     @patch("modules.managers.get_managers.app.psycopg2.connect")
     @patch("modules.managers.get_managers.app.validate_connection")
