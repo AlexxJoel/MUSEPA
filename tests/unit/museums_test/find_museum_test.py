@@ -30,24 +30,60 @@ class TestFindMuseum(TestCase):
 
         self.mock_cursor.fetchone.side_effect = [
             {
-                'name': 'Event Name',
-                'location': 'Event Location',
-                'tariffs': '100',
-                'schedules': 'Event Schedules',
-                'contact_number': '123-456-7890',
-                'contact_email': 'contact@example.com',
-                'id_owner': '1',
-                'pictures': 'pic1'
+                "id": 1,
+                "name": "MUSEEPA",
+                "location": None,
+                "tariffs": None,
+                "schedules": None,
+                "contact_number": None,
+                "contact_email": None,
+                "id_owner": 4,
+                "pictures": None,
             },
             {
-                'id': '1',
-                'name': 'John',
-                'surname': 'Doe',
-                'lastname': 'Smith',
-                'phone_number': '+1234567890',
-                'address': '123 Main St, Anytown, USA',
-                'birthdate': '1990-01-01',
-                'id_user': '1'
+                "id": 4,
+                "name": "Hector Dan",
+                "surname": "Hec",
+                "lastname": "Huz",
+                "phone_number": "+1234567890",
+                "address": "123 Main St, Anytown, USA",
+                "birthdate": "1990-01-01",
+                "id_user": 12
             }
         ],
 
+        event = {'pathParameters': {'id': 1}}
+        result = lambda_handler(event, None)
+
+        self.assertEqual(result["statusCode"], 200)
+        expected_body = {
+            "data": {
+                "id": 1,
+                "name": "MUSEEPA",
+                "location": None,
+                "tariffs": None,
+                "schedules": None,
+                "contact_number": None,
+                "contact_email": None,
+                "id_owner": 4,
+                "pictures": None,
+                "manager": {
+                    "id": 4,
+                    "name": "Hector Dan",
+                    "surname": "Hec",
+                    "lastname": "Huz",
+                    "phone_number": "+1234567890",
+                    "address": "123 Main St, Anytown, USA",
+                    "birthdate": "1990-01-01",
+                    "id_user": 12
+                }
+            }
+        }
+
+        self.assertEqual(json.loads(result["body"]), expected_body)
+        self.mock_connection.close.assert_called_once()
+        self.mock_cursor.close.assert_called_once()
+
+
+if __name__ == '__main__':
+    unittest.main()
