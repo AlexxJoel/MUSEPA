@@ -3,7 +3,7 @@ import json
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from validations import validate_connection, validate_event_path_params
-from modules.museums.delete_museum.functions import get_db_connection
+from modules.museums.delete_museum.connect_db import get_db_connection
 
 
 def lambda_handler(event, _context):

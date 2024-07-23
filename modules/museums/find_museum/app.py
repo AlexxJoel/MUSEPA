@@ -4,7 +4,7 @@ import psycopg2
 from functions import datetime_serializer
 from psycopg2.extras import RealDictCursor
 from validations import validate_connection, validate_event_path_params
-from modules.museums.find_museum.functions import get_db_connection
+from modules.museums.find_museum.connect_db import get_db_connection
 
 
 def lambda_handler(event, _context):

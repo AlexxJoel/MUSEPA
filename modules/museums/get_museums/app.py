@@ -1,7 +1,7 @@
 import json
 from functions import datetime_serializer
 from psycopg2.extras import RealDictCursor
-from modules.museums.get_museums.functions import get_db_connection
+from modules.museums.get_museums.connect_db import get_db_connection
 
 
 def lambda_handler(_event, _context):
