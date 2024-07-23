@@ -4,6 +4,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 from functions import datetime_serializer
+from modules.works.get_works.connect_db import get_db_connection
 
 
 def lambda_handler(_event, _context):
@@ -12,12 +13,7 @@ def lambda_handler(_event, _context):
     try:
         # SonarQube/SonarCloud ignore start
         # Database connection
-        conn = psycopg2.connect(
-            host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
-            user='default',
-            password='pnQI1h7sNfFK',
-            database='verceldb'
-        )
+        conn = get_db_connection
 
         # Create cursor
         cur = conn.cursor(cursor_factory=RealDictCursor)
