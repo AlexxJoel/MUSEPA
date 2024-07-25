@@ -17,13 +17,14 @@ def validate_event_body(event):
     if event["body"] is None:
         return {"statusCode": 400, "body": json.dumps({"error": "Body is null."})}
 
+    # Check if the event body is not a list
+    if isinstance(event["body"], list):
+        return {"statusCode": 400, "body": json.dumps({"error": "Body can not be a list."})}
+
     # Check if the event body is not empty
     if not event["body"]:
         return {"statusCode": 400, "body": json.dumps({"error": "Body is empty."})}
 
-    # Check if the event body is not a list
-    if isinstance(event["body"], list):
-        return {"statusCode": 400, "body": json.dumps({"error": "Body can not be a list."})}
 
     # Try to load the JSON body from the event
     try:
@@ -35,8 +36,8 @@ def validate_event_body(event):
 
 
 def validate_payload(payload):
-    letters_regex = re.compile(r"^[a-zA-Z\s]+$")
-    email_regex = (r"^\[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+    letters_regex = re.compile(r"^[a-zA-Z\s\d]+$")
+    email_regex = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 
     if "email" not in payload or not isinstance(payload["email"], str) or not email_regex.match(payload["email"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'email'"})}
