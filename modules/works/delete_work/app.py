@@ -3,7 +3,7 @@ import json
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-from validations import validate_connection, validate_event_path_params
+from .validations import validate_connection, validate_event_path_params
 
 
 def lambda_handler(event, _context):
