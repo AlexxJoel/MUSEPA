@@ -1,7 +1,8 @@
 import json
 
 import psycopg2
-from functions import datetime_serializer
+from .functions import datetime_serializer
+from .validations import validate_connection
 from psycopg2.extras import RealDictCursor
 
 
@@ -17,6 +18,11 @@ def lambda_handler(_event, _context):
             password="pnQI1h7sNfFK",
             database="verceldb",
         )
+
+        # Validate connection
+        valid_conn_res = validate_connection(conn)
+        if valid_conn_res is not None:
+            return valid_conn_res
 
         # Create cursor
         cur = conn.cursor(cursor_factory=RealDictCursor)

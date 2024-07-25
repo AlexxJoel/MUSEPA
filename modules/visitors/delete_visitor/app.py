@@ -3,7 +3,7 @@ import json
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-from validations import validate_connection, validate_event_path_params
+from .validations import validate_connection, validate_event_path_params
 
 
 def lambda_handler(event, _context):
@@ -59,7 +59,7 @@ def lambda_handler(event, _context):
         # Handle rollback
         if conn is not None:
             conn.rollback()
-        return {'statusCode': 500, 'body': json.dumps({"message": str(e)})}
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
     finally:
         # Close connection and cursor
         if conn is not None:
