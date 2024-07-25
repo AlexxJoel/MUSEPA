@@ -3,8 +3,8 @@ import json
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-from functions import datetime_serializer
-from validations import validate_connection, validate_event_path_params
+from .functions import datetime_serializer
+from .validations import validate_connection, validate_event_path_params
 
 
 def lambda_handler(event, _context):
