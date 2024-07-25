@@ -35,6 +35,7 @@ class TestFindManager(TestCase):
             "address": "123 Main St, Anytoiwn, USA",
             "birthdate": "1990-02-01",
             "id_user": 18,
+            'id_museum': 1
         }
 
         event = {'pathParameters': {'id': '1'}}

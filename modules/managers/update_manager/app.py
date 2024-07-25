@@ -43,6 +43,7 @@ def lambda_handler(event, _context):
         phone_number = request_body['phone_number']
         address = request_body['address']
         birthdate = request_body['birthdate']
+        id_museum = request_body['id_museum']
         # SonarQube/SonarCloud ignore start
         # Create cursor
         cur = conn.cursor()
@@ -64,8 +65,8 @@ def lambda_handler(event, _context):
         cur.execute(update_user_query, (email, password, username, user_id))
 
         # Update manager by manager_id
-        update_manager_query = """ UPDATE managers SET name = %s, surname = %s, lastname = %s, phone_number = %s, address = %s, birthdate = %s  WHERE id = %s """
-        cur.execute(update_manager_query, (name, surname, lastname, phone_number, address, birthdate, id))
+        update_manager_query = """ UPDATE managers SET name = %s, surname = %s, lastname = %s, phone_number = %s, address = %s, birthdate = %s, id_museum = %s  WHERE id = %s """
+        cur.execute(update_manager_query, (name, surname, lastname, phone_number, address, birthdate, id_museum, id))
 
         # Commit query
         conn.commit()

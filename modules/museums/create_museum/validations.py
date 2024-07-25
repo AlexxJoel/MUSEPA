@@ -62,10 +62,6 @@ def validate_payload(payload):
             payload["contact_email"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'contact_email'"})}
 
-    if "id_owner" not in payload or not isinstance(payload["id_owner"], str) or not numbers_regex.match(
-            payload["id_owner"]):
-        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id_owner'"})}
-
     if "pictures" not in payload or not isinstance(payload["pictures"], str) or not payload["pictures"].strip():
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'pictures'"})}
 

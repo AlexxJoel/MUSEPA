@@ -44,17 +44,7 @@ def lambda_handler(event, _context):
         if not museum:
             return {"statusCode": 400, "body": json.dumps({"error": "Museum not found"})}
 
-        # Find owner by id
-        sql = "SELECT * FROM managers WHERE id = %s"
-        cur.execute(sql, (museum['id_owner'],))
-        manager = cur.fetchone()
-
-        if not manager:
-            return {"statusCode": 404, "body": json.dumps({"error": "Owner not found"})}
-
-        museum['manager'] = manager
-
-        return {"statusCode": 200, "body": json.dumps({"data": json.dumps(museum, default=datetime_serializer)})}
+        return {"statusCode": 200, "body": json.dumps({"data": museum}, default=datetime_serializer)}
     except Exception as e:
         return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
     finally:

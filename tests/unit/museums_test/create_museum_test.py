@@ -42,7 +42,6 @@ class TestCreateMuseum(TestCase):
                 'schedules': 'Event Schedules',
                 'contact_number': '123-456-7890',
                 'contact_email': 'contact@example.com',
-                'id_owner': 'Owner ID',
                 'pictures': 'pic1,pic2'
             })
         }
@@ -74,7 +73,6 @@ class TestCreateMuseum(TestCase):
                 'schedules': 'Event Schedules',
                 'contact_number': '123-456-7890',
                 'contact_email': 'contact@example.com',
-                'id_owner': 'Owner ID',
                 'pictures': 'pic1,pic2'
             })
         }
@@ -115,7 +113,6 @@ class TestCreateMuseum(TestCase):
                 'schedules': 'Event Schedules',
                 'contact_number': '123-456-7890',
                 'contact_email': 'contact@example.com',
-                'id_owner': 'Owner ID',
                 'pictures': 'pic1,pic2'})
         }
 
@@ -152,7 +149,6 @@ class TestCreateMuseum(TestCase):
                 'schedules': 'Event Schedules',
                 'contact_number': '123-456-7890',
                 'contact_email': 'contact@example.com',
-                'id_owner': 'Owner ID',
                 'pictures': 'pic1,pic2'})
         }
 
@@ -171,7 +167,6 @@ class TestValidations(TestCase):
             'schedules': 'Event Schedules',
             'contact_number': '123-456-7890',
             'contact_email': 'contact@example.com',
-            'id_owner': '1',
             'pictures': 'pic1'
         }
 
@@ -294,19 +289,6 @@ class TestValidations(TestCase):
         payload = self.valid_payload.copy()
         payload['contact_email'] = 'invalidcontactemail'
         expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'contact_email'"})}
-        self.assertEqual(validate_payload(payload), expected_response)
-
-
-    def test_validate_payload_missing_id_owner(self):
-        payload = self.valid_payload.copy()
-        del payload['id_owner']
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id_owner'"})}
-        self.assertEqual(validate_payload(payload), expected_response)
-
-    def test_validate_payload_invalid_id_owner(self):
-        payload = self.valid_payload.copy()
-        payload['id_owner'] = 'CAMPOS'
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id_owner'"})}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_missing_pictures(self):
