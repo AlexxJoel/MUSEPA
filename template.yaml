@@ -547,16 +547,19 @@ Resources:
 Outputs:
   EventApi:
     Description: "API Gateway endpoint URL for Prod stage for museepa function"
-    Value: !Sub "https://${EventApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/event"
+    Value: !Sub "https://${EventApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   MuseumApi:
     Description: "API Gateway endpoint URL for Prod stage for museepa function"
-    Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/museum"
+    Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   WorkApi:
     Description: "API Gateway endpoint URL for Prod stage for museepa function"
-    Value: !Sub "https://${WorkApi}.execute-api.${AWS::Region}.amazonaws.com/Dev/work/"
+    Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   VisitorApi:
     Description: "API Gateway endpoint URL for Prod stage for museepa function"
-    Value: !Sub "https://${VisitorApi}.execute-api.${AWS::Region}.amazonaws.com/Dev/vistor/"
+    Value: !Sub "https://${VisitorApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   ManagerApi:
     Description: "API Gateway endpoint URL for Prod stage for museepa function"
-    Value: !Sub "https://${ManagerApi}.execute-api.${AWS::Region}.amazonaws.com/Dev/manger/"
+    Value: !Sub "https://${ManagerApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  AuthApi:
+    Description: "API Gateway endpoint URL for Prod stage for museepa function"
+    Value: !Sub "https://${AuthApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

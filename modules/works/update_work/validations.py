@@ -1,6 +1,7 @@
 import json
 import re
 
+
 def validate_connection(conn):
     # check if the connection is successful
     if conn is None:
@@ -17,20 +18,19 @@ def validate_event_body(event):
     if event["body"] is None:
         return {"statusCode": 400, "body": json.dumps({"error": "Body is null."})}
 
+    # Check if the event body is not a str
+    if isinstance(event["body"], list):
+        return {"statusCode": 400, "body": json.dumps({"error": "Body can not be a list."})}
+
     # Check if the event body is not empty
     if not event["body"]:
         return {"statusCode": 400, "body": json.dumps({"error": "Body is empty."})}
-
-    # Check if the event body is not a list
-    if isinstance(event["body"], list):
-        return {"statusCode": 400, "body": json.dumps({"error": "Body can not be a list."})}
 
     # Try to load the JSON body from the event
     try:
         json.loads(event['body'])
     except json.JSONDecodeError:
         return {"statusCode": 400, "body": json.dumps({"error": "The request body is not valid JSON"})}
-
     return None
 
 

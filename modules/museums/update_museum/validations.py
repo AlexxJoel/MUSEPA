@@ -1,6 +1,7 @@
 import json
 import re
 
+
 def validate_connection(conn):
     # check if the connection is successful
     if conn is None:
@@ -36,7 +37,7 @@ def validate_event_body(event):
 
 def validate_payload(payload):
     letters_regex = re.compile(r"^[a-zA-Z\s]+$")
-    pay_regex = re.complie( r"^[0-9]+(?:\.[0-9]+)?$")
+    pay_regex = re.compile(r"^[0-9]+(?:\.[0-9]+)?$")
     numbers_regex = re.compile(r"^\d+$")
     phoneNumber_regex = re.compile(r"^\+?[1-9]\d{1,14}|\(\d{1,4}\)\s*\d{1,4}(-|\s)?\d{1,4}$")
     if "name" not in payload or not isinstance(payload["name"], str) or not letters_regex.match(payload["name"]):
@@ -59,10 +60,6 @@ def validate_payload(payload):
     if "contact_email" not in payload or not isinstance(payload["contact_email"], str) or not email_regex.match(
             payload["contact_email"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'contact_email'"})}
-
-    if "id_owner" not in payload or not isinstance(payload["id_owner"], str) or not numbers_regex.match(
-            payload["id_owner"]):
-        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id_owner'"})}
 
     if "pictures" not in payload or not isinstance(payload["pictures"], str) or not payload["pictures"].strip():
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'pictures'"})}
