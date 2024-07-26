@@ -527,39 +527,39 @@ Resources:
             Path: /auth/permission
             Method: POST
   SetPasswordFunction:
-  Type: AWS::Serverless::Function
-  Properties:
-    CodeUri: modules/manage_user/set_password/
-    Handler: app.lambda_handler
-    Runtime: python3.12
-    Architectures:
-      - x86_64
-    Role: !GetAtt LambdaExecutionRole.Arn
-    Events:
-      SetPassword:
-        Type: Api
-        Properties:
-          RestApiId: !Ref AuthApi
-          Path: /auth/set_password
-          Method: POST
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: modules/manage_user/set_password/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        SetPassword:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AuthApi
+            Path: /auth/set_password
+            Method: POST
 
 
 Outputs:
-    EventApi:
-        Description: "API Gateway endpoint URL for Prod stage for museepa function"
-        Value: !Sub "https://${EventApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-    MuseumApi:
-        Description: "API Gateway endpoint URL for Prod stage for museepa function"
-        Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-    WorkApi:
-        Description: "API Gateway endpoint URL for Prod stage for museepa function"
-        Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-    VisitorApi:
-        Description: "API Gateway endpoint URL for Prod stage for museepa function"
-        Value: !Sub "https://${VisitorApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-    ManagerApi:
-        Description: "API Gateway endpoint URL for Prod stage for museepa function"
-        Value: !Sub "https://${ManagerApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-    AuthApi:
-        Description: "API Gateway endpoint URL for Prod stage for museepa function"
-        Value: !Sub "https://${AuthApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  EventApi:
+    Description: "API Gateway endpoint URL for Prod stage for museepa function"
+    Value: !Sub "https://${EventApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  MuseumApi:
+    Description: "API Gateway endpoint URL for Prod stage for museepa function"
+    Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  WorkApi:
+    Description: "API Gateway endpoint URL for Prod stage for museepa function"
+    Value: !Sub "https://${MuseumApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  VisitorApi:
+    Description: "API Gateway endpoint URL for Prod stage for museepa function"
+    Value: !Sub "https://${VisitorApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  ManagerApi:
+    Description: "API Gateway endpoint URL for Prod stage for museepa function"
+    Value: !Sub "https://${ManagerApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  AuthApi:
+    Description: "API Gateway endpoint URL for Prod stage for museepa function"
+    Value: !Sub "https://${AuthApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
