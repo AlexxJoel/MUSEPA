@@ -1,6 +1,7 @@
 import json
 
 from validations import validate_connection, validate_event_body, validate_payload
+from authorization import authorizate_user
 from connect_db import get_db_connection
 
 
@@ -9,6 +10,11 @@ def lambda_handler(event, __):
     cur = None
     try:
         # SonarQube/SonarCloud ignore start
+        # Authorizate
+        authorization_response = authorizate_user(event)
+        if authorization_response is not None:
+            return authorization_response
+
         # Database connection
         conn = get_db_connection()
 

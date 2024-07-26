@@ -4,6 +4,7 @@ from functions import datetime_serializer
 from validations import validate_connection
 from psycopg2.extras import RealDictCursor
 from connect_db import get_db_connection
+from authorization import authorizate_user
 
 
 def lambda_handler(_event, _context):
@@ -11,6 +12,11 @@ def lambda_handler(_event, _context):
     cur = None
     try:
         # SonarQube/SonarCloud ignore start
+        # Authorizate
+        authorization_response = authorizate_user(_event)
+        if authorization_response is not None:
+            return authorization_response
+
         # Database connection
         conn = get_db_connection()
 

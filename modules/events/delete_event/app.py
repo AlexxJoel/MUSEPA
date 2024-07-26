@@ -2,7 +2,7 @@ import json
 
 from validations import validate_connection, validate_event_path_params
 from connect_db import get_db_connection
-
+from authorization import authorizate_user
 
 def lambda_handler(event, _context):
     conn = None
@@ -16,6 +16,11 @@ def lambda_handler(event, _context):
         valid_conn_res = validate_connection(conn)
         if valid_conn_res is not None:
             return valid_conn_res
+
+        # Authorizate
+        authorization_response = authorizate_user(event)
+        if authorization_response is not None:
+            return authorization_response
 
         # Validate path params in event
         valid_path_params_res = validate_event_path_params(event)
