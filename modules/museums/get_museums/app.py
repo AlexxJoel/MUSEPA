@@ -1,14 +1,29 @@
 import json
 
+import jwt
 import psycopg2
+
 from functions import datetime_serializer
 from psycopg2.extras import RealDictCursor
 
 
 def lambda_handler(_event, _context):
+
     conn = None
     cur = None
     try:
+
+        # Obtener el token de los encabezados
+        token = _event['headers']['Authorization'].split(' ')[1]
+        # Decodificar el token
+        # Nota: En un entorno de producción, debes verificar la firma del token
+        decoded_token = jwt.decode(token, options={"verify_signature": False})
+        # Obtener el rol del token
+        role = decoded_token.get('role')
+        # Revocar permiso si el rol es "visitor"
+        if role == "visitor":
+            return {'statusCode': 403, 'body': json.dumps({"error": "Access denied: insufficient permissions"})}
+
         # SonarQube/SonarCloud ignore start
         # Database connection
         conn = psycopg2.connect(

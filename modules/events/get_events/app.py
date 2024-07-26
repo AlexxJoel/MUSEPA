@@ -1,6 +1,6 @@
 import json
 import psycopg2
-from .functions import datetime_serializer
+from functions import datetime_serializer
 from psycopg2.extras import RealDictCursor
 from .validations import validate_connection
 
