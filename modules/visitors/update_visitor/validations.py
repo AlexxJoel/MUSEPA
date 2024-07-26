@@ -1,6 +1,7 @@
 import json
 import re
 
+
 def validate_connection(conn):
     # check if the connection is successful
     if conn is None:
@@ -25,7 +26,6 @@ def validate_event_body(event):
     if not event["body"]:
         return {"statusCode": 400, "body": json.dumps({"error": "Body is empty."})}
 
-
     # Try to load the JSON body from the event
     try:
         json.loads(event['body'])
@@ -45,15 +45,18 @@ def validate_payload(payload):
     if "password" not in payload or not isinstance(payload["password"], str) or not payload["password"].strip():
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'password'"})}
 
-    if "username" not in payload or not isinstance(payload["username"], str) or not letters_regex.match(payload["username"]):
+    if "username" not in payload or not isinstance(payload["username"], str) or not letters_regex.match(
+            payload["username"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'username'"})}
 
     if "name" not in payload or not isinstance(payload["name"], str) or not letters_regex.match(payload["name"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'name'"})}
 
-    if "surname" not in payload or not isinstance(payload["surname"], str) or not letters_regex.match(payload["surname"]):
+    if "surname" not in payload or not isinstance(payload["surname"], str) or not letters_regex.match(
+            payload["surname"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'surname'"})}
 
-    if "lastname" not in payload or not isinstance(payload["lastname"], str) or not letters_regex.match(payload["lastname"]):
+    if "lastname" not in payload or not isinstance(payload["lastname"], str) or not letters_regex.match(
+            payload["lastname"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'lastname'"})}
     return None
