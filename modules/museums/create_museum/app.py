@@ -1,7 +1,7 @@
 import json
 
 import psycopg2
-from validations import validate_connection, validate_event_body, validate_payload
+from .validations import validate_connection, validate_event_body, validate_payload
 
 
 def lambda_handler(event, __):
@@ -41,7 +41,6 @@ def lambda_handler(event, __):
         schedules = request_body['schedules']
         contact_number = request_body['contact_number']
         contact_email = request_body['contact_email']
-        id_owner = request_body['id_owner']
         pictures = request_body['pictures']
         # SonarQube/SonarCloud ignore start
         # Create cursor
@@ -51,8 +50,8 @@ def lambda_handler(event, __):
         conn.autocommit = False
 
         # Insert museum
-        sql = """INSERT INTO museums (name, location, tariffs, schedules, contact_number, contact_email, id_owner, pictures) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"""
-        cur.execute(sql, (name, location, tariffs, schedules, contact_number, contact_email, id_owner, pictures))
+        sql = """INSERT INTO museums (name, location, tariffs, schedules, contact_number, contact_email, pictures) VALUES (%s,%s,%s,%s,%s,%s,%s)"""
+        cur.execute(sql, (name, location, tariffs, schedules, contact_number, contact_email, pictures))
 
         # Commit query
         conn.commit()

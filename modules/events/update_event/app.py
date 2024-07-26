@@ -63,7 +63,7 @@ def lambda_handler(event, _context):
 
         # Commit query
         conn.commit()
-        return {'statusCode': 200, 'body': json.dumps({"message": "Event updated successfully yeah!"})}
+        return {'statusCode': 200, 'body': json.dumps({"message": "Event updated successfully"})}
     except Exception as e:
         # Handle rollback
         if conn is not None:

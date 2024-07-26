@@ -1,7 +1,7 @@
 import json
 
 import psycopg2
-from validations import validate_connection, validate_event_body, validate_payload
+from .validations import validate_connection, validate_event_body, validate_payload
 
 
 def lambda_handler(event, _context):
@@ -45,6 +45,7 @@ def lambda_handler(event, _context):
         phone_number = request_body['phone_number']
         address = request_body['address']
         birthdate = request_body['birthdate']
+        id_museum = request_body['id_museum']
         # SonarQube/SonarCloud ignore start
         # Create cursor
         cur = conn.cursor()
@@ -62,10 +63,10 @@ def lambda_handler(event, _context):
 
         # Insert manager
         insert_manager_query = """
-                INSERT INTO managers (name, surname, lastname, phone_number, address, birthdate, id_user)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO managers (name, surname, lastname, phone_number, address, birthdate, id_user, id_museum)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """
-        cur.execute(insert_manager_query, (name, surname, lastname, phone_number, address, birthdate, id_user))
+        cur.execute(insert_manager_query, (name, surname, lastname, phone_number, address, birthdate, id_user, id_museum))
 
         # Commit query
         conn.commit()
