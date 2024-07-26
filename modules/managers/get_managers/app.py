@@ -1,10 +1,9 @@
 import json
 
-import psycopg2
-from .functions import datetime_serializer
-from .validations import validate_connection
+from functions import datetime_serializer
+from validations import validate_connection
 from psycopg2.extras import RealDictCursor
-from modules.managers.get_managers.connect_db import get_db_connection
+from connect_db import get_db_connection
 
 
 def lambda_handler(_event, _context):

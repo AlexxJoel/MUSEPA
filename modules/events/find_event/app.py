@@ -1,10 +1,9 @@
 import json
 
-import psycopg2
-from functions import datetime_serializer
 from psycopg2.extras import RealDictCursor
-from .validations import validate_connection, validate_event_path_params
-from modules.events.find_event.connect_db import get_db_connection
+from functions import datetime_serializer
+from validations import validate_connection, validate_event_path_params
+from connect_db import get_db_connection
 
 
 def lambda_handler(event, _context):
@@ -13,7 +12,7 @@ def lambda_handler(event, _context):
     try:
         # SonarQube/SonarCloud ignore start
         # Database connection
-        conn = get_db_connection
+        conn = get_db_connection()
 
         # Validate connection
         valid_conn_res = validate_connection(conn)

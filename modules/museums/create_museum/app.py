@@ -1,8 +1,7 @@
 import json
 
-import psycopg2
 from validations import validate_connection, validate_event_body, validate_payload
-from modules.museums.create_museum.connect_db import get_db_connection
+from connect_db import get_db_connection
 
 
 def lambda_handler(event, __):

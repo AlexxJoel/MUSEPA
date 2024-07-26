@@ -1,8 +1,7 @@
 import json
 
-import psycopg2
 from validations import validate_connection, validate_event_body, validate_payload
-from modules.managers.create_manager.connect_db import get_db_connection
+from connect_db import get_db_connection
 
 
 def lambda_handler(event, _context):
@@ -62,7 +61,8 @@ def lambda_handler(event, _context):
                 INSERT INTO managers (name, surname, lastname, phone_number, address, birthdate, id_user, id_museum)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """
-        cur.execute(insert_manager_query, (name, surname, lastname, phone_number, address, birthdate, id_user, id_museum))
+        cur.execute(insert_manager_query,
+                    (name, surname, lastname, phone_number, address, birthdate, id_user, id_museum))
 
         # Commit query
         conn.commit()

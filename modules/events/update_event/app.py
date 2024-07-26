@@ -1,8 +1,7 @@
 import json
 
-import psycopg2
-from .validations import validate_connection, validate_event_body, validate_payload
-from modules.events.update_event.connect_db import get_db_connection
+from connect_db import get_db_connection
+from validations import validate_connection, validate_event_body, validate_payload
 
 
 def lambda_handler(event, _context):

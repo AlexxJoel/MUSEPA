@@ -1,23 +1,25 @@
 import json
+
 import boto3
 import psycopg2
 
-def  get_db_connection():
+
+def get_db_connection():
     secrets = get_secrets()
     host = secrets['POSTGRES_HOST']
     user = 'default'
     password = secrets['POSTGRES_PASSWORD']
     database = secrets['POSTGRES_DATABASE']
     return psycopg2.connect(
-       host= host,
-       user= user,
-       password= password,
-       database= database
-   )
+        host=host,
+        user=user,
+        password=password,
+        database=database
+    )
 
 
 def get_secrets():
- secret_name = "prod/musepa/vercel/postgres"
+    secret_name = "prod/musepa/vercel/postgres"
     region_name = "us-west-1"
 
     # Create a Secrets Manager client
@@ -36,4 +38,3 @@ def get_secrets():
 
     secret = get_secret_value_response['SecretString']
     return json.loads(secret)
-

@@ -1,10 +1,9 @@
 import json
 
-import psycopg2
 from psycopg2.extras import RealDictCursor
 
+from connect_db import get_db_connection
 from validations import validate_connection, validate_event_path_params
-from modules.visitors.delete_visitor.connect_db import get_db_connection
 
 
 def lambda_handler(event, _context):

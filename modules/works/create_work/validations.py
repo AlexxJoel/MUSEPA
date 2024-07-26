@@ -1,6 +1,7 @@
 import json
 import re
 
+
 def validate_connection(conn):
     # check if the connection is successful
     if conn is None:
@@ -41,19 +42,24 @@ def validate_payload(payload):
     if "title" not in payload or not isinstance(payload["title"], str) or not letters_regex.match(payload["title"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'title'"})}
 
-    if "description" not in payload or not isinstance(payload["description"], str) or not letters_regex.match(payload["description"]):
+    if "description" not in payload or not isinstance(payload["description"], str) or not letters_regex.match(
+            payload["description"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'description'"})}
 
-    if "creation_date" not in payload or not isinstance(payload["creation_date"], str) or not date_regex.match(payload["creation_date"]):
+    if "creation_date" not in payload or not isinstance(payload["creation_date"], str) or not date_regex.match(
+            payload["creation_date"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'creation_date'"})}
 
-    if "technique" not in payload or not isinstance(payload["technique"], str) or not letters_regex.match(payload["technique"]):
+    if "technique" not in payload or not isinstance(payload["technique"], str) or not letters_regex.match(
+            payload["technique"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'technique'"})}
 
-    if "artists" not in payload or not isinstance(payload["artists"], str) or not letters_regex.match(payload["artists"]):
+    if "artists" not in payload or not isinstance(payload["artists"], str) or not letters_regex.match(
+            payload["artists"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'artists'"})}
 
-    if "id_museum" not in payload or not isinstance(payload["id_museum"], str) or not numbers_regex.match(payload["id_museum"]):
+    if "id_museum" not in payload or not isinstance(payload["id_museum"], str) or not numbers_regex.match(
+            payload["id_museum"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id_museum'"})}
 
     if "pictures" not in payload or not isinstance(payload["pictures"], str) or not payload["pictures"].strip():

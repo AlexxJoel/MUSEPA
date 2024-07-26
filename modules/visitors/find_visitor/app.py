@@ -1,10 +1,10 @@
 import json
 
-import psycopg2
-from .functions import datetime_serializer
 from psycopg2.extras import RealDictCursor
+
+from connect_db import get_db_connection
+from functions import datetime_serializer
 from validations import validate_connection, validate_event_path_params
-from modules.visitors.find_visitor.connect_db import get_db_connection
 
 
 def lambda_handler(event, _context):
@@ -61,6 +61,6 @@ def lambda_handler(event, _context):
             cur.close()
     # SonarQube/SonarCloud ignore end
 
+
 # execute lambda_handler(event, None)
 print(lambda_handler({'pathParameters': {'id': '3'}}, None))
-

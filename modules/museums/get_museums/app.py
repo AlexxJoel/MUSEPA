@@ -1,13 +1,13 @@
 import json
+
 import jwt
-import psycopg2
-from functions import datetime_serializer
 from psycopg2.extras import RealDictCursor
-from modules.museums.get_museums.connect_db import get_db_connection
+
+from connect_db import get_db_connection
+from functions import datetime_serializer
 
 
 def lambda_handler(_event, _context):
-
     conn = None
     cur = None
     try:
