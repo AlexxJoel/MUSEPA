@@ -1,19 +1,27 @@
 import json
-
 import psycopg2
-from .functions import datetime_serializer
+from functions import datetime_serializer
 from psycopg2.extras import RealDictCursor
-from modules.events.get_events.connect_db import get_db_connection
+from .validations import validate_connection
 
 
-
-def lambda_handler():
+def lambda_handler(_event, _context):
     conn = None
     cur = None
     try:
         # SonarQube/SonarCloud ignore start
         # Database connection
-        conn = get_db_connection()
+        conn = psycopg2.connect(
+            host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
+            user='default',
+            password='pnQI1h7sNfFK',
+            database='verceldb'
+        )
+
+        # Validate connection
+        valid_conn_res = validate_connection(conn)
+        if valid_conn_res is not None:
+            return valid_conn_res
 
         # Create cursor
         cur = conn.cursor(cursor_factory=RealDictCursor)

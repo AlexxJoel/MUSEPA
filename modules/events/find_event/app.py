@@ -1,7 +1,7 @@
 import json
 
 import psycopg2
-from .functions import datetime_serializer
+from functions import datetime_serializer
 from psycopg2.extras import RealDictCursor
 from .validations import validate_connection, validate_event_path_params
 from modules.events.find_event.connect_db import get_db_connection

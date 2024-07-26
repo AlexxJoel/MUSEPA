@@ -12,7 +12,7 @@ def validate_event_path_params(event):
     if "pathParameters" not in event:
         return {"statusCode": 400, "body": json.dumps({"error": "Path parameters is missing from the request."})}
 
-    if not event["pathParameters"]:
+    if event["pathParameters"] is None:
         return {"statusCode": 400, "body": json.dumps({"error": "Path parameters is null."})}
 
     if "id" not in event["pathParameters"]:

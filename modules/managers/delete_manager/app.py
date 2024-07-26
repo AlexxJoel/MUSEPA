@@ -54,7 +54,7 @@ def lambda_handler(event, _context):
         # Handle rollback
         if conn is not None:
             conn.rollback()
-        return {'statusCode': 500, 'body': json.dumps({"message": str(e)})}
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
     finally:
         # Close connection and cursor
         if conn is not None:

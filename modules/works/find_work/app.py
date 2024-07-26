@@ -40,7 +40,7 @@ def lambda_handler(event, _context):
         if not work:
             return {"statusCode": 404, "body": json.dumps({"error": "Work not found"})}
 
-        return {'statusCode': 200, 'body': json.dumps({"data": json.dumps(work, default=datetime_serializer)})}
+        return {'statusCode': 200, 'body': json.dumps({"data": work}, default=datetime_serializer)}
     except Exception as e:
         return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
     finally:

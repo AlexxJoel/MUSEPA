@@ -1,7 +1,7 @@
 import json
 
 import psycopg2
-from functions import datetime_serializer
+from .functions import datetime_serializer
 from psycopg2.extras import RealDictCursor
 from validations import validate_connection, validate_event_path_params
 from modules.visitors.find_visitor.connect_db import get_db_connection
@@ -46,11 +46,11 @@ def lambda_handler(event, _context):
         user = cur.fetchone()
 
         if not user:
-            return {"statusCode": 404, "body": json.dumps({"error": "Visitor not found"})}
+            return {"statusCode": 404, "body": json.dumps({"error": "User not found"})}
 
         visitor['user'] = user
 
-        return {"statusCode": 200, "body": json.dumps(visitor, default=datetime_serializer)}
+        return {"statusCode": 200, "body": json.dumps({'data': visitor}, default=datetime_serializer)}
     except Exception as e:
         return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
     finally:
@@ -60,3 +60,7 @@ def lambda_handler(event, _context):
         if cur is not None:
             cur.close()
     # SonarQube/SonarCloud ignore end
+
+# execute lambda_handler(event, None)
+print(lambda_handler({'pathParameters': {'id': '3'}}, None))
+

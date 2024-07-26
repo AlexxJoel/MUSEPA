@@ -1,6 +1,7 @@
 import json
 import re
 
+
 def validate_connection(conn):
     # check if the connection is successful
     if conn is None:
@@ -17,13 +18,13 @@ def validate_event_body(event):
     if event["body"] is None:
         return {"statusCode": 400, "body": json.dumps({"error": "Body is null."})}
 
-    # Check if the event body is not empty
-    if not event["body"]:
-        return {"statusCode": 400, "body": json.dumps({"error": "Body is empty."})}
-
     # Check if the event body is not a list
     if isinstance(event["body"], list):
         return {"statusCode": 400, "body": json.dumps({"error": "Body can not be a list."})}
+
+    # Check if the event body is not empty
+    if not event["body"]:
+        return {"statusCode": 400, "body": json.dumps({"error": "Body is empty."})}
 
     # Try to load the JSON body from the event
     try:
@@ -39,5 +40,8 @@ def validate_payload(payload):
 
     if "id" not in payload or not isinstance(payload["id"], str) or not numbers_regex.match(payload["id"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id'"})}
+
+    if "favorites" not in payload or not isinstance(payload["favorites"], list):
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'favorites'"})}
 
     return None
