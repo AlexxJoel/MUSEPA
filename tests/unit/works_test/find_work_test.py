@@ -42,7 +42,7 @@ class TestFindEvent(TestCase):
 
         self.assertEqual(result["statusCode"], 200)
         expected_body = {
-            "data": json.dumps({
+            "data": {
                 'id': 1,
                 'title': 'Title 1',
                 'description': 'Description 1',
@@ -51,7 +51,7 @@ class TestFindEvent(TestCase):
                 'artist': 'more',
                 'id_museum': '1',
                 'pictures': 'pic1,pic2'
-            }, default=datetime_serializer)
+            }
         }
         self.assertEqual(result["body"], json.dumps(expected_body))
         self.mock_connection.close.assert_called_once()

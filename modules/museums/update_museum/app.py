@@ -1,7 +1,8 @@
 import json
 
-import psycopg2
+from connect_db import get_db_connection
 from validations import validate_connection, validate_event_body, validate_payload
+from authorization import authorizate_user
 
 
 def lambda_handler(event, _context):
@@ -9,13 +10,12 @@ def lambda_handler(event, _context):
     cur = None
     try:
         # SonarQube/SonarCloud ignore start
+        # Authorizate
+        authorization_response = authorizate_user(event)
+        if authorization_response is not None:
+            return authorization_response
         # Database connection
-        conn = psycopg2.connect(
-            host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
-            user='default',
-            password='pnQI1h7sNfFK',
-            database='verceldb'
-        )
+        conn = get_db_connection()
 
         # Validate connection
         valid_conn_res = validate_connection(conn)
@@ -42,7 +42,6 @@ def lambda_handler(event, _context):
         schedules = request_body['schedules']
         contact_number = request_body['contact_number']
         contact_email = request_body['contact_email']
-        id_owner = request_body['id_owner']
         pictures = request_body['pictures']
         # SonarQube/SonarCloud ignore start
         # Create cursor
@@ -59,8 +58,9 @@ def lambda_handler(event, _context):
             return {"statusCode": 400, "body": json.dumps({"error": "Museum not found"})}
 
         # Update museum
-        update_museum_query = """UPDATE museums SET name=%s, location=%s, tariffs=%s, schedules=%s, contact_number=%s, contact_email=%s, id_owner=%s, pictures=%s WHERE id=%s"""
-        cur.execute(update_museum_query, (name, location, tariffs, schedules, contact_number, contact_email, id_owner, pictures, id))
+        update_museum_query = """UPDATE museums SET name=%s, location=%s, tariffs=%s, schedules=%s, contact_number=%s, contact_email=%s, pictures=%s WHERE id=%s"""
+        cur.execute(update_museum_query,
+                    (name, location, tariffs, schedules, contact_number, contact_email, pictures, id))
 
         # Commit query
         conn.commit()

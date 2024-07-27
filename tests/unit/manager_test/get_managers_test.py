@@ -39,6 +39,7 @@ class TestGetManagers(TestCase):
                 "address": "address",
                 "birthdate": "1990-02-01",
                 "id_user": 1,
+                "id_museum": 1
             },
             {
                 "id": 2,
@@ -49,6 +50,7 @@ class TestGetManagers(TestCase):
                 "address": "address",
                 "birthdate": "1990-02-01",
                 "id_user": 2,
+                "id_museum": 1
             }
         ]
 

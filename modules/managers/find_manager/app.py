@@ -1,9 +1,10 @@
 import json
 
-import psycopg2
-from .functions import datetime_serializer
+from functions import datetime_serializer
 from psycopg2.extras import RealDictCursor
-from .validations import validate_connection, validate_event_path_params
+from validations import validate_connection, validate_event_path_params
+from connect_db import get_db_connection
+from authorization import authorizate_user
 
 
 def lambda_handler(event, _context):
@@ -11,13 +12,13 @@ def lambda_handler(event, _context):
     cur = None
     try:
         # SonarQube/SonarCloud ignore start
+        # Authorizate
+        authorization_response = authorizate_user(event)
+        if authorization_response is not None:
+            return authorization_response
+
         # Database connection
-        conn = psycopg2.connect(
-            host='ep-gentle-mode-a4hjun6w-pooler.us-east-1.aws.neon.tech',
-            user='default',
-            password='pnQI1h7sNfFK',
-            database='verceldb'
-        )
+        conn = get_db_connection()
 
         # Validate connection
         valid_conn_res = validate_connection(conn)

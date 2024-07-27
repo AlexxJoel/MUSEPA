@@ -37,6 +37,7 @@ class TestFindManager(TestCase):
                 "address": "123 Main St, Anytoiwn, USA",
                 "birthdate": "1990-02-01",
                 "id_user": 18,
+                'id_museum': 1
             },
             {
                 "id": 18,
@@ -61,6 +62,7 @@ class TestFindManager(TestCase):
                 "address": "123 Main St, Anytoiwn, USA",
                 "birthdate": "1990-02-01",
                 "id_user": 18,
+                'id_museum': 1,
                 "user": {
                     "id": 18,
                     "email": "MORE@example.com",
@@ -113,6 +115,7 @@ class TestFindManager(TestCase):
                 "address": "123 Main St, Anytoiwn, USA",
                 "birthdate": "1990-02-01",
                 "id_user": 18,
+                "id_museum": 1
             },
             None
         ]

@@ -44,7 +44,8 @@ class TestCreateManager(TestCase):
                 'lastname': 'test',
                 'phone_number': '7771112233',
                 'address': 'test',
-                'birthdate': '2000-01-01'
+                'birthdate': '2000-01-01',
+                'id_museum': '1'
             })
         }
         result = lambda_handler(event, None)
@@ -120,9 +121,11 @@ class TestCreateManager(TestCase):
                 'lastname': 'test',
                 'phone_number': '7771112233',
                 'address': 'test',
-                'birthdate': '2000-01-01'
+                'birthdate': '2000-01-01',
+                'id_museum': '1'
             })
         }
+
         result = lambda_handler(event, None)
 
         # Imprimir el resultado (puede eliminarse en el código de producción)
@@ -164,7 +167,8 @@ class TestCreateManager(TestCase):
                 'lastname': 'test',
                 'phone_number': '7771112233',
                 'address': 'test',
-                'birthdate': '2000-01-01'
+                'birthdate': '2000-01-01',
+                'id_museum': '1'
             })
         }
         result = lambda_handler(event, None)
@@ -184,7 +188,8 @@ class TestValidations(TestCase):
             "lastname": "Example",
             "phone_number": "+1234567890",
             "address": "123 Test St",
-            "birthdate": "1990-01-01"
+            "birthdate": "1990-01-01",
+            "id_museum": "1"
         }
 
     def test_validate_connection_success(self):
@@ -342,6 +347,18 @@ class TestValidations(TestCase):
         payload = self.valid_payload.copy()
         payload["birthdate"] = "01-01-1990"
         expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'birthdate'"})}
+        self.assertEqual(validate_payload(payload), expected_response)
+    
+    def test_validate_payload_missing_id_museum(self):
+        payload = self.valid_payload.copy()
+        del payload['id_museum']
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id_museum'"})}
+        self.assertEqual(validate_payload(payload), expected_response)
+
+    def test_validate_payload_invalid_id_museum(self):
+        payload = self.valid_payload.copy()
+        payload['id_museum'] = 'CAMPOS'
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id_museum'"})}
         self.assertEqual(validate_payload(payload), expected_response)
 
 

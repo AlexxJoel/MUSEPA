@@ -28,29 +28,16 @@ class TestFindMuseum(TestCase):
         mock_psycopg2_connect.return_value = self.mock_connection
         simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection)
 
-        self.mock_cursor.fetchone.side_effect = [
-            {
-                "id": 1,
-                "name": "MUSEEPA",
-                "location": None,
-                "tariffs": None,
-                "schedules": None,
-                "contact_number": None,
-                "contact_email": None,
-                "id_owner": 4,
-                "pictures": None,
-            },
-            {
-                "id": 4,
-                "name": "Hector Dan",
-                "surname": "Hec",
-                "lastname": "Huz",
-                "phone_number": "+1234567890",
-                "address": "123 Main St, Anytown, USA",
-                "birthdate": "1990-01-01",
-                "id_user": 12
-            }
-        ],
+        self.mock_cursor.fetchone.return_value = {
+            "id": 1,
+            "name": "MUSEEPA",
+            "location": None,
+            "tariffs": None,
+            "schedules": None,
+            "contact_number": None,
+            "contact_email": None,
+            "pictures": None,
+        }
 
         event = {'pathParameters': {'id': 1}}
         result = lambda_handler(event, None)
@@ -65,18 +52,7 @@ class TestFindMuseum(TestCase):
                 "schedules": None,
                 "contact_number": None,
                 "contact_email": None,
-                "id_owner": 4,
-                "pictures": None,
-                "manager": {
-                    "id": 4,
-                    "name": "Hector Dan",
-                    "surname": "Hec",
-                    "lastname": "Huz",
-                    "phone_number": "+1234567890",
-                    "address": "123 Main St, Anytown, USA",
-                    "birthdate": "1990-01-01",
-                    "id_user": 12
-                }
+                "pictures": None
             }
         }
 

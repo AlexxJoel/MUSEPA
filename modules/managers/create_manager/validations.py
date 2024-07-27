@@ -39,7 +39,8 @@ def validate_payload(payload):
     letters_regex = re.compile(r"^[a-zA-Z\s\d]+$")
     date_regex = re.compile(r"^\d{4}-\d{2}-\d{2}$")
     phoneNumber_regex = re.compile(r"^\+?[1-9]\d{1,14}|\(\d{1,4}\)\s*\d{1,4}(-|\s)?\d{1,4}$")
-    email_regex = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")  # Corregido
+    email_regex = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+    numbers_regex = re.compile(r"^\d+$")
 
     if "email" not in payload or not isinstance(payload["email"], str) or not email_regex.match(payload["email"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'email'"})}
@@ -73,4 +74,9 @@ def validate_payload(payload):
     if "birthdate" not in payload or not isinstance(payload["birthdate"], str) or not date_regex.match(
             payload["birthdate"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'birthdate'"})}
+
+    if "id_museum" not in payload or not isinstance(payload["id_museum"], str) or not numbers_regex.match(
+            payload["id_museum"]):
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id_museum'"})}
+
     return None
