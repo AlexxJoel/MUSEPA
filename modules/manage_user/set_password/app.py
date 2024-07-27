@@ -1,25 +1,27 @@
+# -*- coding: utf-8 -*-
 import json
 import boto3
 from botocore.exceptions import ClientError
 
-def lambda_handler(event,__):
+
+def lambda_handler(event, __):
     client = boto3.client('cognito-idp', region_name='us-west-1')
     user_pool_id = "us-west-1_3onWfQPhK"
     client_id = "2o20sdj0jd56hcfs13tjj28edg"
     try:
-        #parsea el body del evento
+        # parsea el body del evento
         body_parameters = json.loads(event['body'])
         username = body_parameters.get('username')
         temporary_password = body_parameters.get('temporary_password')
         new_password = body_parameters.get('new_password')
 
-        #Autentica al usuario con la contrasenia temporal
+        # Autentica al usuario con la contrasenia temporal
         response = client.admin_initiate_auth(
-            UserPoolId = user_pool_id,
-            ClientId= client_id,
-            AuthFlow = 'ADMIN_USER_PASSWORD_AUTH',
+            UserPoolId=user_pool_id,
+            ClientId=client_id,
+            AuthFlow='ADMIN_USER_PASSWORD_AUTH',
             AuthParameters={
-                'USERNAME':username,
+                'USERNAME': username,
                 'PASSWORD': temporary_password
             }
         )
@@ -32,7 +34,7 @@ def lambda_handler(event,__):
                 ChallengeResponses={
                     'USERNAME': username,
                     'NEW_PASSWORD': new_password,
-                    'email_verified':'true'
+                    'email_verified': 'true'
                 }
             )
 
