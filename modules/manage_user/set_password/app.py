@@ -13,7 +13,7 @@ def lambda_handler(event,__):
         temporary_password = body_parameters.get('temporary_password')
         new_password = body_parameters.get('new_password')
 
-        #Autentica al usuario con la contraseña temporal
+        #Autentica al usuario con la contrasenia temporal
         response = client.admin_initiate_auth(
             UserPoolId = user_pool_id,
             ClientId= client_id,
