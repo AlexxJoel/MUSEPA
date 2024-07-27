@@ -54,7 +54,7 @@ def validate_payload(payload):
             payload["technique"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'technique'"})}
 
-    if "artists" not in payload or not isinstance(payload["artists"], str) or not letters_regex.match(
+    if "artists" not in payload or not isinstance(payload["artists"], list) or not letters_regex.match(
             payload["artists"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'artists'"})}
 
@@ -62,7 +62,7 @@ def validate_payload(payload):
             payload["id_museum"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id_museum'"})}
 
-    if "pictures" not in payload or not isinstance(payload["pictures"], str) or not payload["pictures"].strip():
+    if "pictures" not in payload or not isinstance(payload["pictures"], list) or not payload["pictures"].strip():
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'pictures'"})}
 
     return None
