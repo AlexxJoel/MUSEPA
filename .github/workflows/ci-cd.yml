@@ -50,6 +50,10 @@ jobs:
       - name: Install dependencies
         run: |
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Install dependencies for get_events
+        run: |
+          cd modules/events/get_events
+          pip install -r requirements.txt
 
       - name: Install AWS CLI
         run: |
