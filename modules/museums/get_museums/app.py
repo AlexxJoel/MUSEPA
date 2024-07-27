@@ -1,6 +1,5 @@
 import json
 
-import jwt
 from psycopg2.extras import RealDictCursor
 
 from connect_db import get_db_connection
@@ -8,7 +7,6 @@ from functions import datetime_serializer
 
 
 def lambda_handler(_event, _context):
-
     conn = None
     cur = None
     try:

@@ -10,6 +10,11 @@ Globals:
   Function:
     Timeout: 25
     MemorySize: 128
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,PUT,DELETE'"
+      AllowHeaders: "'*'"
+      AllowOrigin: "'*'"
 
 Resources:
 
@@ -34,44 +39,74 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: 'arn:aws:logs:*:*:*'
+        - PolicyName: get-secrets-db-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: 'arn:aws:secretsmanager:us-west-1:471112501035:secret:prod/musepa/vercel/postgres-REotkz'
 
   # API Gateway
-
   EventApi:
     Type: AWS::Serverless::Api
     Properties:
       Name: EventApi
       StageName: Dev
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
 
   MuseumApi:
     Type: AWS::Serverless::Api
     Properties:
       Name: MuseumApi
       StageName: Dev
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
 
   WorkApi:
     Type: AWS::Serverless::Api
     Properties:
       Name: WorkApi
       StageName: Dev
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
 
   VisitorApi:
     Type: AWS::Serverless::Api
     Properties:
       Name: VisitorApi
       StageName: Dev
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
 
   ManagerApi:
     Type: AWS::Serverless::Api
     Properties:
       Name: ManagerApi
       StageName: Dev
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
 
   AuthApi:
     Type: AWS::Serverless::Api
     Properties:
       Name: AuthApi
       StageName: Dev
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
 
   # ------------ Event ------------
   GetDataEventFunction:
@@ -80,6 +115,7 @@ Resources:
       CodeUri: modules/events/get_events/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -95,6 +131,7 @@ Resources:
       CodeUri: modules/events/create_event/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -110,6 +147,7 @@ Resources:
       CodeUri: modules/events/delete_event/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -125,6 +163,7 @@ Resources:
       CodeUri: modules/events/update_event/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -140,6 +179,7 @@ Resources:
       CodeUri: modules/events/find_event/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -157,6 +197,7 @@ Resources:
       CodeUri: modules/museums/get_museums/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -172,6 +213,7 @@ Resources:
       CodeUri: modules/museums/create_museum/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -187,6 +229,7 @@ Resources:
       CodeUri: modules/museums/delete_museum/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -202,6 +245,7 @@ Resources:
       CodeUri: modules/museums/update_museum/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -217,6 +261,7 @@ Resources:
       CodeUri: modules/museums/find_museum/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -235,6 +280,7 @@ Resources:
       CodeUri: modules/visitors/get_visitors/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -250,6 +296,7 @@ Resources:
       CodeUri: modules/visitors/create_visitor/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -259,13 +306,13 @@ Resources:
             RestApiId: !Ref VisitorApi
             Path: /visitors
             Method: POST
-
   DeleteDataVisitorFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: modules/visitors/delete_visitor/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -275,13 +322,13 @@ Resources:
             RestApiId: !Ref VisitorApi
             Path: /visitors/{id}
             Method: DELETE
-
   UpdateDataVisitorFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: modules/visitors/update_visitor/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -297,6 +344,7 @@ Resources:
       CodeUri: modules/visitors/find_visitor/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -312,6 +360,7 @@ Resources:
       CodeUri: modules/visitors/update_favorites_visitor/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -330,6 +379,7 @@ Resources:
       CodeUri: modules/works/get_works/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -345,6 +395,7 @@ Resources:
       CodeUri: modules/works/create_work/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -360,6 +411,7 @@ Resources:
       CodeUri: modules/works/delete_work/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -375,6 +427,7 @@ Resources:
       CodeUri: modules/works/update_work/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -390,6 +443,7 @@ Resources:
       CodeUri: modules/works/find_work/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -407,6 +461,7 @@ Resources:
       CodeUri: modules/managers/get_managers/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -422,6 +477,7 @@ Resources:
       CodeUri: modules/managers/create_manager/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -437,6 +493,7 @@ Resources:
       CodeUri: modules/managers/delete_manager/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -452,6 +509,7 @@ Resources:
       CodeUri: modules/managers/update_manager/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -467,6 +525,7 @@ Resources:
       CodeUri: modules/managers/find_manager/
       Handler: app.lambda_handler
       Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
       Events:
@@ -563,3 +622,104 @@ Outputs:
   AuthApi:
     Description: "API Gateway endpoint URL for Prod stage for museepa function"
     Value: !Sub "https://${AuthApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+
+  LambdaExecutionRoleArn:
+    Description: "Implicit IAM Role created for Lambda function"
+    Value: !GetAtt LambdaExecutionRole.Arn
+
+  GetDataEventFunctionArn:
+    Description: "GetDataEventFunction Lambda function ARN"
+    Value: !GetAtt GetDataEventFunction.Arn
+  CreateDataEventFunction:
+    Description: "CreateDataEventFunction Lambda function ARN"
+    Value: !GetAtt CreateDataEventFunction.Arn
+  DeleteDataEventFunction:
+    Description: "DeleteDataEventFunction Lambda function ARN"
+    Value: !GetAtt DeleteDataEventFunction.Arn
+  UpdateDataEventFunction:
+    Description: "UpdateDataEventFunction Lambda function ARN"
+    Value: !GetAtt UpdateDataEventFunction.Arn
+  FindDataEventFunction:
+    Description: "FindDataEventFunction Lambda function ARN"
+    Value: !GetAtt FindDataEventFunction.Arn
+
+  GetDataMuseumFunction:
+    Description: "GetDataMuseumFunction Lambda function ARN"
+    Value: !GetAtt GetDataMuseumFunction.Arn
+  CreateDataMuseumFunction:
+    Description: "CreateDataMuseumFunction Lambda function ARN"
+    Value: !GetAtt CreateDataMuseumFunction.Arn
+  DeleteDataMuseumFunction:
+    Description: "DeleteDataMuseumFunction Lambda function ARN"
+    Value: !GetAtt DeleteDataMuseumFunction.Arn
+  UpdateDataMuseumFunction:
+    Description: "UpdateDataMuseumFunction Lambda function ARN"
+    Value: !GetAtt UpdateDataMuseumFunction.Arn
+  FindDataMuseumFunction:
+    Description: "FindDataMuseumFunction Lambda function ARN"
+    Value: !GetAtt FindDataMuseumFunction.Arn
+
+  GetDataVisitorFunction:
+    Description: "GetDataVisitorFunction Lambda function ARN"
+    Value: !GetAtt GetDataVisitorFunction.Arn
+  CreateDataVisitorFunction:
+    Description: "CreateDataVisitorFunction Lambda function ARN"
+    Value: !GetAtt CreateDataVisitorFunction.Arn
+  DeleteDataVisitorFunction:
+    Description: "DeleteDataVisitorFunction Lambda function ARN"
+    Value: !GetAtt DeleteDataVisitorFunction.Arn
+  UpdateDataVisitorFunction:
+    Description: "UpdateDataVisitorFunction Lambda function ARN"
+    Value: !GetAtt UpdateDataVisitorFunction.Arn
+  FindDataVisitorFunction:
+    Description: "FindDataVisitorFunction Lambda function ARN"
+    Value: !GetAtt FindDataVisitorFunction.Arn
+  UpdateFavoriteVisitorFunction:
+    Description: "UpdateFavoriteVisitorFunction Lambda function ARN"
+    Value: !GetAtt UpdateFavoriteVisitorFunction.Arn
+
+  GetDataWorkFunction:
+    Description: "GetDataWorkFunction Lambda function ARN"
+    Value: !GetAtt GetDataWorkFunction.Arn
+  CreateDataWorkFunction:
+    Description: "CreateDataWorkFunction Lambda function ARN"
+    Value: !GetAtt CreateDataWorkFunction.Arn
+  DeleteDataWorkFunction:
+    Description: "DeleteDataWorkFunction Lambda function ARN"
+    Value: !GetAtt DeleteDataWorkFunction.Arn
+  UpdateDataWorkFunction:
+    Description: "UpdateDataWorkFunction Lambda function ARN"
+    Value: !GetAtt UpdateDataWorkFunction.Arn
+  FindDataWorkFunction:
+    Description: "FindDataWorkFunction Lambda function ARN"
+    Value: !GetAtt FindDataWorkFunction.Arn
+
+  GetDataManagerFunction:
+    Description: "GetDataManagerFunction Lambda function ARN"
+    Value: !GetAtt GetDataManagerFunction.Arn
+  CreateDataManagerFunction:
+    Description: "CreateDataManagerFunction Lambda function ARN"
+    Value: !GetAtt CreateDataManagerFunction.Arn
+  DeleteDataManagerFunction:
+    Description: "DeleteDataManagerFunction Lambda function ARN"
+    Value: !GetAtt DeleteDataManagerFunction.Arn
+  UpdateDataManagerFunction:
+    Description: "UpdateDataManagerFunction Lambda function ARN"
+    Value: !GetAtt UpdateDataManagerFunction.Arn
+  FindDataManagerFunction:
+    Description: "FindDataManagerFunction Lambda function ARN"
+    Value: !GetAtt FindDataManagerFunction.Arn
+
+  InsertUserPoolFunction:
+    Description: "InsertUserPoolFunction Lambda function ARN"
+    Value: !GetAtt InsertUserPoolFunction.Arn
+  LoginFunction:
+    Description: "LoginFunction Lambda function ARN"
+    Value: !GetAtt LoginFunction.Arn
+  PermissionFunction:
+    Description: "PermissionFunction Lambda function ARN"
+    Value: !GetAtt PermissionFunction.Arn
+  SetPasswordFunction:
+    Description: "SetPasswordFunction Lambda function ARN"
+    Value: !GetAtt SetPasswordFunction.Arn
+
