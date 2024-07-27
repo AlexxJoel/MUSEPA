@@ -54,6 +54,10 @@ jobs:
         run: |
           cd modules/events/get_events
           pip install -r requirements.txt
+      - name: Install dependencies for set_password
+        run: |
+          cd modules/manage_user/set_password
+          pip install -r requirements.txt
 
       - name: Install AWS CLI
         run: |

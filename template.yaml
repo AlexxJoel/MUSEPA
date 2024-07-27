@@ -513,7 +513,7 @@ Resources:
   PermissionFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: modules/manage_user/perimission/
+      CodeUri: modules/manage_user/permission/
       Handler: app.lambda_handler
       Runtime: python3.12
       Architectures:
