@@ -5,7 +5,7 @@ import jwt
 from jwt import PyJWKClient
 
 
-def lambda_handler(event, context):
+def lambda_handler(event, _context):
     token = event['headers']['Authorization'].split()[1]
 
     # Reemplaza con tu User Pool ID y App Client ID
@@ -36,4 +36,3 @@ def lambda_handler(event, context):
         return {'statusCode': 403, 'body': json.dumps('Forbidden')}
 
     return {'statusCode': 200, 'body': json.dumps('Authorized')}
-#
