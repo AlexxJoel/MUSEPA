@@ -1,8 +1,8 @@
 import json
-import boto3
+from urllib.request import urlopen
+
 import jwt
 from jwt import PyJWKClient
-from urllib.request import urlopen
 
 
 def lambda_handler(event, context):

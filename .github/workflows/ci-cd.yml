@@ -69,7 +69,7 @@ jobs:
             pip install aws-sam-cli
 
       - name: Build SAM application
-        run: sam build
+        run: sam build --debug
 
       - name: Deploy SAM application
         run: sam deploy --stack-name museepa --region us-west-1 --capabilities CAPABILITY_IAM --no-confirm-changeset --no-fail-on-empty-changeset --resolve-s3 --config-env GitHubActions

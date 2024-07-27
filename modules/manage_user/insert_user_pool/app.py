@@ -4,7 +4,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-def lambda_handler(event,context):
+def lambda_handler(event, context):
     body_parameters = json.loads(event["body"])
     email = body_parameters.get('email')
     phone_number = body_parameters.get('phone_number')
@@ -23,16 +23,16 @@ def lambda_handler(event,context):
     try:
         # Se colocan las credenciales que obtuvimos al generar lo de cognito
         # Configura el cliente de cognito
-        client = boto3.client('cognito-idp',region_name='us-west-1')
+        client = boto3.client('cognito-idp', region_name='us-west-1')
         user_pool_id = "us-west-1_3onWfQPhK"
 
         # Crea el usuario con correo no verificado y contraseña temporal que se envia automaticamente a su correo
         client.admin_create_user(
             UserPoolId=user_pool_id,
             Username=user_name,
-            UserAttributes =[
-                {'Name':'email','Value':email},
-                {"Name":'email_verified','Value':'false'}
+            UserAttributes=[
+                {'Name': 'email', 'Value': email},
+                {"Name": 'email_verified', 'Value': 'false'}
             ],
             TemporaryPassword=password
         )
@@ -43,16 +43,14 @@ def lambda_handler(event,context):
             GroupName=role
         )
 
-        #Se manda a llamar lo que se pide de registro del usuario ya sea manager o visitor
+        # Se manda a llamar lo que se pide de registro del usuario ya sea manager o visitor
 
-        return{
-            'statusCode':200,
-            'body': json.dumps({"message":"User created successfully, verification email sent."})
+        return {
+            'statusCode': 200,
+            'body': json.dumps({"message": "User created successfully, verification email sent."})
         }
     except ClientError as e:
         return {
             'statusCode': 400,
-            'body': json.dumps({"error":e.response['Error']['Message']})
+            'body': json.dumps({"error": e.response['Error']['Message']})
         }
-
-
