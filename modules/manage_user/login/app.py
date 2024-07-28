@@ -24,6 +24,12 @@ def lambda_handler(event, __):
             }
         )
 
+        if 'ChallengeName' in response and response['ChallengeName'] == 'NEW_PASSWORD_REQUIRED':
+            return {
+                'statusCode': 401,
+                'body': json.dumps({"error": "Access denied. Please, change the temporary password."})
+            }
+
         id_token = response['AuthenticationResult']['IdToken']
         access_token = response['AuthenticationResult']['AccessToken']
         refresh_token = response['AuthenticationResult']['RefreshToken']
