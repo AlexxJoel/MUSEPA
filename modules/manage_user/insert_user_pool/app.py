@@ -10,7 +10,7 @@ def lambda_handler(event, context):
     phone_number = body_parameters.get('phone_number')
     user_name = body_parameters.get('user_name')
     password = body_parameters.get('password')
-    role = "visitor"
+    role = "manager"
 
     print("Extracted parameters:", email, phone_number, user_name, password)
 
@@ -37,7 +37,7 @@ def lambda_handler(event, context):
             TemporaryPassword=password
         )
 
-        client.admin_create_user_to_group(
+        client.admin_add_user_to_group(
             UserPoolId=user_pool_id,
             Username=user_name,
             GroupName=role

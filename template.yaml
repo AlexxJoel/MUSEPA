@@ -46,6 +46,19 @@ Resources:
               - Effect: Allow
                 Action: secretsmanager:GetSecretValue
                 Resource: 'arn:aws:secretsmanager:us-west-1:471112501035:secret:prod/musepa/vercel/postgres-REotkz'
+        - PolicyName: manage-cognito-users-pool-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cognito-idp:AdminCreateUser
+                  - cognito-idp:AdminAddUserToGroup
+                  - cognito-idp:RespondToAuthChallenge
+                  - cognito-idp:AdminInitiateAuth
+                  - cognito-idp:InitiateAuth
+                  - cognito-idp:AdminListGroupsForUser
+                Resource: 'arn:aws:cognito-idp:us-west-1:471112501035:userpool/us-west-1_3onWfQPhK'
 
   # API Gateway
   EventApi:
