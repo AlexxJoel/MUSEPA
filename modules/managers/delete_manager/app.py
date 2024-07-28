@@ -1,9 +1,12 @@
 import json
 
+import boto3
+from botocore.exceptions import ClientError
 from psycopg2.extras import RealDictCursor
-from validations import validate_connection, validate_event_path_params
-from connect_db import get_db_connection
+
 from authorization import authorizate_user
+from connect_db import get_db_connection
+from validations import validate_connection, validate_event_path_params
 
 
 def lambda_handler(event, _context):
@@ -46,14 +49,45 @@ def lambda_handler(event, _context):
         if not manager:
             return {"statusCode": 404, "body": json.dumps({"error": "Manager not found"})}
 
+        cur.execute("SELECT * FROM users WHERE id = %s", (manager['id_user'],))
+        user = cur.fetchone()
+
         # Delete manager
         cur.execute("DELETE FROM managers WHERE id = %s", (request_id,))
 
         # Delete related user
         cur.execute("DELETE FROM users WHERE id = %s", (manager['id_user'],))
 
-        # Commit query
-        conn.commit()
+        # Cognito Integration
+        try:
+            # Se colocan las credenciales que obtuvimos al generar lo de cognito
+            # Configura el cliente de cognito
+            client = boto3.client('cognito-idp', region_name='us-west-1')
+            user_pool_id = "us-west-1_3onWfQPhK"
+
+            # Eliminar el usuario actual
+            client.admin_delete_user(
+                UserPoolId=user_pool_id,
+                Username=user["username"]
+            )
+
+            # Commit query
+            conn.commit()
+
+            # Si Cognito es exitoso, retorna la respuesta
+            return {
+                'statusCode': 200,
+                'body': json.dumps({"message": "Manager deleted successfully"})
+            }
+
+        except ClientError as e:
+            # Si Cognito falla, realiza rollback de la base de datos
+            conn.rollback()
+            return {
+                'statusCode': 400,
+                'body': json.dumps({"error": e.response['Error']['Message']})
+            }
+
         return {'statusCode': 200, 'body': json.dumps({"message": "Manager deleted successfully"})}
     except Exception as e:
         # Handle rollback
