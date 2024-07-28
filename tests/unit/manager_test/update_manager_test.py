@@ -323,7 +323,7 @@ class TestValidations(TestCase):
 
     def test_validate_payload_invalid_password(self):
         payload = self.valid_payload.copy()
-        payload["password"] = "notanumber"
+        payload["password"] = ["notastr"]
         expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'password'"})}
         self.assertEqual(validate_payload(payload), expected_response)
 

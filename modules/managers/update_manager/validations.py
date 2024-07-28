@@ -35,7 +35,7 @@ def validate_event_body(event):
 
 
 def validate_payload(payload):
-    letters_regex = re.compile(r"^[a-zA-Z\s\d]+$")
+    letters_regex = re.compile(r"[a-zA-Z\s\d]+$")
     date_regex = re.compile(r"^\d{4}-\d{2}-\d{2}$")
     phoneNumber_regex = re.compile(r"^\+?[1-9]\d{1,14}|\(\d{1,4}\)\s*\d{1,4}(-|\s)?\d{1,4}$")
     email_regex = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
@@ -47,7 +47,7 @@ def validate_payload(payload):
     if "email" not in payload or not isinstance(payload["email"], str) or not email_regex.match(payload["email"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'email'"})}
 
-    if "password" not in payload or not isinstance(payload["password"], int):
+    if "password" not in payload or not isinstance(payload["password"], str):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'password'"})}
 
     if "username" not in payload or not isinstance(payload["username"], str) or not letters_regex.match(
