@@ -1,8 +1,11 @@
 import json
 
+import boto3
+from botocore.exceptions import ClientError
+
+from authorization import authorizate_user
 from connect_db import get_db_connection
 from validations import validate_connection, validate_event_body, validate_payload
-from authorization import authorizate_user
 
 
 def lambda_handler(event, _context):
@@ -71,9 +74,61 @@ def lambda_handler(event, _context):
         update_manager_query = """ UPDATE managers SET name = %s, surname = %s, lastname = %s, phone_number = %s, address = %s, birthdate = %s, id_museum = %s  WHERE id = %s """
         cur.execute(update_manager_query, (name, surname, lastname, phone_number, address, birthdate, id_museum, id))
 
-        # Commit query
-        conn.commit()
-        return {'statusCode': 200, 'body': json.dumps({"message": "Manager updated successfully"})}
+        # Cognito Integration
+        try:
+            # Se colocan las credenciales que obtuvimos al generar lo de cognito
+            # Configura el cliente de cognito
+            client = boto3.client('cognito-idp', region_name='us-west-1')
+            user_pool_id = "us-west-1_3onWfQPhK"
+
+            # Eliminar el usuario actual
+            client.admin_delete_user(
+                UserPoolId=user_pool_id,
+                Username=username
+            )
+
+            # Crear un nuevo usuario con el nuevo username
+            client.admin_create_user(
+                UserPoolId=user_pool_id,
+                Username=username,
+                UserAttributes=[
+                    {'Name': 'email', 'Value': email},
+                    {"Name": 'email_verified', 'Value': 'false'}
+                ],
+                TemporaryPassword=password
+            )
+
+            # Marcar la contraseña temporal como cambiada en Cognito
+            client.admin_set_user_password(
+                UserPoolId=user_pool_id,
+                Username=username,
+                Password=password,
+                Permanent=True
+            )
+
+            client.admin_add_user_to_group(
+                UserPoolId=user_pool_id,
+                Username=username,
+                GroupName="manager"
+            )
+
+            # Commit query
+            conn.commit()
+
+            # Si Cognito es exitoso, retorna la respuesta
+            return {
+                'statusCode': 200,
+                'body': json.dumps({"message": "Manager updated successfully."})
+            }
+
+        except ClientError as e:
+            # Si Cognito falla, realiza rollback de la base de datos
+            conn.rollback()
+            return {
+                'statusCode': 400,
+                'body': json.dumps({"error": e.response['Error']['Message']})
+            }
+
     except Exception as e:
         # Handle rollback
         if conn is not None:

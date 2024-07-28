@@ -58,6 +58,9 @@ Resources:
                   - cognito-idp:AdminInitiateAuth
                   - cognito-idp:InitiateAuth
                   - cognito-idp:AdminListGroupsForUser
+                  - cognito-idp:AdminUpdateUserAttributes
+                  - cognito-idp:AdminDeleteUser
+                  - cognito-idp:AdminSetUserPassword
                 Resource: 'arn:aws:cognito-idp:us-west-1:471112501035:userpool/us-west-1_3onWfQPhK'
 
   # API Gateway
