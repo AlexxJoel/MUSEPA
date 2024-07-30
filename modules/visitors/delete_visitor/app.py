@@ -1,7 +1,8 @@
 import json
-
+import boto3
+from botocore.exceptions import ClientError
 from psycopg2.extras import RealDictCursor
-
+from authorization import authorizate_user
 from connect_db import get_db_connection
 from validations import validate_connection, validate_event_path_params
 
@@ -11,6 +12,11 @@ def lambda_handler(event, _context):
     cur = None
     try:
         # SonarQube/SonarCloud ignore start
+        # Authorizate
+        authorization_response = authorizate_user(event)
+        if authorization_response is not None:
+            return authorization_response
+
         # Database connection
         conn = get_db_connection()
 
@@ -47,9 +53,27 @@ def lambda_handler(event, _context):
         # Delete related user
         cur.execute("DELETE FROM users WHERE id = %s", (visitor['id_user'],))
 
-        # Commit query
-        conn.commit()
-        return {'statusCode': 200, 'body': json.dumps({"message": "Visitor deleted successfully"})}
+
+        # Cognito Integration
+        try:
+            # CREDENTIALS
+            client = boto3.client('cognito-idp', region_name='us-west-1')
+            user_pool_id = "us-west-1_3onWfQPhK"
+
+            client.admin_delete_user(
+                UserPoolId=user_pool_id,
+                Username=visitor['email']
+            )
+
+            conn.commit()
+
+            return {"statusCode": 200, "body": json.dumps({"message": "Visitor deleted successfully"})}
+
+        except ClientError as e:
+            # Handle rollback
+            conn.rollback()
+            return {'statusCode': 400, 'body': json.dumps({"error": e.response['Error']['Message']})}
+
     except Exception as e:
         # Handle rollback
         if conn is not None:

@@ -1,7 +1,7 @@
 import json
 
 from psycopg2.extras import RealDictCursor
-
+from authorization import authorizate_user
 from connect_db import get_db_connection
 from functions import datetime_serializer
 from validations import validate_connection, validate_event_path_params
@@ -12,6 +12,11 @@ def lambda_handler(event, _context):
     cur = None
     try:
         # SonarQube/SonarCloud ignore start
+        # Authorizate
+        authorization_response = authorizate_user(event)
+        if authorization_response is not None:
+            return authorization_response
+
         # Database connection
         conn = get_db_connection()
 
@@ -60,7 +65,3 @@ def lambda_handler(event, _context):
         if cur is not None:
             cur.close()
     # SonarQube/SonarCloud ignore end
-
-
-# execute lambda_handler(event, None)
-print(lambda_handler({'pathParameters': {'id': '3'}}, None))

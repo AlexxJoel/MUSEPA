@@ -88,7 +88,6 @@ def lambda_handler(event, _context):
                 'body': json.dumps({"error": e.response['Error']['Message']})
             }
 
-        return {'statusCode': 200, 'body': json.dumps({"message": "Manager deleted successfully"})}
     except Exception as e:
         # Handle rollback
         if conn is not None:
