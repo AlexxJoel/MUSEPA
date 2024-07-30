@@ -1,4 +1,4 @@
-import json
+ import json
 import boto3
 from botocore.exceptions import ClientError
 from authorization import authorizate_user
