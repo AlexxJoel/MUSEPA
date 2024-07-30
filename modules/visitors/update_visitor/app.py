@@ -1,5 +1,6 @@
 import json
-
+import boto3
+from botocore.exceptions import ClientError
 from connect_db import get_db_connection
 from validations import validate_connection, validate_event_body, validate_payload
 from authorization import authorizate_user
@@ -66,9 +67,68 @@ def lambda_handler(event, _context):
         update_visitor_query = """ UPDATE visitors SET name = %s, surname = %s, lastname = %s  WHERE id = %s """
         cur.execute(update_visitor_query, (name, surname, lastname, id))
 
-        # Commit query
-        conn.commit()
-        return {"statusCode": 200, "body": json.dumps({"message": "Visitor updated successfully"})}
+        # Cognito Integration
+        try:
+
+
+            client = boto3.client('cognito-idp', region_name='us-west-1')
+            user_pool_id = "us-west-1_3onWfQPhK"
+
+            # delete user from cognito
+            response = client.admin_delete_user(
+                UserPoolId=user_pool_id,
+                Username=username
+            )
+
+            print(f"Deleted user from cognito: {response}")
+
+            # create user in cognito
+            response = client.admin_create_user(
+                UserPoolId=user_pool_id,
+                Username=username,
+                UserAttributes=[
+                    {
+                        'Name': 'email',
+                        'Value': email
+                    },
+                    {
+                        'Name': 'email_verified',
+                        'Value': 'false'
+                    }
+                ],
+                TemporaryPassword=password,
+            )
+
+            print(f"Created user in cognito: {response}")
+
+            # note that the temporary password has to be changed in cognito
+            response = client.admin_set_user_password(
+                UserPoolId=user_pool_id,
+                Username=username,
+                Password=password,
+                Permanent=True
+            )
+
+            print(f"Changed password in cognito: {response}")
+
+            response = client.admin_add_user_to_group(
+                UserPoolId=user_pool_id,
+                Username=username,
+                GroupName="visitor"
+            )
+
+            print(f"Added user to group in cognito: {response}")
+
+            # Commit query
+            conn.commit()
+
+            return {'statusCode': 200, 'body': json.dumps({"message": "Visitor updated successfully"})}
+
+        except ClientError as e:
+            conn.rollback()
+            return {'statusCode': 400, 'body': json.dumps({"error": e.response['Error']['Message']})}
+
+
     except Exception as e:
         # Handle rollback
         if conn is not None:
