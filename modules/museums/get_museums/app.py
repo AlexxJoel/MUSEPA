@@ -10,17 +10,17 @@ def lambda_handler(_event, _context):
     conn = None
     cur = None
     try:
-        # SonarQube/SonarCloud ignore start
+       
         # Database connection
         conn = get_db_connection()
 
         # Create cursor
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        # SonarQube/SonarCloud ignore end
+        
         # Find all managers
         cur.execute("SELECT * FROM museums")
-        # SonarQube/SonarCloud ignore start
+       
 
         museums = cur.fetchall()
 
@@ -33,4 +33,4 @@ def lambda_handler(_event, _context):
             conn.close()
         if cur is not None:
             cur.close()
-    # SonarQube/SonarCloud ignore end
+    

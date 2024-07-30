@@ -9,7 +9,7 @@ def lambda_handler(event, _context):
     cur = None
     conn = None
     try:
-        # SonarQube/SonarCloud ignore start
+       
         # Authorizate
         authorization_response = authorizate_user(event)
         if authorization_response is not None:
@@ -36,7 +36,7 @@ def lambda_handler(event, _context):
         if valid_payload_res is not None:
             return valid_payload_res
 
-        # SonarQube/SonarCloud ignore end
+        
         # Get payload values
         name = request_body['name']
         description = request_body['description']
@@ -45,7 +45,7 @@ def lambda_handler(event, _context):
         category = request_body['category']
         pictures = request_body['pictures']
         id_museum = request_body['id_museum']
-        # SonarQube/SonarCloud ignore start
+       
         # Create cursor
         cur = conn.cursor()
 
@@ -70,4 +70,4 @@ def lambda_handler(event, _context):
             conn.close()
         if cur is not None:
             cur.close()
-    # SonarQube/SonarCloud ignore end
+    

@@ -8,7 +8,7 @@ def lambda_handler(event, _context):
     conn = None
     cur = None
     try:
-        # SonarQube/SonarCloud ignore start
+       
         # Database connection
         conn = get_db_connection()
 
@@ -27,10 +27,10 @@ def lambda_handler(event, _context):
         if valid_path_params_res is not None:
             return valid_path_params_res
 
-        # SonarQube/SonarCloud ignore end
+        
         # Get values from path params
         request_id = event['pathParameters']['id']
-        # SonarQube/SonarCloud ignore start
+       
         # Create cursor
         cur = conn.cursor()
 
@@ -61,4 +61,4 @@ def lambda_handler(event, _context):
             conn.close()
         if cur is not None:
             cur.close()
-    # SonarQube/SonarCloud ignore end
+    

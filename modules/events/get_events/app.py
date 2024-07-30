@@ -9,7 +9,7 @@ def lambda_handler(_event, _context):
     conn = None
     cur = None
     try:
-        # SonarQube/SonarCloud ignore start
+       
         # Database connection
         conn = get_db_connection()
 
@@ -21,10 +21,10 @@ def lambda_handler(_event, _context):
         # Create cursor
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        # SonarQube/SonarCloud ignore end
+        
         # Find all events
         cur.execute("SELECT * FROM events")
-        # SonarQube/SonarCloud ignore start
+       
 
         events = cur.fetchall()
 
@@ -37,4 +37,4 @@ def lambda_handler(_event, _context):
             conn.close()
         if cur is not None:
             cur.close()
-    # SonarQube/SonarCloud ignore end
+    
