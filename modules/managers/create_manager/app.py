@@ -4,7 +4,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 from authorization import authorizate_user
-from connect_db import get_db_connection
+from connect_db import get_db_connection,get_secrets
 from validations import validate_connection, validate_event_body, validate_payload
 
 
@@ -73,47 +73,7 @@ def lambda_handler(event, _context):
         cur.execute(insert_manager_query,
                     (name, surname, lastname, phone_number, address, birthdate, id_user, id_museum))
 
-        # Cognito Integration
-        try:
-            # Se colocan las credenciales que obtuvimos al generar lo de cognito
-            # Configura el cliente de cognito
-            client = boto3.client('cognito-idp', region_name='us-west-1')
-            user_pool_id = "us-west-1_3onWfQPhK"
-
-            # Crea el usuario con correo no verificado y contraseña temporal que se envia automaticamente a su correo
-            client.admin_create_user(
-                UserPoolId=user_pool_id,
-                Username=username,
-                UserAttributes=[
-                    {'Name': 'email', 'Value': email},
-                    {"Name": 'email_verified', 'Value': 'false'}
-                ],
-                TemporaryPassword=password
-            )
-
-            client.admin_add_user_to_group(
-                UserPoolId=user_pool_id,
-                Username=username,
-                GroupName="manager"
-            )
-
-            # Commit query
-            conn.commit()
-
-            # Si Cognito es exitoso, retorna la respuesta
-            return {
-                'statusCode': 200,
-                'body': json.dumps({"message": "User created successfully, verification email sent."})
-            }
-
-        except ClientError as e:
-            # Si Cognito falla, realiza rollback de la base de datos
-            conn.rollback()
-            return {
-                'statusCode': 400,
-                'body': json.dumps({"error": e.response['Error']['Message']})
-            }
-
+        return insert_user_pool(conn, username, email, password)
     except Exception as e:
         # Handle rollback
         if conn is not None:
@@ -126,3 +86,47 @@ def lambda_handler(event, _context):
         if cur is not None:
             cur.close()
     
+
+
+def insert_user_pool(conn,username,email,password):
+    try:
+        # Get secrets
+        secrets = get_secrets()
+        REGION_NAME = secrets['REGION_NAME']
+        USER_POOL_ID = secrets['USER_POOL_ID']
+        client = boto3.client('cognito-idp', region_name=REGION_NAME)
+
+        # Crea el usuario con correo no verificado y contraseña temporal que se envia automaticamente a su correo
+        client.admin_create_user(
+            UserPoolId=USER_POOL_ID,
+            Username=username,
+            UserAttributes=[
+                {'Name': 'email', 'Value': email},
+                {"Name": 'email_verified', 'Value': 'false'}
+            ],
+            TemporaryPassword=password
+        )
+
+        client.admin_add_user_to_group(
+            UserPoolId=USER_POOL_ID,
+            Username=username,
+            GroupName="manager"
+        )
+
+        # Commit query
+        conn.commit()
+
+        # Si Cognito es exitoso, retorna la respuesta
+        return {
+            'statusCode': 200,
+            'body': json.dumps({"message": "User created successfully, verification email sent."})
+        }
+
+    except ClientError as e:
+        # Si Cognito falla, realiza rollback de la base de datos
+        conn.rollback()
+        return {
+            'statusCode': 400,
+            'body': json.dumps({"error": e.response['Error']['Message']})
+        }
+
