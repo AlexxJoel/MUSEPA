@@ -5,8 +5,8 @@ from modules.manage_user.set_password import app
 mock_body = {
     "body":json.dumps({
         "username":"prueba",
-        "temporary_password":"AnnaJM*27",
-        "new_password":"Jimin*27"
+        "temporary_password":"Anna2002",
+        "new_password":"Jimin2002"
     })
 }
 
