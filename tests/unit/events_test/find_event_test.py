@@ -17,7 +17,8 @@ class TestFindEvent(TestCase):
         self.mock_cursor = MagicMock()
         self.mock_connection.cursor.return_value = self.mock_cursor
 
-    @patch("modules.events.find_event.app.psycopg2.connect")
+    @patch("modules.events.find_event.app.get_db_connection")
+    @patch("modules.events.find_event.app.authorizate_user")
     @patch("modules.events.find_event.app.validate_connection")
     @patch("modules.events.find_event.app.validate_event_path_params")
     def test_find_event_success(self, mock_validate_event_path_params, mock_validate_connection, mock_psycopg2_connect):
@@ -49,7 +50,8 @@ class TestFindEvent(TestCase):
         self.mock_connection.close.assert_called_once()
         self.mock_cursor.close.assert_called_once()
 
-    @patch("modules.events.find_event.app.psycopg2.connect")
+    @patch("modules.events.find_event.app.get_db_connection")
+    @patch("modules.events.find_event.app.authorizate_user")
     @patch("modules.events.find_event.app.validate_connection")
     @patch("modules.events.find_event.app.validate_event_path_params")
     def test_find_event_not_found(self, mock_validate_event_path_params, mock_validate_connection, mock_psycopg2_connect):
@@ -67,7 +69,8 @@ class TestFindEvent(TestCase):
         self.mock_connection.close.assert_called_once()
         self.mock_cursor.close.assert_called_once()
 
-    @patch("modules.events.find_event.app.psycopg2.connect")
+    @patch("modules.events.find_event.app.get_db_connection")
+    @patch("modules.events.find_event.app.authorizate_user")
     def test_lambda_invalid_conn(self, mock_psycopg2_connect):
         mock_psycopg2_connect.return_value = None
 
@@ -77,7 +80,8 @@ class TestFindEvent(TestCase):
         self.assertEqual(result['statusCode'], 500)
         self.assertEqual(result["body"], json.dumps({"error": "Connection to the database failed"}))
 
-    @patch("modules.events.find_event.app.psycopg2.connect")
+    @patch("modules.events.find_event.app.get_db_connection")
+    @patch("modules.events.find_event.app.authorizate_user")
     def test_lambda_invalid_path_parameters(self, mock_psycopg2_connect):
         mock_psycopg2_connect.return_value = MagicMock()
 
