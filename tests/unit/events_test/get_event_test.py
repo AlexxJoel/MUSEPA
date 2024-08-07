@@ -18,11 +18,11 @@ class MyTestCase(TestCase):
         self.mock_cursor = MagicMock()
         self.mock_connection.cursor.return_value = self.mock_cursor
 
-    @patch("modules.events.get_events.app.psycopg2.connect")
+    @patch("modules.events.get_events.app.get_db_connection")
     @patch("modules.events.get_events.app.validate_connection")
-    def test_get_events_success(self, mock_validate_connection, mock_psycopg2_connect):
+    def test_get_events_success(self, mock_validate_connection, mock_get_db_connection):
         # Simular conexión
-        mock_psycopg2_connect.return_value = self.mock_connection
+        mock_get_db_connection.return_value = self.mock_connection
 
         # Simular una validación exitosa
         simulate_valid_validations(mock_validate_connection)
@@ -46,10 +46,10 @@ class MyTestCase(TestCase):
         self.mock_connection.close.assert_called_once()
         self.mock_cursor.close.assert_called_once()
 
-    @patch("modules.events.get_events.app.psycopg2.connect")
+    @patch("modules.events.get_events.app.get_db_connection")
     @patch("modules.events.get_events.app.validate_connection")
-    def test_get_events_failed_validation(self, mock_validate_connection, mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = self.mock_connection
+    def test_get_events_failed_validation(self, mock_validate_connection, mock_get_db_connection):
+        mock_get_db_connection.return_value = self.mock_connection
         mock_validate_connection.return_value = {'statusCode': 400, 'body': json.dumps('Invalid connection')}
 
         result = lambda_handler(None, None)
@@ -59,11 +59,11 @@ class MyTestCase(TestCase):
         self.assertEqual(result["statusCode"], 400)
         self.assertEqual(result["body"], json.dumps('Invalid connection'))
 
-    @patch("modules.events.get_events.app.psycopg2.connect")
+    @patch("modules.events.get_events.app.get_db_connection")
     @patch("modules.events.get_events.app.validate_connection")
-    def test_lambda_handler_500_error(self, mock_validate_connection, mock_psycopg2_connect):
+    def test_lambda_handler_500_error(self, mock_validate_connection, mock_get_db_connection):
         # Simular conexión
-        mock_psycopg2_connect.return_value = self.mock_connection
+        mock_get_db_connection.return_value = self.mock_connection
 
         # Simular una validación exitosa
         simulate_valid_validations(mock_validate_connection)

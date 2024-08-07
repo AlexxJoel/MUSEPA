@@ -2,6 +2,9 @@ import json
 from unittest import TestCase
 import unittest
 from unittest.mock import patch, MagicMock
+
+import jwt
+
 from modules.events.update_event.app import lambda_handler
 from modules.events.update_event.validations import validate_connection, validate_event_body, validate_payload
 
@@ -17,15 +20,22 @@ class TestUpdateEvent(TestCase):
         self.mock_cursor = MagicMock()
         self.mock_connection.cursor.return_value = self.mock_cursor
 
-    @patch("modules.events.update_event.app.psycopg2.connect")
+    @patch("modules.events.create_event.app.get_db_connection")
+    @patch("modules.events.create_event.app.authorizate_user")
     @patch("modules.events.update_event.app.validate_connection")
     @patch("modules.events.update_event.app.validate_event_body")
     @patch("modules.events.update_event.app.validate_payload")
-    def test_update_event_success(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection, mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = self.mock_connection
+    def test_update_event_success(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection, mock_authorizate_user,mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
         simulate_valid_validations(mock_validate_connection,mock_validate_event_body,mock_validate_payload)
 
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
+
         event = {
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
             'body': json.dumps({
                 'id': 1,
                 'name': 'Event 1',
@@ -48,7 +58,8 @@ class TestUpdateEvent(TestCase):
         self.mock_connection.commit.assert_called_once()
         self.mock_connection.rollback.assert_not_called()
 
-    @patch("modules.events.update_event.app.psycopg2.connect")
+    @patch("modules.events.create_event.app.get_db_connection")
+    @patch("modules.events.create_event.app.authorizate_user")
     @patch("modules.events.update_event.app.validate_connection")
     @patch("modules.events.update_event.app.validate_event_body")
     @patch("modules.events.update_event.app.validate_payload")
@@ -80,7 +91,8 @@ class TestUpdateEvent(TestCase):
         self.mock_cursor.close.assert_called_once()
 
 
-    @patch("modules.events.update_event.app.psycopg2.connect")
+    @patch("modules.events.create_event.app.get_db_connection")
+    @patch("modules.events.create_event.app.authorizate_user")
     def test_lambda_invalid_conn(self, mock_psycopg2_connect):
         mock_psycopg2_connect.return_value = None
 
@@ -91,7 +103,8 @@ class TestUpdateEvent(TestCase):
         self.assertEqual(result["body"], json.dumps({"error": "Connection to the database failed"}))
 
 
-    @patch("modules.events.update_event.app.psycopg2.connect")
+    @patch("modules.events.create_event.app.get_db_connection")
+    @patch("modules.events.create_event.app.authorizate_user")
     @patch("modules.events.update_event.app.validate_connection")
     def test_lamda_invalid_event_body(self, mock_validate_connection, mock_psycopg2_connect):
         # Configurar el mock de la conexión de psycopg2
@@ -118,7 +131,8 @@ class TestUpdateEvent(TestCase):
         self.mock_connection.rollback.assert_not_called()
 
 
-    @patch("modules.events.update_event.app.psycopg2.connect")
+    @patch("modules.events.create_event.app.get_db_connection")
+    @patch("modules.events.create_event.app.authorizate_user")
     @patch("modules.events.update_event.app.validate_connection")
     @patch("modules.events.update_event.app.validate_event_body")
     def test_create_invalid_payload(self, mock_validate_event_body, mock_validate_connection,
@@ -161,7 +175,8 @@ class TestUpdateEvent(TestCase):
 
 
 
-    @patch("modules.events.update_event.app.psycopg2.connect")
+    @patch("modules.events.create_event.app.get_db_connection")
+    @patch("modules.events.create_event.app.authorizate_user")
     @patch("modules.events.update_event.app.validate_connection")
     @patch("modules.events.update_event.app.validate_event_body")
     @patch("modules.events.update_event.app.validate_payload")
@@ -206,7 +221,8 @@ class TestValidations(TestCase):
             'id_museum': '1'
         }
 
-    @patch("modules.events.update_event.app.psycopg2.connect")
+    @patch("modules.events.create_event.app.get_db_connection")
+    @patch("modules.events.create_event.app.authorizate_user")
     def test_validate_connection_failure(self, mock_psycopg2_connect):
         mock_psycopg2_connect.return_value = None
         result = validate_connection(mock_psycopg2_connect.return_value)

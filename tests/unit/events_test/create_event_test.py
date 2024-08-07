@@ -26,13 +26,14 @@ class TestCreateEvent(TestCase):
         mock_authorizate_user.return_value = None
         mock_get_db_connection.return_value = self.mock_connection
 
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
+
         # Simular una validación exitosa
         mock_validate_connection.return_value = None
         mock_validate_event_body.return_value = None
         mock_validate_payload.return_value = None
 
-        # Crear un token de prueba
-        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
         # Ejecutar la función lambda_handler con un evento de prueba
         event = {
@@ -105,8 +106,6 @@ class TestCreateEvent(TestCase):
         # Verificar el resultado esperado
         self.assertEqual(result["statusCode"], 400)
         self.assertEqual(result["body"], json.dumps({"error": "No body provided."}))
-
-
 
     @patch("modules.events.create_event.app.get_db_connection")
     @patch("modules.events.create_event.app.authorizate_user")

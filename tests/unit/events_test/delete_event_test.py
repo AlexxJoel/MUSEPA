@@ -23,8 +23,7 @@ class TestDeleteEvent(TestCase):
     @patch("modules.events.delete_event.app.authorizate_user")
     @patch("modules.events.delete_event.app.validate_connection")
     @patch("modules.events.delete_event.app.validate_event_path_params")
-    def test_delete_event_success(self, mock_validate_event_path_params, mock_validate_connection, mock_authorizate_user,
-                                  mock_get_db_connection):
+    def test_delete_event_success(self, mock_validate_event_path_params, mock_validate_connection,mock_authorizate_user,mock_get_db_connection):
         mock_authorizate_user.return_value = None
         mock_get_db_connection.return_value = self.mock_connection
         token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')

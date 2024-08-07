@@ -3,6 +3,8 @@ import unittest
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
 
+import jwt
+
 from modules.visitors.create_visitor.app import lambda_handler
 from modules.visitors.create_visitor.validations import validate_connection, validate_event_body, validate_payload
 
@@ -19,14 +21,18 @@ class TestCreateVisitors(TestCase):
         self.mock_cursor = MagicMock()
         self.mock_connection.cursor.return_value = self.mock_cursor
 
-    @patch("modules.visitors.create_visitor.app.psycopg2.connect")
+    @patch("modules.visitors.create_visitor.app.get_db_connection")
+    @patch("modules.visitors.create_visitor.app.authorizate_user")
     @patch("modules.visitors.create_visitor.app.validate_connection")
     @patch("modules.visitors.create_visitor.app.validate_event_body")
     @patch("modules.visitors.create_visitor.app.validate_payload")
-    def test_create_visitor_success(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection,
-                                    mock_psycopg2_connect):
-        # Configurar el mock de la conexión de psycopg2
-        mock_psycopg2_connect.return_value = self.mock_connection
+    def test_create_visitor_success(self,  mock_validate_payload, mock_validate_event_body, mock_validate_connection,
+                                 mock_authorizate_user, mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
         # Simular una validación exitosa
         mock_validate_connection.return_value = None
@@ -35,6 +41,9 @@ class TestCreateVisitors(TestCase):
 
         # Ejecutar la función lambda_handler con un evento de prueba
         event = {
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
             'body': json.dumps({
                 'email': 'example@example.com',
                 'username': 'test',

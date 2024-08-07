@@ -17,7 +17,7 @@ def  get_db_connection():
 
 
 def get_secrets():
- secret_name = "prod/musepa/vercel/postgres"
+    secret_name = "prod/musepa/vercel/postgres"
     region_name = "us-west-1"
 
     # Create a Secrets Manager client
