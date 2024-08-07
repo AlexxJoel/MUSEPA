@@ -2,7 +2,7 @@ import json
 import boto3
 from botocore.exceptions import ClientError
 from authorization import authorizate_user
-from connect_db import get_db_connection
+from connect_db import get_db_connection,get_secrets
 from validations import validate_connection, validate_event_body, validate_payload
 
 
@@ -10,7 +10,7 @@ def lambda_handler(event, _context):
     conn = None
     cur = None
     try:
-        # SonarQube/SonarCloud ignore start
+       
         # Authorizate
         authorization_response = authorizate_user(event)
         if authorization_response is not None:
@@ -35,7 +35,7 @@ def lambda_handler(event, _context):
         if valid_payload_res is not None:
             return valid_payload_res
 
-        # SonarQube/SonarCloud ignore end
+        
         # Get payload values
         email = request_body['email']
         password = request_body['password']
@@ -44,7 +44,7 @@ def lambda_handler(event, _context):
         name = request_body['name']
         surname = request_body['surname']
         lastname = request_body['lastname']
-        # SonarQube/SonarCloud ignore start
+       
         # Create cursor
         cur = conn.cursor()
 
@@ -67,53 +67,7 @@ def lambda_handler(event, _context):
         cur.execute(insert_visitor_query, (name, surname, lastname, id_user))
 
         # Cognito Insert
-        try:
-            client = boto3.client('cognito-idp', region_name='us-west-1')
-            user_pool_id = "us-west-1_3onWfQPhK"
-
-            # Create user
-            response = client.admin_create_user(
-                UserPoolId=user_pool_id,
-                Username=email,
-                UserAttributes=[
-                    {
-                        'Name': 'email',
-                        'Value': email
-                    },
-                    {
-                        'Name': 'email_verified',
-                        'Value': 'true'
-                    }
-                ],
-                TemporaryPassword=password,
-                MessageAction='SUPPRESS'
-            )
-
-            print(f"Usuario {email} creado exitosamente: {response}")
-
-            response = client.admin_add_user_to_group(
-                UserPoolId=user_pool_id,
-                Username=email,
-                GroupName='visitor'
-            )
-
-            print(f"Usuario {email} añadido al grupo 'visitor': {response}")
-
-            conn.commit()
-
-            return {
-                'statusCode': 200,
-                'body': json.dumps({"message": "User created successfully, verification email sent."})
-            }
-
-        except ClientError as e:
-
-            conn.rollback()
-            return {
-                'statusCode': 400,
-                'body': json.dumps({"error": e.response['Error']['Message']})
-            }
-
+        return insert_user_pool(conn,username,email, password)
         # Commit query
     except Exception as e:
         # Handle rollback
@@ -126,4 +80,46 @@ def lambda_handler(event, _context):
             conn.close()
         if cur is not None:
             cur.close()
-    # SonarQube/SonarCloud ignore end
+    
+
+def insert_user_pool(conn,username,email,password):
+    try:
+        secrets = get_secrets()
+        REGION_NAME = secrets['REGION_NAME']
+        USER_POOL_ID = secrets['USER_POOL_ID']
+        client = boto3.client('cognito-idp', region_name=REGION_NAME)
+
+        # Create user
+        response = client.admin_create_user(
+            UserPoolId=USER_POOL_ID,
+            Username=email,
+            UserAttributes=[
+                {'Name': 'email','Value': email},
+                {'Name': 'email_verified','Value': 'true'}
+            ],
+            TemporaryPassword=password
+        )
+
+        print(f"Usuario {email} creado exitosamente: {response}")
+
+        response = client.admin_add_user_to_group(
+            UserPoolId=USER_POOL_ID,
+            Username=email,
+            GroupName='visitor'
+        )
+
+        print(f"Usuario {email} añadido al grupo 'visitor': {response}")
+        conn.commit()
+        return {
+            'statusCode': 200,
+            'body': json.dumps({"message": "User created successfully, verification email sent."})
+        }
+
+    except ClientError as e:
+
+        conn.rollback()
+        return {
+            'statusCode': 400,
+            'body': json.dumps({"error": e.response['Error']['Message']})
+        }
+

@@ -4,9 +4,11 @@ from botocore.exceptions import ClientError
 
 
 def lambda_handler(event, __):
-    client = boto3.client('cognito-idp', region_name='us-west-1')
-    user_pool_id = "us-west-1_3onWfQPhK"
-    client_id = "2o20sdj0jd56hcfs13tjj28edg"
+    secrets = get_secrets()
+    REGION_NAME = secrets['REGION_NAME']
+    USER_POOL_ID = secrets['USER_POOL_ID']
+    CLIENT_ID = secrets['CLIENT_ID']
+    client = boto3.client('cognito-idp', region_name=REGION_NAME)
     try:
         # parsea el body del evento
         body_parameters = json.loads(event['body'])
@@ -16,8 +18,8 @@ def lambda_handler(event, __):
 
         # Autentica al usuario con la contraseña temporal
         response = client.admin_initiate_auth(
-            UserPoolId=user_pool_id,
-            ClientId=client_id,
+            UserPoolId=USER_POOL_ID,
+            ClientId=CLIENT_ID,
             AuthFlow='ADMIN_USER_PASSWORD_AUTH',
             AuthParameters={
                 'USERNAME': username,
@@ -27,7 +29,7 @@ def lambda_handler(event, __):
 
         if response['ChallengeName'] == 'NEW_PASSWORD_REQUIRED':
             client.respond_to_auth_challenge(
-                ClientId=client_id,
+                ClientId=CLIENT_ID,
                 ChallengeName='NEW_PASSWORD_REQUIRED',
                 Session=response['Session'],
                 ChallengeResponses={
@@ -47,3 +49,21 @@ def lambda_handler(event, __):
             'statusCode': 400,
             'body': json.dumps({"error": e.response['Error']['Message']})
         }
+
+
+def get_secrets():
+    secret_name = "prod/musepa/vercel/postgres"
+    region_name = "us-west-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(service_name='secretsmanager', region_name=region_name)
+
+    try:
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+
+    except Exception as e:
+        raise e
+
+    secret = get_secret_value_response['SecretString']
+    return json.loads(secret)

@@ -3,6 +3,9 @@ import json
 from unittest import TestCase
 import unittest
 from unittest.mock import MagicMock, patch
+
+import jwt
+
 from modules.museums.create_museum.app import lambda_handler
 from modules.museums.create_museum.app import validate_connection, validate_event_body, validate_payload
 
@@ -19,14 +22,19 @@ class TestCreateMuseum(TestCase):
         self.mock_cursor = MagicMock()
         self.mock_connection.cursor.return_value = self.mock_cursor
 
-    @patch("modules.museums.create_museum.app.psycopg2.connect")
+    @patch("modules.museums.create_museum.app.get_db_connection")
+    @patch("modules.museums.create_museum.app.authorizate_user")
     @patch("modules.museums.create_museum.app.validate_connection")
     @patch("modules.museums.create_museum.app.validate_event_body")
     @patch("modules.museums.create_museum.app.validate_payload")
     def test_create_museum_success(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection,
-                                   mock_psycopg2_connect):
+                                   mock_authorizate_user, mock_get_db_connection):
         # Configure mocks for connect to pyscopg2
-        mock_psycopg2_connect.return_value = self.mock_connection
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
         # Simulate successful validations
         mock_validate_connection.return_value = None
@@ -35,6 +43,9 @@ class TestCreateMuseum(TestCase):
 
         # Run lambda handler with a mocked museum
         museum = {
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
             'body': json.dumps({
                 'name': 'Event Name',
                 'location': 'Event Location',
@@ -61,11 +72,19 @@ class TestCreateMuseum(TestCase):
         self.mock_connection.commit.assert_called_once()
         self.mock_connection.rollback.assert_not_called()
 
-    @patch('modules.museums.create_museum.app.psycopg2.connect')
-    def test_lambda_invalid_connection(self, mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = None
+    @patch("modules.museums.create_museum.app.get_db_connection")
+    @patch("modules.museums.create_museum.app.authorizate_user")
+    def test_lambda_invalid_connection(self, mock_authorizate_user, mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = None
+
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
         museum = {
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
             'body': json.dumps({
                 'name': 'Event Name',
                 'location': 'Event Location',
@@ -81,13 +100,20 @@ class TestCreateMuseum(TestCase):
         self.assertEqual(result['statusCode'], 500)
         self.assertEqual(json.loads(result['body']), {"error": "Connection to the database failed"})
 
-    @patch('modules.museums.create_museum.app.psycopg2.connect')
+    @patch("modules.museums.create_museum.app.get_db_connection")
+    @patch("modules.museums.create_museum.app.authorizate_user")
     @patch('modules.museums.create_museum.app.validate_connection')
-    def test_lambda_invalid_event_body(self, mock_validate_connection, mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = self.mock_connection
+    def test_lambda_invalid_event_body(self, mock_validate_connection, mock_authorizate_user, mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
         mock_validate_connection.return_value = None
 
-        museum = {}
+        museum = {'headers': {
+                'Authorization': f'Bearer {token}'
+            }}
         result = lambda_handler(museum, None)
 
         self.assertEqual(result['statusCode'], 400)
@@ -98,15 +124,23 @@ class TestCreateMuseum(TestCase):
         self.mock_connection.commit.assert_not_called()
         self.mock_connection.rollback.assert_not_called()
 
-    @patch('modules.museums.create_museum.app.psycopg2.connect')
+    @patch("modules.museums.create_museum.app.get_db_connection")
+    @patch("modules.museums.create_museum.app.authorizate_user")
     @patch('modules.museums.create_museum.app.validate_connection')
     @patch('modules.museums.create_museum.app.validate_event_body')
-    def test_lambda_invalid_payload(self, mock_validate_event_body, mock_validate_connection, mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = self.mock_connection
+    def test_lambda_invalid_payload(self, mock_validate_event_body, mock_validate_connection, mock_authorizate_user, mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
         mock_validate_connection.return_value = None
         mock_validate_event_body.return_value = None
 
         museum = {
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
             'body': json.dumps({
                 'location': 'Event Location',
                 'tariffs': 'Tariffs Information',
@@ -128,13 +162,18 @@ class TestCreateMuseum(TestCase):
         self.mock_connection.commit.assert_not_called()
         self.mock_connection.rollback.assert_not_called()
 
-    @patch('modules.museums.create_museum.app.psycopg2.connect')
+    @patch("modules.museums.create_museum.app.get_db_connection")
+    @patch("modules.museums.create_museum.app.authorizate_user")
     @patch('modules.museums.create_museum.app.validate_connection')
     @patch('modules.museums.create_museum.app.validate_event_body')
     @patch('modules.museums.create_museum.app.validate_payload')
     def test_lambda_handler_500_error(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection,
-                                      mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = self.mock_connection
+                                      mock_authorizate_user, mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
         simulate_valid_validations(mock_validate_connection, mock_validate_event_body, mock_validate_payload)
 
@@ -142,6 +181,9 @@ class TestCreateMuseum(TestCase):
 
 
         museum = {
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
             'body': json.dumps({
                 'name': 'Event Name',
                 'location': 'Event Location',

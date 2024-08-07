@@ -5,6 +5,9 @@ from botocore.exceptions import ClientError
 
 
 def lambda_handler(event, context):
+    secrets = get_secrets()
+    REGION_NAME = secrets['REGION_NAME']
+    USER_POOL_ID = secrets['USER_POOL_ID']
     body_parameters = json.loads(event["body"])
     email = body_parameters.get('email')
     phone_number = body_parameters.get('phone_number')
@@ -23,12 +26,11 @@ def lambda_handler(event, context):
     try:
         # Se colocan las credenciales que obtuvimos al generar lo de cognito
         # Configura el cliente de cognito
-        client = boto3.client('cognito-idp', region_name='us-west-1')
-        user_pool_id = "us-west-1_3onWfQPhK"
+        client = boto3.client('cognito-idp', region_name=REGION_NAME)
 
         # Crea el usuario con correo no verificado y contraseña temporal que se envia automaticamente a su correo
         client.admin_create_user(
-            UserPoolId=user_pool_id,
+            UserPoolId=USER_POOL_ID,
             Username=user_name,
             UserAttributes=[
                 {'Name': 'email', 'Value': email},
@@ -38,7 +40,7 @@ def lambda_handler(event, context):
         )
 
         client.admin_add_user_to_group(
-            UserPoolId=user_pool_id,
+            UserPoolId=USER_POOL_ID,
             Username=user_name,
             GroupName=role
         )
@@ -54,3 +56,21 @@ def lambda_handler(event, context):
             'statusCode': 400,
             'body': json.dumps({"error": e.response['Error']['Message']})
         }
+
+
+def get_secrets():
+    secret_name = "prod/musepa/vercel/postgres"
+    region_name = "us-west-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(service_name='secretsmanager', region_name=region_name)
+
+    try:
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+
+    except Exception as e:
+        raise e
+
+    secret = get_secret_value_response['SecretString']
+    return json.loads(secret)

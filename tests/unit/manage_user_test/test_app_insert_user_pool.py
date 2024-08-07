@@ -4,10 +4,10 @@ from modules.manage_user.insert_user_pool import app
 
 mock_body = {
     "body": json.dumps({
-      "email": "bustosanna444@gmail.com",
+      "email": "bustosanna046@gmail.com",
       "phone_number": "7776048394",
-      "user_name": "prueba",
-      "password": "AnnaJM*27"
+      "user_name": "cristina",
+      "password": "Cristina2002"
     })
 }
 

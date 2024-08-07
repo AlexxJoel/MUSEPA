@@ -11,7 +11,7 @@ def lambda_handler(_event, _context):
     conn = None
     cur = None
     try:
-        # SonarQube/SonarCloud ignore start
+       
         # Authorizate
         authorization_response = authorizate_user(_event)
         if authorization_response is not None:
@@ -28,10 +28,10 @@ def lambda_handler(_event, _context):
         # Create cursor
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        # SonarQube/SonarCloud ignore end
+        
         # Find all users
         cur.execute("SELECT * FROM managers")
-        # SonarQube/SonarCloud ignore start
+       
 
         managers = cur.fetchall()
 
@@ -53,4 +53,4 @@ def lambda_handler(_event, _context):
             conn.close()
         if cur is not None:
             cur.close()
-    # SonarQube/SonarCloud ignore end
+    

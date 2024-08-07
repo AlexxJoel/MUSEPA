@@ -2,6 +2,9 @@ import json
 from unittest import TestCase
 import unittest
 from unittest.mock import patch, MagicMock
+
+import jwt
+
 from modules.works.delete_work.app import lambda_handler
 from modules.works.delete_work.validations import validate_connection,validate_event_path_params
 
@@ -16,15 +19,24 @@ class TestDeleteEvent(TestCase):
         self.mock_cursor = MagicMock()
         self.mock_connection.cursor.return_value = self.mock_cursor
 
-    @patch("modules.works.delete_work.app.psycopg2.connect")
+    @patch("modules.works.delete_work.app.get_db_connection")
+    @patch("modules.works.delete_work.app.authorizate_user")
     @patch("modules.works.delete_work.app.validate_connection")
     @patch("modules.works.delete_work.app.validate_event_path_params")
-    def test_delete_event_success(self, mock_validate_event_path_params, mock_validate_connection, mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = self.mock_connection
+    def test_delete_event_success(self, mock_validate_event_path_params, mock_validate_connection, mock_authorizate_user, mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
         simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection)
         self.mock_cursor.fetchone.return_value = {'id': 1}
 
-        work = {'pathParameters': {'id': '1'}}
+        work = {
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
+            'pathParameters': {'id': '1'}}
         result = lambda_handler(work, None)
 
         print(result)
@@ -34,16 +46,24 @@ class TestDeleteEvent(TestCase):
         self.mock_connection.close.assert_called_once()
         self.mock_cursor.close.assert_called_once()
 
-    @patch("modules.works.delete_work.app.psycopg2.connect")
+    @patch("modules.works.delete_work.app.get_db_connection")
+    @patch("modules.works.delete_work.app.authorizate_user")
     @patch("modules.works.delete_work.app.validate_connection")
     @patch("modules.works.delete_work.app.validate_event_path_params")
-    def test_delete_event_not_found(self, mock_validate_event_path_params, mock_validate_connection, mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = self.mock_connection
+    def test_delete_event_not_found(self, mock_validate_event_path_params, mock_validate_connection, mock_authorizate_user, mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
         simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection)
 
         self.mock_cursor.fetchone.return_value = None
 
-        work = {'pathParameters': {'id': '999'}}
+        work = {'headers': {
+                'Authorization': f'Bearer {token}'
+            },
+            'pathParameters': {'id': '999'}}
         result = lambda_handler(work, None)
 
         print(result)
@@ -56,37 +76,60 @@ class TestDeleteEvent(TestCase):
         self.mock_connection.close.assert_called_once()
         self.mock_cursor.close.assert_called_once()
 
-    @patch("modules.works.delete_work.app.psycopg2.connect")
-    def test_lambda_invalid_conn(self, mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = None
+    @patch("modules.works.delete_work.app.get_db_connection")
+    @patch("modules.works.delete_work.app.authorizate_user")
+    def test_lambda_invalid_conn(self, mock_authorizate_user, mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = None
 
-        work = {'pathParameters': {'id': '1'}}
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
+
+        work = {'headers': {
+                'Authorization': f'Bearer {token}'
+            },
+            'pathParameters': {'id': '1'}}
         result = lambda_handler(work, None)
 
         self.assertEqual(result['statusCode'], 500)
         self.assertEqual(result["body"], json.dumps({"error": "Connection to the database failed"}))
 
-    @patch("modules.works.delete_work.app.psycopg2.connect")
-    def test_lambda_invalid_path_parameters(self, mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = MagicMock()
+    @patch("modules.works.delete_work.app.get_db_connection")
+    @patch("modules.works.delete_work.app.authorizate_user")
+    def test_lambda_invalid_path_parameters(self, mock_authorizate_user, mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
 
-        work = {'pathParameters': None}
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
+
+        work = {'headers': {
+                'Authorization': f'Bearer {token}'
+            },
+            'pathParameters': None}
         result = lambda_handler(work, None)
 
         self.assertEqual(result['statusCode'], 400)
 
-
-    @patch("modules.works.delete_work.app.psycopg2.connect")
+    @patch("modules.works.delete_work.app.get_db_connection")
+    @patch("modules.works.delete_work.app.authorizate_user")
     @patch("modules.works.delete_work.app.validate_connection")
     @patch("modules.works.delete_work.app.validate_event_path_params")
     def test_lambda_handler_500_error(self, mock_validate_event_path_params, mock_validate_connection,
-                                      mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = self.mock_connection
+                                      mock_authorizate_user, mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
         simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection)
 
         self.mock_cursor.execute.side_effect = Exception("Simulated database error")
 
-        work = {'pathParameters': {'id': '1'}}
+        work = {'headers': {
+                'Authorization': f'Bearer {token}'
+            },
+            'pathParameters': {'id': '1'}}
         result = lambda_handler(work, None)
 
         self.assertEqual(result['statusCode'], 500)

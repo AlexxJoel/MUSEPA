@@ -2,6 +2,9 @@ import json
 from unittest import TestCase
 import unittest
 from unittest.mock import patch, MagicMock
+
+import jwt
+
 from modules.events.find_event.app import lambda_handler
 from modules.events.find_event.functions import datetime_serializer
 from modules.events.find_event.validations import validate_connection, validate_event_path_params
@@ -17,11 +20,11 @@ class TestFindEvent(TestCase):
         self.mock_cursor = MagicMock()
         self.mock_connection.cursor.return_value = self.mock_cursor
 
-    @patch("modules.events.find_event.app.psycopg2.connect")
+    @patch("modules.events.find_event.app.get_db_connection")
     @patch("modules.events.find_event.app.validate_connection")
     @patch("modules.events.find_event.app.validate_event_path_params")
-    def test_find_event_success(self, mock_validate_event_path_params, mock_validate_connection, mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = self.mock_connection
+    def test_find_event_success(self, mock_validate_event_path_params, mock_validate_connection, mock_get_db_connection):
+        mock_get_db_connection.return_value = self.mock_connection
         simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection)
 
         self.mock_cursor.fetchone.return_value = {
@@ -32,7 +35,8 @@ class TestFindEvent(TestCase):
             "end_date": "2024-01-02T00:00:00Z"
         }
 
-        event = {'pathParameters': {'id': '1'}}
+        event = {
+            'pathParameters': {'id': '1'}}
         result = lambda_handler(event, None)
 
         self.assertEqual(result["statusCode"], 200)
@@ -49,11 +53,11 @@ class TestFindEvent(TestCase):
         self.mock_connection.close.assert_called_once()
         self.mock_cursor.close.assert_called_once()
 
-    @patch("modules.events.find_event.app.psycopg2.connect")
+    @patch("modules.events.find_event.app.get_db_connection")
     @patch("modules.events.find_event.app.validate_connection")
     @patch("modules.events.find_event.app.validate_event_path_params")
-    def test_find_event_not_found(self, mock_validate_event_path_params, mock_validate_connection, mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = self.mock_connection
+    def test_find_event_not_found(self, mock_validate_event_path_params, mock_validate_connection,mock_get_db_connection):
+        mock_get_db_connection.return_value = self.mock_connection
         simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection)
 
         self.mock_cursor.fetchone.return_value = None
@@ -67,9 +71,9 @@ class TestFindEvent(TestCase):
         self.mock_connection.close.assert_called_once()
         self.mock_cursor.close.assert_called_once()
 
-    @patch("modules.events.find_event.app.psycopg2.connect")
-    def test_lambda_invalid_conn(self, mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = None
+    @patch("modules.events.find_event.app.get_db_connection")
+    def test_lambda_invalid_conn(self, mock_get_db_connection):
+        mock_get_db_connection.return_value = None
 
         event = {'pathParameters': {'id': '1'}}
         result = lambda_handler(event, None)
@@ -77,21 +81,21 @@ class TestFindEvent(TestCase):
         self.assertEqual(result['statusCode'], 500)
         self.assertEqual(result["body"], json.dumps({"error": "Connection to the database failed"}))
 
-    @patch("modules.events.find_event.app.psycopg2.connect")
-    def test_lambda_invalid_path_parameters(self, mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = MagicMock()
+    @patch("modules.events.find_event.app.get_db_connection")
+    def test_lambda_invalid_path_parameters(self, mock_get_db_connection):
+        mock_get_db_connection.return_value = MagicMock()
 
         event = {'pathParameters': None}
         result = lambda_handler(event, None)
 
         self.assertEqual(result['statusCode'], 400)
 
-    @patch("modules.events.find_event.app.psycopg2.connect")
+    @patch("modules.events.find_event.app.get_db_connection")
     @patch("modules.events.find_event.app.validate_connection")
     @patch("modules.events.find_event.app.validate_event_path_params")
     def test_lambda_handler_500_error(self, mock_validate_event_path_params, mock_validate_connection,
-                                      mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = self.mock_connection
+                                      mock_get_db_connection):
+        mock_get_db_connection.return_value = self.mock_connection
         simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection)
 
         self.mock_cursor.execute.side_effect = Exception("Simulated database error")

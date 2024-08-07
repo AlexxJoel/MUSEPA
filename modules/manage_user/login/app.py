@@ -5,10 +5,12 @@ from botocore.exceptions import ClientError
 
 
 def lambda_handler(event, __):
+    secrets = get_secrets()
+    REGION_NAME = secrets['REGION_NAME']
+    CLIENT_ID = secrets['CLIENT_ID']
     # Se colocan las credenciales que obtuvimos al generar lo de cognito
     # Configura el cliente de cognito
-    client = boto3.client('cognito-idp', region_name='us-west-1')
-    client_id = "2o20sdj0jd56hcfs13tjj28edg"
+    client = boto3.client('cognito-idp', region_name=REGION_NAME)
 
     try:
         body_parameters = json.loads(event["body"])
@@ -16,7 +18,7 @@ def lambda_handler(event, __):
         password = body_parameters.get('password')
 
         response = client.initiate_auth(
-            ClientId=client_id,
+            ClientId=CLIENT_ID,
             AuthFlow='USER_PASSWORD_AUTH',
             AuthParameters={
                 'USERNAME': username,
@@ -64,3 +66,21 @@ def lambda_handler(event, __):
             'statusCode': 500,
             'body': json.dumps({"error": str(e)})
         }
+
+
+def get_secrets():
+    secret_name = "prod/musepa/vercel/postgres"
+    region_name = "us-west-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(service_name='secretsmanager', region_name=region_name)
+
+    try:
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+
+    except Exception as e:
+        raise e
+
+    secret = get_secret_value_response['SecretString']
+    return json.loads(secret)
