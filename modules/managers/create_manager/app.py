@@ -96,7 +96,7 @@ def insert_user_pool(conn,username,email,password):
         USER_POOL_ID = secrets['USER_POOL_ID']
         client = boto3.client('cognito-idp', region_name=REGION_NAME)
 
-        # Crea el usuario con correo no verificado y contraseña temporal que se envia automaticamente a su correo
+        # Crea el usuario con correo no verificado contraseña temporal que se envia automaticamente a su correo
         client.admin_create_user(
             UserPoolId=USER_POOL_ID,
             Username=username,
