@@ -732,9 +732,6 @@ Outputs:
   LoginFunction:
     Description: "LoginFunction Lambda function ARN"
     Value: !GetAtt LoginFunction.Arn
-  PermissionFunction:
-    Description: "PermissionFunction Lambda function ARN"
-    Value: !GetAtt PermissionFunction.Arn
   SetPasswordFunction:
     Description: "SetPasswordFunction Lambda function ARN"
     Value: !GetAtt SetPasswordFunction.Arn
