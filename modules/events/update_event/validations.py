@@ -57,7 +57,7 @@ def validate_payload(payload):
             payload["category"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'category'"})}
 
-    if "pictures" not in payload or not isinstance(payload["pictures"], str) or not payload["pictures"].strip():
+    if "pictures" not in payload or not isinstance(payload["pictures"], list) or not payload["pictures"]:
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'pictures'"})}
 
     if "id_museum" not in payload or not isinstance(payload["id_museum"], str) or not numbers_regex.match(

@@ -34,7 +34,7 @@ def validate_event_body(event):
 
 
 def validate_payload(payload):
-    letters_regex = re.compile(r"^[a-zA-Z\s]+$")
+    letters_regex = re.compile(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$")
     date_regex = re.compile(r"^\d{4}-\d{2}-\d{2}$")
     numbers_regex = re.compile(r"^\d+$")
     if "name" not in payload or not isinstance(payload["name"], str) or not letters_regex.match(payload["name"]):
@@ -52,7 +52,7 @@ def validate_payload(payload):
     if "category" not in payload or not isinstance(payload["category"], str) or not letters_regex.match(payload["category"]):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'category'"})}
 
-    if "pictures" not in payload or not isinstance(payload["pictures"], str) or not payload["pictures"].strip():
+    if "pictures" not in payload or not isinstance(payload["pictures"], list) or not payload["pictures"]:
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'pictures'"})}
 
     if "id_museum" not in payload or not isinstance(payload["id_museum"], str) or not numbers_regex.match(payload["id_museum"]):
