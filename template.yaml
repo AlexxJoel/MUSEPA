@@ -601,22 +601,6 @@ Resources:
             RestApiId: !Ref AuthApi
             Path: /auth/login
             Method: POST
-  PermissionFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: modules/manage_user/permission/
-      Handler: app.lambda_handler
-      Runtime: python3.12
-      Architectures:
-        - x86_64
-      Role: !GetAtt LambdaExecutionRole.Arn
-      Events:
-        Permission:
-          Type: Api
-          Properties:
-            RestApiId: !Ref AuthApi
-            Path: /auth/permission
-            Method: POST
   SetPasswordFunction:
     Type: AWS::Serverless::Function
     Properties:
