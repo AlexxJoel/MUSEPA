@@ -61,7 +61,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Install AWS CLI
-        uses: aws-actions/setup-aws-cli@v2
+        uses: aws-actions/setup-aws-cli@v1
 
       - name: Install SAM CLI
         run:  pip install aws-sam-cli
