@@ -3,6 +3,8 @@ import unittest
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
 
+import jwt
+
 from modules.visitors.update_favorites_visitor.app import lambda_handler
 from modules.visitors.update_favorites_visitor.validations import validate_connection, validate_event_body, \
     validate_payload
@@ -20,15 +22,19 @@ class TestUpdateThingsVisitor(TestCase):
         self.mock_cursor = MagicMock()
         self.mock_connection.cursor.return_value = self.mock_cursor
 
-    @patch("modules.visitors.update_favorites_visitor.app.psycopg2.connect")
+    @patch("modules.visitors.update_favorites_visitor.app.get_db_connection")
+    @patch("modules.visitors.update_favorites_visitor.app.authorizate_user")
     @patch("modules.visitors.update_favorites_visitor.app.validate_connection")
     @patch("modules.visitors.update_favorites_visitor.app.validate_event_body")
     @patch("modules.visitors.update_favorites_visitor.app.validate_payload")
     def test_update_things_visitor_success(self, mock_validate_payload, mock_validate_event_body,
-                                           mock_validate_connection,
-                                           mock_psycopg2_connect):
-        # Configurar el mock de la conexión de psycopg2
-        mock_psycopg2_connect.return_value = self.mock_connection
+                                           mock_validate_connection,mock_authorizate_user, mock_get_db_connection):
+        # Simular la autorización y la conexión DB
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
         # Simular una validación exitosa
         mock_validate_connection.return_value = None
@@ -37,6 +43,9 @@ class TestUpdateThingsVisitor(TestCase):
 
         # Ejecutar la función lambda_handler con un evento de prueba
         event = {
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
             'body': json.dumps({
                 'id': 3,
                 'favorites': [4, 3, 1]
@@ -57,14 +66,19 @@ class TestUpdateThingsVisitor(TestCase):
         self.mock_connection.commit.assert_called_once()
         self.mock_connection.rollback.assert_not_called()
 
-    @patch("modules.visitors.update_favorites_visitor.app.psycopg2.connect")
+    @patch("modules.visitors.update_favorites_visitor.app.get_db_connection")
+    @patch("modules.visitors.update_favorites_visitor.app.authorizate_user")
     @patch("modules.visitors.update_favorites_visitor.app.validate_connection")
     @patch("modules.visitors.update_favorites_visitor.app.validate_event_body")
     @patch("modules.visitors.update_favorites_visitor.app.validate_payload")
     def test_visitor_not_found(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection,
-                               mock_psycopg2_connect):
-        # Configurar el mock de la conexión de psycopg2
-        mock_psycopg2_connect.return_value = self.mock_connection
+                               mock_authorizate_user, mock_get_db_connection):
+        # Simular la autorización y la conexión DB
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
         # Simular una validación exitosa
         mock_validate_connection.return_value = None
@@ -75,6 +89,9 @@ class TestUpdateThingsVisitor(TestCase):
 
         # Ejecutar la función lambda_handler con un evento de prueba
         event = {
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
             'body': json.dumps({
                 'id': 3,
                 'favorites': [4, 3, 1]
@@ -95,11 +112,20 @@ class TestUpdateThingsVisitor(TestCase):
         self.mock_connection.commit.assert_not_called()
         self.mock_connection.rollback.assert_not_called()
 
-    @patch("modules.visitors.update_favorites_visitor.app.psycopg2.connect")
-    def test_lambda_invalid_conn(self, mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = None
+    @patch("modules.visitors.update_favorites_visitor.app.get_db_connection")
+    @patch("modules.visitors.update_favorites_visitor.app.authorizate_user")
+    def test_lambda_invalid_conn(self, mock_authorizate_user, mock_get_db_connection):
+        # Simular la autorización y la conexión DB
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = None
+
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
         event = {
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
             'body': json.dumps({
                 'id': 3,
                 'favorites': [4, 3, 1]
@@ -111,17 +137,24 @@ class TestUpdateThingsVisitor(TestCase):
         self.assertEqual(result['statusCode'], 500)
         self.assertEqual(result["body"], json.dumps({"error": "Connection to the database failed"}))
 
-    @patch("modules.visitors.update_favorites_visitor.app.psycopg2.connect")
+    @patch("modules.visitors.update_favorites_visitor.app.get_db_connection")
+    @patch("modules.visitors.update_favorites_visitor.app.authorizate_user")
     @patch("modules.visitors.update_favorites_visitor.app.validate_connection")
-    def test_lamda_invalid_event_body(self, mock_validate_connection, mock_psycopg2_connect):
-        # Configurar el mock de la conexión de psycopg2
-        mock_psycopg2_connect.return_value = self.mock_connection
+    def test_lamda_invalid_event_body(self, mock_validate_connection, mock_authorizate_user, mock_get_db_connection):
+        # Simular la autorización y la conexión DB
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
         # Simular una validación exitosa
         mock_validate_connection.return_value = None
 
         # Ejecutar la función lambda_handler con un evento de prueba
-        event = {}
+        event = {'headers': {
+                'Authorization': f'Bearer {token}'
+            }}
         result = lambda_handler(event, None)
 
         # Imprimir el resultado (puede eliminarse en el código de producción)
@@ -137,13 +170,18 @@ class TestUpdateThingsVisitor(TestCase):
         self.mock_connection.commit.assert_not_called()
         self.mock_connection.rollback.assert_not_called()
 
-    @patch("modules.visitors.update_favorites_visitor.app.psycopg2.connect")
+    @patch("modules.visitors.update_favorites_visitor.app.get_db_connection")
+    @patch("modules.visitors.update_favorites_visitor.app.authorizate_user")
     @patch("modules.visitors.update_favorites_visitor.app.validate_connection")
     @patch("modules.visitors.update_favorites_visitor.app.validate_event_body")
     def test_create_invalid_payload(self, mock_validate_event_body, mock_validate_connection,
-                                    mock_psycopg2_connect):
-        # Configurar el mock de la conexión de psycopg2
-        mock_psycopg2_connect.return_value = self.mock_connection
+                                    mock_authorizate_user, mock_get_db_connection):
+        # Simular la autorización y la conexión DB
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
         # Simular una validación exitosa
         mock_validate_connection.return_value = None
@@ -151,6 +189,9 @@ class TestUpdateThingsVisitor(TestCase):
 
         # Ejecutar la función lambda_handler con un evento de prueba
         event = {
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
             'body': json.dumps({
                 'id': '3',
                 'favorites': 1
@@ -171,14 +212,19 @@ class TestUpdateThingsVisitor(TestCase):
         self.mock_connection.commit.assert_not_called()
         self.mock_connection.rollback.assert_not_called()
 
-    @patch("modules.visitors.update_favorites_visitor.app.psycopg2.connect")
+    @patch("modules.visitors.update_favorites_visitor.app.get_db_connection")
+    @patch("modules.visitors.update_favorites_visitor.app.authorizate_user")
     @patch("modules.visitors.update_favorites_visitor.app.validate_connection")
     @patch("modules.visitors.update_favorites_visitor.app.validate_event_body")
     @patch("modules.visitors.update_favorites_visitor.app.validate_payload")
     def test_lambda_handler_500_error(self, mock_validate_payload, mock_validate_event_body,
-                                      mock_validate_connection, mock_psycopg2_connect):
-        # Simular conexión
-        mock_psycopg2_connect.return_value = self.mock_connection
+                                      mock_validate_connection, mock_authorizate_user, mock_get_db_connection):
+        # Simular la autorización y la conexión DB
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        # Crear un token de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
         # Simular una validación exitosa
         simulate_valid_validations(mock_validate_connection, mock_validate_event_body, mock_validate_payload)
@@ -188,6 +234,9 @@ class TestUpdateThingsVisitor(TestCase):
 
         # Simular request
         event = {
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
             'body': json.dumps({
                 'id': 3,
                 'favorites': [4, 3, 1]

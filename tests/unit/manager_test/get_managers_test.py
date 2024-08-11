@@ -19,11 +19,12 @@ class TestGetManagers(TestCase):
         self.mock_cursor = MagicMock()
         self.mock_connection.cursor.return_value = self.mock_cursor
 
-    @patch("modules.managers.get_managers.app.psycopg2.connect")
+    @patch("modules.managers.get_managers.app.get_db_connection")
+    @patch("modules.managers.get_managers.app.authorizate_user")
     @patch("modules.managers.get_managers.app.validate_connection")
-    def test_get_managers_success(self, mock_validate_connection, mock_psycopg2_connect):
-        # Simular conexión
-        mock_psycopg2_connect.return_value = self.mock_connection
+    def test_get_managers_success(self, mock_validate_connection, mock_authorizate_user,mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
 
         # Simular una validación exitosa
         simulate_valid_validations(mock_validate_connection)
@@ -83,23 +84,22 @@ class TestGetManagers(TestCase):
         self.mock_connection.close.assert_called_once()
         self.mock_cursor.close.assert_called_once()
 
-    @patch("modules.managers.get_managers.app.psycopg2.connect")
-    def test_lambda_invalid_conn(self, mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = None
+    @patch("modules.managers.get_managers.app.get_db_connection")
+    @patch("modules.managers.get_managers.app.authorizate_user")
+    def test_lambda_invalid_conn(self, mock_authorizate_user,mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = None
 
         result = lambda_handler(None, None)
 
         self.assertEqual(result['statusCode'], 500)
         self.assertEqual(result["body"], json.dumps({"error": "Connection to the database failed"}))
 
-    @patch("modules.managers.get_managers.app.psycopg2.connect")
-    @patch("modules.managers.get_managers.app.validate_connection")
-    def test_lambda_handler_500_error(self, mock_validate_connection, mock_psycopg2_connect):
-        # Simular conexión
-        mock_psycopg2_connect.return_value = self.mock_connection
-
-        # Simular una validación exitosa
-        simulate_valid_validations(mock_validate_connection)
+    @patch("modules.managers.get_managers.app.get_db_connection")
+    @patch("modules.managers.get_managers.app.authorizate_user")
+    def test_lambda_handler_500_error(self, mock_authorizate_user, mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
 
         # Simular excepción
         self.mock_cursor.execute.side_effect = Exception("Simulated database error")

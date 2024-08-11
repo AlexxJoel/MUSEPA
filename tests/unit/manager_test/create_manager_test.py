@@ -3,6 +3,8 @@ import unittest
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
 
+import jwt
+
 from modules.managers.create_manager.app import lambda_handler
 from modules.managers.create_manager.validations import validate_connection, validate_event_body, validate_payload
 
@@ -19,71 +21,116 @@ class TestCreateManager(TestCase):
         self.mock_cursor = MagicMock()
         self.mock_connection.cursor.return_value = self.mock_cursor
 
-    @patch("modules.managers.create_manager.app.psycopg2.connect")
-    @patch("modules.managers.create_manager.app.validate_connection")
-    @patch("modules.managers.create_manager.app.validate_event_body")
-    @patch("modules.managers.create_manager.app.validate_payload")
-    def test_create_manager_success(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection,
-                                    mock_psycopg2_connect):
-        # Configurar el mock de la conexión de psycopg2
-        mock_psycopg2_connect.return_value = self.mock_connection
+    # @patch("modules.managers.create_manager.app.get_db_connection")
+    # @patch("modules.managers.create_manager.app.authorizate_user")
+    # @patch("modules.managers.create_manager.app.validate_connection")
+    # @patch("modules.managers.create_manager.app.validate_event_body")
+    # @patch("modules.managers.create_manager.app.validate_payload")
+    # @patch("modules.visitors.create_visitor.app.get_secrets")
+    # @patch("boto3.client")
+    # def test_create_manager_success(self, mock_boto_client, mock_get_secrets, mock_validate_payload,
+    #                                 mock_validate_event_body, mock_validate_connection, mock_authorizate_user,
+    #                                 mock_get_db_connection):
+    #     # Mocks para Cognito
+    #     mock_cognito_client = MagicMock()
+    #     mock_boto_client.return_value = mock_cognito_client
+    #     mock_cognito_client.admin_create_user.return_value = {
+    #         'User': {
+    #             'Username': 'example@example.com',
+    #             'UserStatus': 'FORCE_CHANGE_PASSWORD'
+    #         }
+    #     }
+    #     mock_cognito_client.admin_add_user_to_group.return_value = {}
+    #
+    #     # Mocks para secretos
+    #     mock_get_secrets.return_value = {
+    #         'REGION_NAME': 'us-west-1',
+    #         'USER_POOL_ID': 'us-west-2_test'
+    #     }
+    #
+    #     # Otros mocks
+    #     mock_authorizate_user.return_value = None
+    #     mock_get_db_connection.return_value = self.mock_connection
+    #
+    #     # Configuración del token JWT
+    #     token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
+    #
+    #     # Mocks de validación
+    #     mock_validate_connection.return_value = None
+    #     mock_validate_event_body.return_value = None
+    #     mock_validate_payload.return_value = None
+    #
+    #     # Simular el cursor de la base de datos
+    #     self.mock_cursor = MagicMock()
+    #     self.mock_connection.cursor.return_value = self.mock_cursor
+    #
+    #     # Simular retorno del fetchone para obtener el ID del usuario
+    #     self.mock_cursor.fetchone.return_value = [1]
+    #
+    #     # Evento simulado
+    #     event = {
+    #         'headers': {
+    #             'Authorization': f'Bearer {token}'
+    #         },
+    #         'body': json.dumps({
+    #             'email': 'example@example.com',
+    #             'password': 'Test123.',
+    #             'username': 'test',
+    #             'name': 'test',
+    #             'surname': 'test',
+    #             'lastname': 'test',
+    #             'phone_number': '7771112233',
+    #             'address': 'test',
+    #             'birthdate': '2000-01-01',
+    #             'id_museum': '1'
+    #         })
+    #     }
+    #
+    #     # Llamar a la función lambda_handler
+    #     result = lambda_handler(event, None)
+    #
+    #     # Verificaciones
+    #     self.assertEqual(result["statusCode"], 200)
+    #     self.assertEqual(result["body"], json.dumps({"message": "User created successfully, verification email sent."}))
+    #     self.mock_connection.close.assert_called_once()
+    #     self.mock_cursor.close.assert_called_once()
+    #     self.mock_connection.commit.assert_called_once()
+    #     self.mock_connection.rollback.assert_not_called()
 
-        # Simular una validación exitosa
-        mock_validate_connection.return_value = None
-        mock_validate_event_body.return_value = None
-        mock_validate_payload.return_value = None
+    @patch("modules.managers.create_manager.app.get_db_connection")
+    @patch("modules.managers.create_manager.app.authorizate_user")
+    def test_lambda_invalid_conn(self, mock_authorizate_user,mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = None
 
-        # Ejecutar la función lambda_handler con un evento de prueba
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
+
         event = {
-            'body': json.dumps({
-                'email': 'example@example.com',
-                'password': 'Test123.',
-                'username': 'test',
-                'name': 'test',
-                'surname': 'test',
-                'lastname': 'test',
-                'phone_number': '7771112233',
-                'address': 'test',
-                'birthdate': '2000-01-01',
-                'id_museum': '1'
-            })
-        }
-        result = lambda_handler(event, None)
-
-        # Imprimir el resultado (puede eliminarse en el código de producción)
-        print(result)
-
-        # Verificar el resultado esperado
-        self.assertEqual(result["statusCode"], 200)
-        self.assertEqual(result["body"], json.dumps({"message": "Manager created successfully"}))
-
-        # Verificar que se ha llamado a close_connection con el argumento correcto
-        self.mock_connection.close.assert_called_once()
-        self.mock_cursor.close.assert_called_once()
-        self.mock_connection.commit.assert_called_once()
-        self.mock_connection.rollback.assert_not_called()
-
-    @patch("modules.managers.create_manager.app.psycopg2.connect")
-    def test_lambda_invalid_conn(self, mock_psycopg2_connect):
-        mock_psycopg2_connect.return_value = None
-
-        event = {'pathParameters': {'id': '1'}}
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
+            'pathParameters': {'id': '1'}}
         result = lambda_handler(event, None)
 
         self.assertEqual(result['statusCode'], 500)
         self.assertEqual(result["body"], json.dumps({"error": "Connection to the database failed"}))
 
-    @patch("modules.managers.create_manager.app.psycopg2.connect")
+    @patch("modules.managers.create_manager.app.get_db_connection")
+    @patch("modules.managers.create_manager.app.authorizate_user")
     @patch("modules.managers.create_manager.app.validate_connection")
-    def test_lamda_invalid_event_body(self, mock_validate_connection, mock_psycopg2_connect):
-        # Configurar el mock de la conexión de psycopg2
-        mock_psycopg2_connect.return_value = self.mock_connection
+    def test_lamda_invalid_event_body(self, mock_validate_connection, mock_authorizate_user,mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
         # Simular una validación exitosa
         mock_validate_connection.return_value = None
 
         # Ejecutar la función lambda_handler con un evento de prueba
-        event = {}
+        event = {'headers': {
+                'Authorization': f'Bearer {token}'
+            },}
         result = lambda_handler(event, None)
 
         # Imprimir el resultado (puede eliminarse en el código de producción)
@@ -99,13 +146,16 @@ class TestCreateManager(TestCase):
         self.mock_connection.commit.assert_not_called()
         self.mock_connection.rollback.assert_not_called()
 
-    @patch("modules.managers.create_manager.app.psycopg2.connect")
+    @patch("modules.managers.create_manager.app.get_db_connection")
+    @patch("modules.managers.create_manager.app.authorizate_user")
     @patch("modules.managers.create_manager.app.validate_connection")
     @patch("modules.managers.create_manager.app.validate_event_body")
     def test_create_invalid_payload(self, mock_validate_event_body, mock_validate_connection,
-                                    mock_psycopg2_connect):
-        # Configurar el mock de la conexión de psycopg2
-        mock_psycopg2_connect.return_value = self.mock_connection
+                                    mock_authorizate_user,mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
         # Simular una validación exitosa
         mock_validate_connection.return_value = None
@@ -113,6 +163,9 @@ class TestCreateManager(TestCase):
 
         # Ejecutar la función lambda_handler con un evento de prueba
         event = {
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
             'body': json.dumps({
                 'password': 'Test123.',
                 'username': 'test',
@@ -141,14 +194,17 @@ class TestCreateManager(TestCase):
         self.mock_connection.commit.assert_not_called()
         self.mock_connection.rollback.assert_not_called()
 
-    @patch("modules.managers.create_manager.app.psycopg2.connect")
+    @patch("modules.managers.create_manager.app.get_db_connection")
+    @patch("modules.managers.create_manager.app.authorizate_user")
     @patch("modules.managers.create_manager.app.validate_connection")
     @patch("modules.managers.create_manager.app.validate_event_body")
     @patch("modules.managers.create_manager.app.validate_payload")
     def test_lambda_handler_500_error(self, mock_validate_payload, mock_validate_event_body,
-                                      mock_validate_connection, mock_psycopg2_connect):
-        # Simular conexión
-        mock_psycopg2_connect.return_value = self.mock_connection
+                                      mock_validate_connection, mock_authorizate_user,mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
         # Simular una validación exitosa
         simulate_valid_validations(mock_validate_connection, mock_validate_event_body, mock_validate_payload)
@@ -158,6 +214,9 @@ class TestCreateManager(TestCase):
 
         # Simular request
         event = {
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
             'body': json.dumps({
                 'email': 'example@example.com',
                 'password': 'Test123.',
@@ -348,7 +407,7 @@ class TestValidations(TestCase):
         payload["birthdate"] = "01-01-1990"
         expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'birthdate'"})}
         self.assertEqual(validate_payload(payload), expected_response)
-    
+
     def test_validate_payload_missing_id_museum(self):
         payload = self.valid_payload.copy()
         del payload['id_museum']
