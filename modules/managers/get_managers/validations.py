@@ -3,7 +3,7 @@ import json
 headers = {
     'Access-Control-Allow-Headers': '*',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST'
+    'Access-Control-Allow-Methods': 'GET'
 }
 
 def validate_connection(conn):

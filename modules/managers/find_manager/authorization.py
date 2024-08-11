@@ -4,7 +4,7 @@ import jwt
 headers = {
     'Access-Control-Allow-Headers': '*',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST'
+    'Access-Control-Allow-Methods': 'GET'
 }
 def authorizate_user(_event):
     token = _event['headers']['Authorization'].split(' ')[1]

@@ -8,7 +8,7 @@ from authorization import authorizate_user
 headers = {
     'Access-Control-Allow-Headers': '*',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST'
+    'Access-Control-Allow-Methods': 'DELETE'
 }
 
 

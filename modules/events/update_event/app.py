@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 headers = {
     'Access-Control-Allow-Headers': '*',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST'
+    'Access-Control-Allow-Methods': 'PUT'
 }
 
 

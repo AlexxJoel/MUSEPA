@@ -8,7 +8,7 @@ from connect_db import get_db_connection
 headers = {
     'Access-Control-Allow-Headers': '*',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST'
+    'Access-Control-Allow-Methods': 'GET'
 }
 
 

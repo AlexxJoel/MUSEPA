@@ -10,7 +10,7 @@ from validations import validate_connection, validate_event_body, validate_paylo
 headers = {
     'Access-Control-Allow-Headers': '*',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST'
+    'Access-Control-Allow-Methods': 'PUT'
 }
 
 

@@ -8,7 +8,7 @@ from functions import datetime_serializer
 headers = {
     'Access-Control-Allow-Headers': '*',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST'
+    'Access-Control-Allow-Methods': 'GET'
 }
 def lambda_handler(_event, _context):
     conn = None

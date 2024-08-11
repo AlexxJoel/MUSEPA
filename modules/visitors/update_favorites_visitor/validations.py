@@ -4,7 +4,7 @@ import re
 headers = {
     'Access-Control-Allow-Headers': '*',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST'
+    'Access-Control-Allow-Methods': 'PUT'
 }
 def validate_connection(conn):
     # check if the connection is successful
