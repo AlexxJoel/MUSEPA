@@ -4,12 +4,18 @@ from connect_db import get_db_connection
 from validations import validate_connection, validate_event_body, validate_payload
 from authorization import authorizate_user
 
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST'
+}
+
 
 def lambda_handler(event, _context):
     conn = None
     cur = None
     try:
-       
+
         # Authorizate
         authorization_response = authorizate_user(event)
         if authorization_response is not None:
@@ -34,7 +40,6 @@ def lambda_handler(event, _context):
         if valid_payload_res is not None:
             return valid_payload_res
 
-        
         # Get payload values
         title = request_body['title']
         description = request_body['description']
@@ -43,7 +48,7 @@ def lambda_handler(event, _context):
         artists = request_body['artists']
         id_museum = request_body['id_museum']
         pictures = request_body['pictures']
-       
+
         # Create cursor
         cur = conn.cursor()
 
@@ -59,16 +64,15 @@ def lambda_handler(event, _context):
 
         # Commit query
         conn.commit()
-        return {'statusCode': 200, 'body': json.dumps({"message": "Work created successfully"})}
+        return {'statusCode': 200, 'body': json.dumps({"message": "Work created successfully"}), 'headers': headers}
     except Exception as e:
         # Handle rollback
         if conn is not None:
             conn.rollback()
-        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)}), 'headers': headers}
     finally:
         # Close connection and cursor
         if conn is not None:
             conn.close()
         if cur is not None:
             cur.close()
-    

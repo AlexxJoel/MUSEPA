@@ -3,7 +3,11 @@ import json
 import boto3
 from botocore.exceptions import ClientError
 
-
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST'
+}
 def lambda_handler(event, __):
     secrets = get_secrets()
     REGION_NAME = secrets['REGION_NAME']
@@ -29,7 +33,8 @@ def lambda_handler(event, __):
         if 'ChallengeName' in response and response['ChallengeName'] == 'NEW_PASSWORD_REQUIRED':
             return {
                 'statusCode': 401,
-                'body': json.dumps({"error": "Access denied. Please, change the temporary password."})
+                'body': json.dumps({"error": "Access denied. Please, change the temporary password."}),
+                'headers': headers
             }
 
         id_token = response['AuthenticationResult']['IdToken']
@@ -54,17 +59,20 @@ def lambda_handler(event, __):
                 'access_token': access_token,
                 'refresh_token': refresh_token,
                 'role': role
-            })
+            }),
+            'headers': headers
         }
     except ClientError as e:
         return {
             'statusCode': 400,
-            'body': json.dumps({"error": e.response['Error']['Message']})
+            'body': json.dumps({"error": e.response['Error']['Message']}),
+            'headers': headers
         }
     except Exception as e:
         return {
             'statusCode': 500,
-            'body': json.dumps({"error": str(e)})
+            'body': json.dumps({"error": str(e)}),
+            'headers': headers
         }
 
 

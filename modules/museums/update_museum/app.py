@@ -4,12 +4,18 @@ from connect_db import get_db_connection
 from validations import validate_connection, validate_event_body, validate_payload
 from authorization import authorizate_user
 
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST'
+}
+
 
 def lambda_handler(event, _context):
     conn = None
     cur = None
     try:
-       
+
         # Authorizate
         authorization_response = authorizate_user(event)
         if authorization_response is not None:
@@ -33,7 +39,6 @@ def lambda_handler(event, _context):
         if valid_payload_res is not None:
             return valid_payload_res
 
-        
         # Get payload values
         id = request_body['id']
         name = request_body['name']
@@ -43,7 +48,7 @@ def lambda_handler(event, _context):
         contact_number = request_body['contact_number']
         contact_email = request_body['contact_email']
         pictures = request_body['pictures']
-       
+
         # Create cursor
         cur = conn.cursor()
 
@@ -55,7 +60,7 @@ def lambda_handler(event, _context):
         result = cur.fetchone()
 
         if not result:
-            return {"statusCode": 400, "body": json.dumps({"error": "Museum not found"})}
+            return {"statusCode": 400, "body": json.dumps({"error": "Museum not found"}), "headers": headers}
 
         # Update museum
         update_museum_query = """UPDATE museums SET name=%s, location=%s, tariffs=%s, schedules=%s, contact_number=%s, contact_email=%s, pictures=%s WHERE id=%s"""
@@ -64,16 +69,15 @@ def lambda_handler(event, _context):
 
         # Commit query
         conn.commit()
-        return {'statusCode': 200, 'body': json.dumps({"message": "Museum updated successfully"})}
+        return {'statusCode': 200, 'body': json.dumps({"message": "Museum updated successfully"}), "headers": headers}
     except Exception as e:
         # Handle rollback
         if conn is not None:
             conn.rollback()
-        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)}), "headers": headers}
     finally:
         # Close connection and cursor
         if conn is not None:
             conn.close()
         if cur is not None:
             cur.close()
-    

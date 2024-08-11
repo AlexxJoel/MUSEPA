@@ -5,12 +5,18 @@ from connect_db import get_db_connection
 from validations import validate_connection, validate_event_body, validate_payload
 from authorization import authorizate_user
 
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST'
+}
+
 
 def lambda_handler(event, _context):
     conn = None
     cur = None
     try:
-       
+
         # Authorizate
         authorization_response = authorizate_user(event)
         if authorization_response is not None:
@@ -34,7 +40,6 @@ def lambda_handler(event, _context):
         if valid_payload_res is not None:
             return valid_payload_res
 
-        
         # Get payload values
         id = request_body["id"]
         email = request_body["email"]
@@ -43,7 +48,7 @@ def lambda_handler(event, _context):
         name = request_body["name"]
         surname = request_body["surname"]
         lastname = request_body["lastname"]
-       
+
         # Create cursor
         cur = conn.cursor()
 
@@ -55,7 +60,7 @@ def lambda_handler(event, _context):
         result = cur.fetchone()
 
         if not result:
-            return {"statusCode": 404, "body": json.dumps({"error": "Visitor not found"})}
+            return {"statusCode": 404, "body": json.dumps({"error": "Visitor not found"}), "headers": headers}
 
         user_id = result[0]
 
@@ -69,7 +74,6 @@ def lambda_handler(event, _context):
 
         # Cognito Integration
         try:
-
 
             client = boto3.client('cognito-idp', region_name='us-west-1')
             user_pool_id = "us-west-1_3onWfQPhK"
@@ -122,22 +126,23 @@ def lambda_handler(event, _context):
             # Commit query
             conn.commit()
 
-            return {'statusCode': 200, 'body': json.dumps({"message": "Visitor updated successfully"})}
+            return {'statusCode': 200, 'body': json.dumps({"message": "Visitor updated successfully"}),
+                    "headers": headers}
 
         except ClientError as e:
             conn.rollback()
-            return {'statusCode': 400, 'body': json.dumps({"error": e.response['Error']['Message']})}
+            return {'statusCode': 400, 'body': json.dumps({"error": e.response['Error']['Message']}),
+                    "headers": headers}
 
 
     except Exception as e:
         # Handle rollback
         if conn is not None:
             conn.rollback()
-        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)}), "headers": headers}
     finally:
         # Close connection and cursor
         if conn is not None:
             conn.close()
         if cur is not None:
             cur.close()
-    

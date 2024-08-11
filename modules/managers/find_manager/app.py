@@ -6,12 +6,18 @@ from validations import validate_connection, validate_event_path_params
 from connect_db import get_db_connection
 from authorization import authorizate_user
 
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST'
+}
+
 
 def lambda_handler(event, _context):
     conn = None
     cur = None
     try:
-       
+
         # Authorizate
         authorization_response = authorizate_user(event)
         if authorization_response is not None:
@@ -30,10 +36,9 @@ def lambda_handler(event, _context):
         if valid_path_params_res is not None:
             return valid_path_params_res
 
-        
         # Get values from path params
         request_id = event['pathParameters']['id']
-       
+
         # Create cursor
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -43,7 +48,7 @@ def lambda_handler(event, _context):
         manager = cur.fetchone()
 
         if not manager:
-            return {"statusCode": 404, "body": json.dumps({"error": "Manager not found"})}
+            return {"statusCode": 404, "body": json.dumps({"error": "Manager not found"}), "headers": headers}
 
         # Find user by id
         sql = "SELECT * FROM users WHERE id = %s"
@@ -51,17 +56,17 @@ def lambda_handler(event, _context):
         user = cur.fetchone()
 
         if not user:
-            return {'statusCode': 404, 'body': json.dumps({"error": "User not found"})}
+            return {'statusCode': 404, 'body': json.dumps({"error": "User not found"}), "headers": headers}
 
         manager['user'] = user
 
-        return {'statusCode': 200, 'body': json.dumps({"data": manager}, default=datetime_serializer)}
+        return {'statusCode': 200, 'body': json.dumps({"data": manager}, default=datetime_serializer),
+                "headers": headers}
     except Exception as e:
-        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)}), "headers": headers}
     finally:
         # Close connection and cursor
         if conn is not None:
             conn.close()
         if cur is not None:
             cur.close()
-    
