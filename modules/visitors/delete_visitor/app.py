@@ -6,12 +6,18 @@ from authorization import authorizate_user
 from connect_db import get_db_connection
 from validations import validate_connection, validate_event_path_params
 
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'DELETE'
+}
+
 
 def lambda_handler(event, _context):
     conn = None
     cur = None
     try:
-       
+
         # Authorizate
         authorization_response = authorizate_user(event)
         if authorization_response is not None:
@@ -30,10 +36,9 @@ def lambda_handler(event, _context):
         if valid_path_params_res is not None:
             return valid_path_params_res
 
-        
         # Get values from path params
         request_id = event['pathParameters']['id']
-       
+
         # Create cursor
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -45,14 +50,13 @@ def lambda_handler(event, _context):
         visitor = cur.fetchone()
 
         if not visitor:
-            return {"statusCode": 404, "body": json.dumps({"error": "Visitor not found"})}
+            return {"statusCode": 404, "body": json.dumps({"error": "Visitor not found"}), "headers": headers}
 
         # Delete visitor
         cur.execute("DELETE FROM visitors WHERE id = %s", (request_id,))
 
         # Delete related user
         cur.execute("DELETE FROM users WHERE id = %s", (visitor['id_user'],))
-
 
         # Cognito Integration
         try:
@@ -67,22 +71,23 @@ def lambda_handler(event, _context):
 
             conn.commit()
 
-            return {"statusCode": 200, "body": json.dumps({"message": "Visitor deleted successfully"})}
+            return {"statusCode": 200, "body": json.dumps({"message": "Visitor deleted successfully"}),
+                    "headers": headers}
 
         except ClientError as e:
             # Handle rollback
             conn.rollback()
-            return {'statusCode': 400, 'body': json.dumps({"error": e.response['Error']['Message']})}
+            return {'statusCode': 400, 'body': json.dumps({"error": e.response['Error']['Message']}),
+                    "headers": headers}
 
     except Exception as e:
         # Handle rollback
         if conn is not None:
             conn.rollback()
-        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)}), "headers": headers}
     finally:
         # Close connection and cursor
         if conn is not None:
             conn.close()
         if cur is not None:
             cur.close()
-    

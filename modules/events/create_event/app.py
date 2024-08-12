@@ -11,6 +11,12 @@ from validations import validate_connection, validate_event_body, validate_paylo
 
 logging.basicConfig(level=logging.INFO)
 
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST'
+}
+
 
 def lambda_handler(event, _context):
     cur = None
@@ -77,13 +83,13 @@ def lambda_handler(event, _context):
 
         # Commit query
         conn.commit()
-        return {'statusCode': 200, 'body': json.dumps({"message": "Event created successfully"})}
+        return {'statusCode': 200, 'body': json.dumps({"message": "Event created successfully"}), 'headers': headers}
     except Exception as e:
 
         # Handle rollback
         if conn is not None:
             conn.rollback()
-        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)}), 'headers': headers}
     finally:
         # Close connection and cursor
         if conn is not None:

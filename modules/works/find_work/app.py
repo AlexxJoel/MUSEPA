@@ -6,12 +6,18 @@ from connect_db import get_db_connection
 from functions import datetime_serializer
 from validations import validate_connection, validate_event_path_params
 
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET'
+}
+
 
 def lambda_handler(event, _context):
     conn = None
     cur = None
     try:
-       
+
         # Database connection
         conn = get_db_connection()
 
@@ -25,10 +31,9 @@ def lambda_handler(event, _context):
         if valid_path_params_res is not None:
             return valid_path_params_res
 
-        
         # Get values from path params
         request_id = event['pathParameters']['id']
-       
+
         # Create cursor
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -37,15 +42,14 @@ def lambda_handler(event, _context):
         work = cur.fetchone()
 
         if not work:
-            return {"statusCode": 404, "body": json.dumps({"error": "Work not found"})}
+            return {"statusCode": 404, "body": json.dumps({"error": "Work not found"}), "headers": headers}
 
-        return {'statusCode': 200, 'body': json.dumps({"data": work}, default=datetime_serializer)}
+        return {'statusCode': 200, 'body': json.dumps({"data": work}, default=datetime_serializer), "headers": headers}
     except Exception as e:
-        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)}), "headers": headers}
     finally:
         # Close connection and cursor
         if conn is not None:
             conn.close()
         if cur is not None:
             cur.close()
-    
