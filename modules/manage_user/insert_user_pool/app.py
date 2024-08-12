@@ -3,6 +3,11 @@ import json
 import boto3
 from botocore.exceptions import ClientError
 
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST'
+}
 
 def lambda_handler(event, context):
     secrets = get_secrets()
@@ -20,7 +25,8 @@ def lambda_handler(event, context):
     if email is None or phone_number is None or user_name is None or password is None:
         return {
             "statusCode": 400,
-            "body": json.dumps({"message": "missing input parameters"})
+            "body": json.dumps({"message": "missing input parameters"}),
+            "headers": headers
         }
 
     try:
@@ -28,7 +34,7 @@ def lambda_handler(event, context):
         # Configura el cliente de cognito
         client = boto3.client('cognito-idp', region_name=REGION_NAME)
 
-        # Crea el usuario con correo no verificado y contraseña temporal que se envia automaticamente a su correo
+        # Crea el usuario con correo no verificado  pwd temporal que se envia automaticamente a su correo
         client.admin_create_user(
             UserPoolId=USER_POOL_ID,
             Username=user_name,
@@ -49,12 +55,14 @@ def lambda_handler(event, context):
 
         return {
             'statusCode': 200,
-            'body': json.dumps({"message": "User created successfully, verification email sent."})
+            'body': json.dumps({"message": "User created successfully, verification email sent."}),
+            'headers': headers
         }
     except ClientError as e:
         return {
             'statusCode': 400,
-            'body': json.dumps({"error": e.response['Error']['Message']})
+            'body': json.dumps({"error": e.response['Error']['Message']}),
+            'headers': headers
         }
 
 

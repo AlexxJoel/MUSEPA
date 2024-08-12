@@ -2,6 +2,11 @@ import json
 import boto3
 from botocore.exceptions import ClientError
 
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST'
+}
 
 def lambda_handler(event, __):
     secrets = get_secrets()
@@ -41,13 +46,15 @@ def lambda_handler(event, __):
 
         return {
             'statusCode': 200,
-            'body': json.dumps({"message": "Password changed successfully."})
+            'body': json.dumps({"message": "Password changed successfully."}),
+            'headers': headers
         }
 
     except ClientError as e:
         return {
             'statusCode': 400,
-            'body': json.dumps({"error": e.response['Error']['Message']})
+            'body': json.dumps({"error": e.response['Error']['Message']}),
+            'headers': headers
         }
 
 

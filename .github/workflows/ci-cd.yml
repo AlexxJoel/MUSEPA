@@ -15,11 +15,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   deploy:
@@ -31,6 +32,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Set up python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Clear pip cache
+        run: pip cache purge
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -38,39 +47,30 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-1
 
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
+      - name: Install system dependencies
+        run: sudo apt-get install -y libpq-dev
 
-      - name: Upgrade pip
-        run: python -m pip install --upgrade pip
-
-      # List all files in the repository to check for encoding issues
-      - name: List files with encoding
-        run: find . -type f -exec file --mime-encoding {} \;
-
-      # Check for non-UTF-8 files
-      - name: Find non-UTF-8 files
+      - name: Install Python dependencies for all modules
         run: |
-          find . -type f -exec file --mime-encoding {} \; | grep -v 'utf-8' || true
-
-      # TODO -> Configure every folder dependencies installation
-      - name: Install dependencies
-        run: |
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-      - name: Install AWS CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y awscli
+          for dir in modules/**/; do
+            if [ -f "${dir}/requirements.txt" ]; then
+              pip install -r "${dir}/requirements.txt"
+            fi
+          done
 
       - name: Install SAM CLI
-        run: |
-            pip install aws-sam-cli
+        run: pip install aws-sam-cli
 
-      - name: Build SAM application
-        run: sam build
+      - name: Build SAM application with Debugging
+        run: sam build --use-container --debug
 
       - name: Deploy SAM application
         run: sam deploy --stack-name museepa --region us-west-1 --capabilities CAPABILITY_IAM --no-confirm-changeset --no-fail-on-empty-changeset --resolve-s3 --config-env GitHubActions
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-

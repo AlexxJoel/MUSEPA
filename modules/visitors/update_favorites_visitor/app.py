@@ -3,12 +3,18 @@ from authorization import authorizate_user
 from connect_db import get_db_connection
 from validations import validate_connection, validate_event_body, validate_payload
 
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'PUT'
+}
+
 
 def lambda_handler(event, _context):
     conn = None
     cur = None
     try:
-       
+
         # Authorizate
         authorization_response = authorizate_user(event)
         if authorization_response is not None:
@@ -33,11 +39,10 @@ def lambda_handler(event, _context):
         if valid_payload_res is not None:
             return valid_payload_res
 
-        
         # Get payload values
         id = request_body["id"]
         favorites = request_body["favorites"]
-       
+
         # Create cursor
         cur = conn.cursor()
 
@@ -49,7 +54,7 @@ def lambda_handler(event, _context):
         visitor = cur.fetchone()
 
         if not visitor:
-            return {"statusCode": 404, "body": json.dumps({"error": "Visitor not found"})}
+            return {"statusCode": 404, "body": json.dumps({"error": "Visitor not found"}), "headers": headers}
 
         # Update visitor by visitor_id
         update_visitor_query = """ UPDATE visitors SET favorites = %s WHERE id = %s """
@@ -57,16 +62,16 @@ def lambda_handler(event, _context):
 
         # Commit query
         conn.commit()
-        return {"statusCode": 200, "body": json.dumps({"message": "Favorites updated successfully"})}
+        return {"statusCode": 200, "body": json.dumps({"message": "Favorites updated successfully"}),
+                "headers": headers}
     except Exception as e:
         # Handle rollback
         if conn is not None:
             conn.rollback()
-        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)}), 'headers': headers}
     finally:
         # Close connection and cursor
         if conn is not None:
             conn.close()
         if cur is not None:
             cur.close()
-    

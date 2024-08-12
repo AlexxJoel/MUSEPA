@@ -1,20 +1,25 @@
 import json
+import logging
+
 import boto3
 from botocore.exceptions import ClientError
-from authorization import authorizate_user
-from connect_db import get_db_connection,get_secrets
+
+from connect_db import get_db_connection, get_secrets
 from validations import validate_connection, validate_event_body, validate_payload
+
+logging.basicConfig(level=logging.INFO)
+
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST'
+}
 
 
 def lambda_handler(event, _context):
     conn = None
     cur = None
     try:
-       
-        # Authorizate
-        authorization_response = authorizate_user(event)
-        if authorization_response is not None:
-            return authorization_response
 
         # Database connection
         conn = get_db_connection()
@@ -35,7 +40,6 @@ def lambda_handler(event, _context):
         if valid_payload_res is not None:
             return valid_payload_res
 
-        
         # Get payload values
         email = request_body['email']
         password = request_body['password']
@@ -44,7 +48,7 @@ def lambda_handler(event, _context):
         name = request_body['name']
         surname = request_body['surname']
         lastname = request_body['lastname']
-       
+
         # Create cursor
         cur = conn.cursor()
 
@@ -56,6 +60,8 @@ def lambda_handler(event, _context):
                 INSERT INTO users (email, password, username, id_role)
                 VALUES (%s, %s, %s, %s) RETURNING id
                 """
+
+        logging.info(f"Inserting user with email: {email, username, id_role}")
         cur.execute(insert_user_query, (email, password, username, id_role))
         id_user = cur.fetchone()[0]
 
@@ -66,23 +72,27 @@ def lambda_handler(event, _context):
                 """
         cur.execute(insert_visitor_query, (name, surname, lastname, id_user))
 
+        logging.info(f"Inserting visitor with name: {name, surname, lastname, id_user}")
+
         # Cognito Insert
-        return insert_user_pool(conn,username,email, password)
-        # Commit query
+        return insert_user_pool(conn, username, email, password)
+        logging.info(f"Inserting user pool with username: {username, email, password}")
+
+        conn.commit()
     except Exception as e:
         # Handle rollback
         if conn is not None:
             conn.rollback()
-        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)}), 'headers': headers}
     finally:
         # Close connection and cursor
         if conn is not None:
             conn.close()
         if cur is not None:
             cur.close()
-    
 
-def insert_user_pool(conn,username,email,password):
+
+def insert_user_pool(conn, username, email, password):
     try:
         secrets = get_secrets()
         REGION_NAME = secrets['REGION_NAME']
@@ -92,15 +102,15 @@ def insert_user_pool(conn,username,email,password):
         # Create user
         response = client.admin_create_user(
             UserPoolId=USER_POOL_ID,
-            Username=email,
+            Username=username,
             UserAttributes=[
-                {'Name': 'email','Value': email},
-                {'Name': 'email_verified','Value': 'true'}
+                {'Name': 'email', 'Value': email},
+                {'Name': 'email_verified', 'Value': 'true'}
             ],
             TemporaryPassword=password
         )
 
-        print(f"Usuario {email} creado exitosamente: {response}")
+        logging.info(f"User {email} created successfully: {response}")
 
         response = client.admin_add_user_to_group(
             UserPoolId=USER_POOL_ID,
@@ -108,11 +118,13 @@ def insert_user_pool(conn,username,email,password):
             GroupName='visitor'
         )
 
-        print(f"Usuario {email} añadido al grupo 'visitor': {response}")
+        logging.info(f"User {email} added to group 'visitor': {response}")
+
         conn.commit()
         return {
             'statusCode': 200,
-            'body': json.dumps({"message": "User created successfully, verification email sent."})
+            'body': json.dumps({"message": "User created successfully, verification email sent."}),
+            'headers': headers
         }
 
     except ClientError as e:
@@ -120,6 +132,7 @@ def insert_user_pool(conn,username,email,password):
         conn.rollback()
         return {
             'statusCode': 400,
-            'body': json.dumps({"error": e.response['Error']['Message']})
+            'body': json.dumps({"error": e.response['Error']['Message']}),
+            'headers': headers
         }
 

@@ -4,15 +4,21 @@ import boto3
 from botocore.exceptions import ClientError
 
 from authorization import authorizate_user
-from connect_db import get_db_connection,get_secrets
+from connect_db import get_db_connection, get_secrets
 from validations import validate_connection, validate_event_body, validate_payload
+
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST'
+}
 
 
 def lambda_handler(event, _context):
     cur = None
     conn = None
     try:
-       
+
         # Authorizate
         authorization_response = authorizate_user(event)
         if authorization_response is not None:
@@ -37,7 +43,6 @@ def lambda_handler(event, _context):
         if valid_payload_res is not None:
             return valid_payload_res
 
-        
         # Get payload values
         email = request_body['email']
         password = request_body['password']
@@ -50,7 +55,7 @@ def lambda_handler(event, _context):
         address = request_body['address']
         birthdate = request_body['birthdate']
         id_museum = request_body['id_museum']
-       
+
         # Create cursor
         cur = conn.cursor()
 
@@ -78,17 +83,16 @@ def lambda_handler(event, _context):
         # Handle rollback
         if conn is not None:
             conn.rollback()
-        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)}), 'headers': headers}
     finally:
         # Close connection and cursor
         if conn is not None:
             conn.close()
         if cur is not None:
             cur.close()
-    
 
 
-def insert_user_pool(conn,username,email,password):
+def insert_user_pool(conn, username, email, password):
     try:
         # Get secrets
         secrets = get_secrets()
@@ -96,7 +100,7 @@ def insert_user_pool(conn,username,email,password):
         USER_POOL_ID = secrets['USER_POOL_ID']
         client = boto3.client('cognito-idp', region_name=REGION_NAME)
 
-        # Crea el usuario con correo no verificado y contraseña temporal que se envia automaticamente a su correo
+        # Crea el usuario con correo no verificado contraseña temporal que se envia automaticamente a su correo
         client.admin_create_user(
             UserPoolId=USER_POOL_ID,
             Username=username,
@@ -119,7 +123,8 @@ def insert_user_pool(conn,username,email,password):
         # Si Cognito es exitoso, retorna la respuesta
         return {
             'statusCode': 200,
-            'body': json.dumps({"message": "User created successfully, verification email sent."})
+            'body': json.dumps({"message": "User created successfully, verification email sent."}),
+            'headers': headers
         }
 
     except ClientError as e:
@@ -127,6 +132,6 @@ def insert_user_pool(conn,username,email,password):
         conn.rollback()
         return {
             'statusCode': 400,
-            'body': json.dumps({"error": e.response['Error']['Message']})
+            'body': json.dumps({"error": e.response['Error']['Message']}),
+            'headers': headers
         }
-
