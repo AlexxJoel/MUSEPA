@@ -2,19 +2,50 @@ import json
 import unittest
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
-
+import boto3
+from botocore.exceptions import ClientError
 import jwt
 
 from modules.visitors.update_favorites_visitor.app import lambda_handler
 from modules.visitors.update_favorites_visitor.validations import validate_connection, validate_event_body, \
     validate_payload
-
+from modules.visitors.update_favorites_visitor.connect_db import get_db_connection,get_secrets
+from modules.visitors.update_favorites_visitor.authorization import authorizate_user
 
 def simulate_valid_validations(mock_validate_connection, mock_validate_event_body, mock_validate_payload):
     mock_validate_connection.return_value = None
     mock_validate_event_body.return_value = None
     mock_validate_payload.return_value = None
 
+class FakeConnection:
+    """Clase que simula una conexión de psycopg2"""
+    def close(self):
+        pass
+
+class FakeSecretsManagerClient:
+    """Simula el cliente de Secrets Manager de boto3."""
+    def get_secret_value(self, SecretId):
+        if SecretId == "prod/musepa/vercel/postgres":
+            return {
+                'SecretString': json.dumps({
+                    'POSTGRES_HOST': 'localhost',
+                    'POSTGRES_PASSWORD': 'fake_password',
+                    'POSTGRES_DATABASE': 'fake_database'
+                })
+            }
+        else:
+            raise ClientError(
+                {"Error": {"Code": "ResourceNotFoundException"}},
+                "get_secret_value"
+            )
+
+class FakeSession:
+    """Simula una sesión de boto3."""
+    def client(self, service_name, region_name):
+        if service_name == 'secretsmanager' and region_name == 'us-west-1':
+            return FakeSecretsManagerClient()
+        else:
+            raise ValueError("Unsupported service or region")
 
 class TestUpdateThingsVisitor(TestCase):
     def setUp(self):
@@ -321,6 +352,108 @@ class TestValidations(TestCase):
         payload = self.valid_payload.copy()
         payload["favorites"] = "Invalid123!"
         expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'favorites'"})}
+
+
+class TestConnectDB(TestCase):
+    @patch('modules.visitors.update_favorites_visitor.connect_db.psycopg2.connect')
+    @patch('modules.visitors.update_favorites_visitor.connect_db.get_secrets')
+    def test_get_db_connection(self, mock_get_secrets, mock_psycopg2_connect):
+        # Simula la respuesta de get_secrets
+        mock_get_secrets.return_value = {
+            'POSTGRES_HOST': 'localhost',
+            'POSTGRES_PASSWORD': 'fake_password',
+            'POSTGRES_DATABASE': 'fake_database'
+        }
+
+        # Crea una instancia de la conexión simulada
+        fake_connection = FakeConnection()
+        mock_psycopg2_connect.return_value = fake_connection
+
+        # Llama a la función que se está probando
+        conn = get_db_connection()
+
+        # Verifica que get_secrets fue llamada una vez
+        mock_get_secrets.assert_called_once()
+
+        # Verifica que psycopg2.connect fue llamada con los parámetros correctos
+        mock_psycopg2_connect.assert_called_once_with(
+            host='localhost',
+            user='default',
+            password='fake_password',
+            database='fake_database'
+        )
+
+        # Verifica que la conexión devuelta es la misma que la simulada
+        self.assertEqual(conn, fake_connection)
+
+    def test_get_secrets_success(self):
+        # Parcha la sesión de boto3 con una sesión simulada
+        original_session = boto3.session.Session
+        try:
+            boto3.session.Session = FakeSession
+            secrets = get_secrets()
+            expected_secrets = {
+                'POSTGRES_HOST': 'localhost',
+                'POSTGRES_PASSWORD': 'fake_password',
+                'POSTGRES_DATABASE': 'fake_database'
+            }
+            self.assertEqual(secrets, expected_secrets)
+        finally:
+            # Restaura la sesión original
+            boto3.session.Session = original_session
+
+    def test_get_secrets_failure(self):
+        # Parcha la sesión de boto3 con una sesión simulada que falla
+        original_session = boto3.session.Session
+        try:
+            class FailingSecretsManagerClient:
+                def get_secret_value(self, SecretId):
+                    raise ClientError(
+                        {"Error": {"Code": "ResourceNotFoundException"}},
+                        "get_secret_value"
+                    )
+
+            class FailingSession:
+                def client(self, service_name, region_name):
+                    return FailingSecretsManagerClient()
+
+            boto3.session.Session = FailingSession
+
+            with self.assertRaises(ClientError):
+                get_secrets()
+        finally:
+            # Restaura la sesión original
+            boto3.session.Session = original_session
+
+
+class TestAuthorization(TestCase):
+    def test_authorization_success(self):
+        # Simula un evento con un token válido y un rol permitido
+        token_payload = {
+            "cognito:groups": ["admin"]
+        }
+        token = jwt.encode(token_payload, key="secret", algorithm="HS256")
+        event = {
+            "headers": {
+                "Authorization": f"Bearer {token}"
+            }
+        }
+
+        result = authorizate_user(event)
+        self.assertIsNone(result)
+
+
+
+    def test_authorization_no_token(self):
+        # Simula un evento sin token en los headers
+        event = {
+            "headers": {
+                "Authorization": ""
+            }
+        }
+
+        with self.assertRaises(IndexError):
+            authorizate_user(event)
 
 
 if __name__ == '__main__':
