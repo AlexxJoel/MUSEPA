@@ -11,6 +11,12 @@ from validations import validate_connection, validate_event_body, validate_paylo
 
 logging.basicConfig(level=logging.INFO)
 
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'PUT'
+}
+
 
 def lambda_handler(event, _context):
     cur = None
@@ -58,7 +64,7 @@ def lambda_handler(event, _context):
         logging.info(f"Event found: {result}")
 
         if not result:
-            return {"statusCode": 404, "body": json.dumps({"error": "Event not found"})}
+            return {"statusCode": 404, "body": json.dumps({"error": "Event not found"}), "headers": headers}
 
         # Get data access to s3
         # Get data access to S3
@@ -67,7 +73,7 @@ def lambda_handler(event, _context):
         AWS_SECRET_ACCESS_KEY = SECRETS['AWS_SECRET_ACCESS_KEY']
         BUCKET_NAME = SECRETS['BUCKET_NAME']
 
-        client_s3 = get_client_s3(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY )
+        client_s3 = get_client_s3(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
 
         # Get pictures to delete from s3
         get_all_pictures = list(set(result[1]) - set(pictures))
@@ -94,12 +100,12 @@ def lambda_handler(event, _context):
 
         # Commit query
         conn.commit()
-        return {'statusCode': 200, 'body': json.dumps({"message": "Event updated successfully"})}
+        return {'statusCode': 200, 'body': json.dumps({"message": "Event updated successfully"}), "headers": headers}
     except Exception as e:
         # Handle rollback
         if conn is not None:
             conn.rollback()
-        return {'statusCode': 500, 'body': json.dumps({"error": str(e)})}
+        return {'statusCode': 500, 'body': json.dumps({"error": str(e)}), "headers": headers}
     finally:
         # Close connection and cursor
         if conn is not None:
@@ -172,5 +178,3 @@ def get_name_from_s3(url):
 def img_to_base64(img):
     with open(img, "rb") as image:
         return base64.b64encode(image.read())
-
-

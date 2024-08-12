@@ -4,11 +4,18 @@ from validations import validate_connection, validate_event_path_params
 from connect_db import get_db_connection
 from authorization import authorizate_user
 
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'DELETE'
+}
+
+
 def lambda_handler(event, _context):
     conn = None
     cur = None
     try:
-       
+
         # Database connection
         conn = get_db_connection()
 
@@ -27,10 +34,9 @@ def lambda_handler(event, _context):
         if valid_path_params_res is not None:
             return valid_path_params_res
 
-        
         # Get values from path params
         request_id = event['pathParameters']['id']
-       
+
         # Create cursor
         cur = conn.cursor()
 
@@ -42,23 +48,22 @@ def lambda_handler(event, _context):
         result = cur.fetchone()
 
         if not result:
-            return {"statusCode": 404, "body": json.dumps({"error": "Event not found"})}
+            return {"statusCode": 404, "body": json.dumps({"error": "Event not found"}), 'headers': headers}
 
         # Delete event
         cur.execute("""DELETE FROM events WHERE id =%s""", (request_id,))
 
         # Commit query
         conn.commit()
-        return {'statusCode': 200, 'body': json.dumps({"message": "Event deleted successfully"})}
+        return {'statusCode': 200, 'body': json.dumps({"message": "Event deleted successfully"}), 'headers': headers}
     except Exception as e:
         # Handle rollback
         if conn is not None:
             conn.rollback()
-        return {'statusCode': 500, 'body': json.dumps({"message": str(e)})}
+        return {'statusCode': 500, 'body': json.dumps({"message": str(e)}), 'headers': headers}
     finally:
         # Close connection and cursor
         if conn is not None:
             conn.close()
         if cur is not None:
             cur.close()
-    
