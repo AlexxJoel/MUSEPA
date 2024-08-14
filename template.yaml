@@ -65,7 +65,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}-muspea:*'
+                Resource: 'arn:aws:logs:*:*:*'
         - PolicyName: get-secrets-db-policy
           PolicyDocument:
             Version: '2012-10-17'
@@ -316,6 +316,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
+      LogGroupName: !Ref MusepaLogGroup
       Events:
         GetEvent:
           Type: Api
@@ -332,6 +333,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
+      LogGroupName: !Ref MusepaLogGroup
       Events:
         CreateEvent:
           Type: Api
@@ -350,6 +352,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
+      LogGroupName: !Ref MusepaLogGroup
       Events:
         DeleteEvent:
           Type: Api
@@ -368,6 +371,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
+      LogGroupName: !Ref MusepaLogGroup
       Events:
         UpdateEvent:
           Type: Api
@@ -386,6 +390,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
+      LogGroupName: !Ref MusepaLogGroup
       Events:
         FindEvent:
           Type: Api
