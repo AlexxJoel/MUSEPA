@@ -79,6 +79,7 @@ jobs:
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
             --resolve-s3 \
+            --config-env GitHubActions \
             --parameter-overrides \
               PostgresHost=${{ secrets.POSTGRES_HOST }} \
               PostgresPassword=${{ secrets.POSTGRES_PASSWORD }} \
