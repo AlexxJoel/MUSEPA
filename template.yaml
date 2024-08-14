@@ -216,7 +216,14 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub "MySecrets-${AWS::StackName}"
-  
+    # ----------------------------------------------
+#  cloudwatch logs
+  MusepaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${AWS::StackName}-museepa"
+      RetentionInDays: 14
+
 
   # API Gateway
   EventApi:
@@ -316,6 +323,12 @@ Resources:
             RestApiId: !Ref EventApi
             Path: /events
             Method: GET
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
   CreateDataEventFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -332,6 +345,9 @@ Resources:
             RestApiId: !Ref EventApi
             Path: /events
             Method: POST
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   DeleteDataEventFunction:
@@ -350,6 +366,9 @@ Resources:
             RestApiId: !Ref EventApi
             Path: /events/{id}
             Method: DELETE
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   UpdateDataEventFunction:
@@ -368,6 +387,9 @@ Resources:
             RestApiId: !Ref EventApi
             Path: /events
             Method: PUT
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   FindDataEventFunction:
@@ -386,6 +408,9 @@ Resources:
             RestApiId: !Ref EventApi
             Path: /events/{id}
             Method: GET
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
   # ------------ Museum ------------
   GetDataMuseumFunction:
     Type: AWS::Serverless::Function
@@ -403,6 +428,9 @@ Resources:
             RestApiId: !Ref MuseumApi
             Path: /museums
             Method: GET
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
   CreateDataMuseumFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -419,6 +447,9 @@ Resources:
             RestApiId: !Ref MuseumApi
             Path: /museums
             Method: POST
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   DeleteDataMuseumFunction:
@@ -437,6 +468,9 @@ Resources:
             RestApiId: !Ref MuseumApi
             Path: /museums/{id}
             Method: DELETE
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   UpdateDataMuseumFunction:
@@ -455,6 +489,9 @@ Resources:
             RestApiId: !Ref MuseumApi
             Path: /museums
             Method: PUT
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   FindDataMuseumFunction:
@@ -473,6 +510,9 @@ Resources:
             RestApiId: !Ref MuseumApi
             Path: /museums/{id}
             Method: GET
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
   # ------------ Visitor ------------
   GetDataVisitorFunction:
     Type: AWS::Serverless::Function
@@ -490,6 +530,9 @@ Resources:
             RestApiId: !Ref VisitorApi
             Path: /visitors
             Method: GET
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
 
@@ -509,6 +552,9 @@ Resources:
             RestApiId: !Ref VisitorApi
             Path: /visitors
             Method: POST
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   DeleteDataVisitorFunction:
@@ -527,6 +573,9 @@ Resources:
             RestApiId: !Ref VisitorApi
             Path: /visitors/{id}
             Method: DELETE
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   UpdateDataVisitorFunction:
@@ -545,6 +594,9 @@ Resources:
             RestApiId: !Ref VisitorApi
             Path: /visitors
             Method: PUT
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   FindDataVisitorFunction:
@@ -563,6 +615,9 @@ Resources:
             RestApiId: !Ref VisitorApi
             Path: /visitors/{id}
             Method: GET
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
   UpdateFavoriteVisitorFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -579,6 +634,9 @@ Resources:
             RestApiId: !Ref VisitorApi
             Path: /visitors/{id}/favorite
             Method: PUT
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   # ------------ Work ------------
@@ -598,6 +656,9 @@ Resources:
             RestApiId: !Ref WorkApi
             Path: /works
             Method: GET
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
   CreateDataWorkFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -614,6 +675,9 @@ Resources:
             RestApiId: !Ref WorkApi
             Path: /works
             Method: POST
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   DeleteDataWorkFunction:
@@ -632,6 +696,9 @@ Resources:
             RestApiId: !Ref WorkApi
             Path: /works/{id}
             Method: DELETE
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   UpdateDataWorkFunction:
@@ -650,6 +717,9 @@ Resources:
             RestApiId: !Ref WorkApi
             Path: /works
             Method: PUT
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   FindDataWorkFunction:
@@ -668,6 +738,9 @@ Resources:
             RestApiId: !Ref WorkApi
             Path: /works/{id}
             Method: GET
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
   # ------------ Manager ------------
   GetDataManagerFunction:
     Type: AWS::Serverless::Function
@@ -685,6 +758,9 @@ Resources:
             RestApiId: !Ref ManagerApi
             Path: /managers
             Method: GET
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   CreateDataManagerFunction:
@@ -703,6 +779,9 @@ Resources:
             RestApiId: !Ref ManagerApi
             Path: /managers
             Method: POST
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   DeleteDataManagerFunction:
@@ -721,6 +800,9 @@ Resources:
             RestApiId: !Ref ManagerApi
             Path: /managers/{id}
             Method: DELETE
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   UpdateDataManagerFunction:
@@ -739,6 +821,9 @@ Resources:
             RestApiId: !Ref ManagerApi
             Path: /managers
             Method: PUT
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   FindDataManagerFunction:
@@ -757,6 +842,9 @@ Resources:
             RestApiId: !Ref ManagerApi
             Path: /managers/{id}
             Method: GET
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
             Auth:
               Authorizer: CognitoAuthorizer
   # ------------ Auth ------------
@@ -776,6 +864,9 @@ Resources:
             RestApiId: !Ref AuthApi
             Path: /auth
             Method: POST
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
   LoginFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -792,6 +883,9 @@ Resources:
             RestApiId: !Ref AuthApi
             Path: /auth/login
             Method: POST
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
   SetPasswordFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -808,6 +902,9 @@ Resources:
             RestApiId: !Ref AuthApi
             Path: /auth/set_password
             Method: POST
+      Environment:
+        Variables:
+          LOG_GROUP_NAME: !Ref MusepaLogGroup
 
 Outputs:
   UserPoolId:
