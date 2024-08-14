@@ -8,10 +8,10 @@ from botocore.exceptions import ClientError
 import jwt
 
 from modules.visitors.get_visitors.app import lambda_handler
-from modules.visitors.get_visitors.functions import datetime_serializer
-from modules.visitors.get_visitors.validations import validate_connection
-from modules.visitors.get_visitors.connect_db import get_db_connection,get_secrets
-from modules.visitors.get_visitors.authorization import authorizate_user
+from modules.visitors.get_visitors.app import datetime_serializer
+from modules.visitors.get_visitors.app import validate_connection
+from modules.visitors.get_visitors.app import get_db_connection,get_secrets
+from modules.visitors.get_visitors.app import authorizate_user
 
 
 def simulate_valid_validations(mock_validate_connection):
@@ -190,8 +190,8 @@ class TestFunctions(TestCase):
 
 
 class TestConnectDB(TestCase):
-    @patch('modules.visitors.get_visitors.connect_db.psycopg2.connect')
-    @patch('modules.visitors.get_visitors.connect_db.get_secrets')
+    @patch('modules.visitors.get_visitors.app.psycopg2.connect')
+    @patch('modules.visitors.get_visitors.app.get_secrets')
     def test_get_db_connection(self, mock_get_secrets, mock_psycopg2_connect):
         # Simula la respuesta de get_secrets
         mock_get_secrets.return_value = {

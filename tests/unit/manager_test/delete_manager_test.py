@@ -7,13 +7,20 @@ from botocore.exceptions import ClientError
 import jwt
 
 from modules.managers.delete_manager.app import lambda_handler
-from modules.managers.delete_manager.validations import validate_connection, validate_event_path_params
-from modules.managers.delete_manager.connect_db import get_db_connection,get_secrets
-from modules.managers.delete_manager.authorization import authorizate_user
+from modules.managers.delete_manager.app import validate_connection, validate_event_path_params
+from modules.managers.delete_manager.app import get_db_connection,get_secrets
+from modules.managers.delete_manager.app import authorizate_user
 
 def simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection):
     mock_validate_connection.return_value = None
     mock_validate_event_path_params.return_value = None
+
+
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'DELETE'
+}
 
 class FakeConnection:
     """Clase que simula una conexión de psycopg2"""
@@ -244,8 +251,8 @@ class TestValidations(TestCase):
 
 
 class TestConnectDB(TestCase):
-    @patch('modules.managers.delete_manager.connect_db.psycopg2.connect')
-    @patch('modules.managers.delete_manager.connect_db.get_secrets')
+    @patch('modules.managers.delete_manager.app.psycopg2.connect')
+    @patch('modules.managers.delete_manager.app.get_secrets')
     def test_get_db_connection(self, mock_get_secrets, mock_psycopg2_connect):
         # Simula la respuesta de get_secrets
         mock_get_secrets.return_value = {
@@ -345,7 +352,8 @@ class TestAuthorization(TestCase):
         result = authorizate_user(event)
         expected_result = {
             'statusCode': 403,
-            'body': json.dumps({"error": "Access denied: insufficient permissions"})
+            'body': json.dumps({"error": "Access denied: insufficient permissions"}),
+            'headers': headers
         }
         self.assertEqual(result, expected_result)
 

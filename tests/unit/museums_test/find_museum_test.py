@@ -7,7 +7,7 @@ from botocore.exceptions import ClientError
 
 
 from modules.museums.find_museum.app import lambda_handler
-from modules.museums.find_museum.connect_db import get_db_connection,get_secrets
+from modules.museums.find_museum.app import get_db_connection,get_secrets
 
 def simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection):
     mock_validate_connection.return_value = None
@@ -90,8 +90,8 @@ class TestFindMuseum(TestCase):
         self.mock_cursor.close.assert_called_once()
 
 class TestConnectDB(TestCase):
-    @patch('modules.museums.find_museum.connect_db.psycopg2.connect')
-    @patch('modules.museums.find_museum.connect_db.get_secrets')
+    @patch('modules.museums.find_museum.app.psycopg2.connect')
+    @patch('modules.museums.find_museum.app.get_secrets')
     def test_get_db_connection(self, mock_get_secrets, mock_psycopg2_connect):
         # Simula la respuesta de get_secrets
         mock_get_secrets.return_value = {

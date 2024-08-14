@@ -6,9 +6,9 @@ from unittest.mock import patch, MagicMock
 import boto3
 from botocore.exceptions import ClientError
 from modules.works.get_works.app import lambda_handler
-from modules.works.get_works.validations import validate_connection
-from modules.works.get_works.functions import datetime_serializer
-from modules.works.get_works.connect_db import get_db_connection,get_secrets
+from modules.works.get_works.app import validate_connection
+from modules.works.get_works.app import datetime_serializer
+from modules.works.get_works.app import get_db_connection,get_secrets
 
 def simulate_valid_validations(mock_validate_connection):
     mock_validate_connection.return_value = None
@@ -142,8 +142,8 @@ class TestFunctions(TestCase):
             datetime_serializer("invalid")
 
 class TestConnectDB(TestCase):
-    @patch('modules.works.get_works.connect_db.psycopg2.connect')
-    @patch('modules.works.get_works.connect_db.get_secrets')
+    @patch('modules.works.get_works.app.psycopg2.connect')
+    @patch('modules.works.get_works.app.get_secrets')
     def test_get_db_connection(self, mock_get_secrets, mock_psycopg2_connect):
         # Simula la respuesta de get_secrets
         mock_get_secrets.return_value = {

@@ -8,13 +8,19 @@ import jwt
 from botocore.exceptions import ClientError
 
 from modules.managers.get_managers.app import lambda_handler
-from modules.managers.get_managers.functions import datetime_serializer
-from modules.managers.get_managers.validations import validate_connection
-from modules.managers.get_managers.connect_db import get_db_connection,get_secrets
-from modules.managers.get_managers.authorization import authorizate_user
+from modules.managers.get_managers.app import datetime_serializer
+from modules.managers.get_managers.app import validate_connection
+from modules.managers.get_managers.app import get_db_connection,get_secrets
+from modules.managers.get_managers.app import authorizate_user
 
 def simulate_valid_validations(mock_validate_connection):
     mock_validate_connection.return_value = None
+
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET'
+}
 
 class FakeConnection:
     """Clase que simula una conexión de psycopg2"""
@@ -172,8 +178,8 @@ class TestFunctions(TestCase):
             datetime_serializer("invalid")
 
 class TestConnectDB(TestCase):
-    @patch('modules.managers.get_managers.connect_db.psycopg2.connect')
-    @patch('modules.managers.get_managers.connect_db.get_secrets')
+    @patch('modules.managers.get_managers.app.psycopg2.connect')
+    @patch('modules.managers.get_managers.app.get_secrets')
     def test_get_db_connection(self, mock_get_secrets, mock_psycopg2_connect):
         # Simula la respuesta de get_secrets
         mock_get_secrets.return_value = {
@@ -274,7 +280,8 @@ class TestAuthorization(TestCase):
         result = authorizate_user(event)
         expected_result = {
             'statusCode': 403,
-            'body': json.dumps({"error": "Access denied: insufficient permissions"})
+            'body': json.dumps({"error": "Access denied: insufficient permissions"}),
+            'headers': headers
         }
         self.assertEqual(result, expected_result)
 

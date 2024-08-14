@@ -5,9 +5,9 @@ from unittest.mock import patch, MagicMock
 import boto3
 from botocore.exceptions import ClientError
 from modules.works.find_work.app import lambda_handler
-from modules.works.find_work.functions import datetime_serializer
-from modules.works.find_work.validations import validate_connection, validate_event_path_params
-from modules.works.find_work.connect_db import get_db_connection,get_secrets
+from modules.works.find_work.app import datetime_serializer
+from modules.works.find_work.app import validate_connection, validate_event_path_params
+from modules.works.find_work.app import get_db_connection,get_secrets
 from datetime import datetime, date
 
 
@@ -213,8 +213,8 @@ class TestFunctions(TestCase):
             datetime_serializer("invalid")
 
 class TestConnectDB(TestCase):
-    @patch('modules.works.find_work.connect_db.psycopg2.connect')
-    @patch('modules.works.find_work.connect_db.get_secrets')
+    @patch('modules.works.find_work.app.psycopg2.connect')
+    @patch('modules.works.find_work.app.get_secrets')
     def test_get_db_connection(self, mock_get_secrets, mock_psycopg2_connect):
         # Simula la respuesta de get_secrets
         mock_get_secrets.return_value = {

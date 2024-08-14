@@ -7,13 +7,21 @@ from botocore.exceptions import ClientError
 import jwt
 
 from modules.works.delete_work.app import lambda_handler
-from modules.works.delete_work.validations import validate_connection,validate_event_path_params
-from modules.works.delete_work.connect_db import get_db_connection,get_secrets
-from modules.works.delete_work.authorization import authorizate_user
+from modules.works.delete_work.app import validate_connection,validate_event_path_params
+from modules.works.delete_work.app import get_db_connection,get_secrets
+from modules.works.delete_work.app import authorizate_user
 
 def simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection):
     mock_validate_connection.return_value = None
     mock_validate_event_path_params.return_value = None
+
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'DELETE'
+}
+
+
 class FakeConnection:
     """Clase que simula una conexión de psycopg2"""
     def close(self):
@@ -220,8 +228,8 @@ class TestValidations(TestCase):
         self.assertEqual(result["body"], json.dumps({"error": "Request ID invalid value."}))
 
 class TestConnectDB(TestCase):
-    @patch('modules.works.delete_work.connect_db.psycopg2.connect')
-    @patch('modules.works.delete_work.connect_db.get_secrets')
+    @patch('modules.works.delete_work.app.psycopg2.connect')
+    @patch('modules.works.delete_work.app.get_secrets')
     def test_get_db_connection(self, mock_get_secrets, mock_psycopg2_connect):
         # Simula la respuesta de get_secrets
         mock_get_secrets.return_value = {
@@ -322,7 +330,8 @@ class TestAuthorization(TestCase):
         result = authorizate_user(event)
         expected_result = {
             'statusCode': 403,
-            'body': json.dumps({"error": "Access denied: insufficient permissions"})
+            'body': json.dumps({"error": "Access denied: insufficient permissions"}),
+            'headers': headers
         }
         self.assertEqual(result, expected_result)
 

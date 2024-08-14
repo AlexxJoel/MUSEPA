@@ -7,14 +7,20 @@ from botocore.exceptions import ClientError
 import jwt
 
 from modules.visitors.update_visitor.app import lambda_handler
-from modules.visitors.update_visitor.validations import validate_connection, validate_event_body, validate_payload
-from modules.visitors.update_visitor.connect_db import get_db_connection,get_secrets
-from modules.visitors.update_visitor.authorization import authorizate_user
+from modules.visitors.update_visitor.app import validate_connection, validate_event_body, validate_payload
+from modules.visitors.update_visitor.app import get_db_connection,get_secrets
+from modules.visitors.update_visitor.app import authorizate_user
 
 def simulate_valid_validations(mock_validate_connection, mock_validate_event_body, mock_validate_payload):
     mock_validate_connection.return_value = None
     mock_validate_event_body.return_value = None
     mock_validate_payload.return_value = None
+
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'PUT'
+}
 
 class FakeConnection:
     """Clase que simula una conexión de psycopg2"""
@@ -366,78 +372,78 @@ class TestValidations(TestCase):
     def test_validate_payload_missing_email(self):
         payload = self.valid_payload.copy()
         del payload["email"]
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'email'"})}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'email'"}),'headers': headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_invalid_email(self):
         payload = self.valid_payload.copy()
         payload["email"] = "invalidemail"
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'email'"})}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'email'"}),'headers': headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_missing_password(self):
         payload = self.valid_payload.copy()
         del payload["password"]
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'password'"})}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'password'"}),'headers': headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_invalid_password(self):
         payload = self.valid_payload.copy()
         payload["password"] = None
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'password'"})}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'password'"}),'headers': headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_missing_username(self):
         payload = self.valid_payload.copy()
         del payload["username"]
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'username'"})}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'username'"}),'headers': headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_invalid_username(self):
         payload = self.valid_payload.copy()
         payload["username"] = "Invalid123!"
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'username'"})}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'username'"}),'headers': headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_missing_name(self):
         payload = self.valid_payload.copy()
         del payload["name"]
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'name'"})}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'name'"}),'headers': headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_invalid_name(self):
         payload = self.valid_payload.copy()
         payload["name"] = "Invalid123!"
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'name'"})}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'name'"}),'headers': headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_missing_surname(self):
         payload = self.valid_payload.copy()
         del payload["surname"]
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'surname'"})}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'surname'"}),'headers': headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_invalid_surname(self):
         payload = self.valid_payload.copy()
         payload["surname"] = "Invalid123!"
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'surname'"})}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'surname'"}),'headers': headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_missing_lastname(self):
         payload = self.valid_payload.copy()
         del payload["lastname"]
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'lastname'"})}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'lastname'"}),'headers': headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_invalid_lastname(self):
         payload = self.valid_payload.copy()
         payload["lastname"] = "Invalid123!"
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'lastname'"})}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'lastname'"}),'headers': headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
 class TestConnectDB(TestCase):
-    @patch('modules.visitors.update_visitor.connect_db.psycopg2.connect')
-    @patch('modules.visitors.update_visitor.connect_db.get_secrets')
+    @patch('modules.visitors.update_visitor.app.psycopg2.connect')
+    @patch('modules.visitors.update_visitor.app.get_secrets')
     def test_get_db_connection(self, mock_get_secrets, mock_psycopg2_connect):
         # Simula la respuesta de get_secrets
         mock_get_secrets.return_value = {

@@ -7,15 +7,20 @@ from botocore.exceptions import ClientError
 import jwt
 
 from modules.visitors.update_favorites_visitor.app import lambda_handler
-from modules.visitors.update_favorites_visitor.validations import validate_connection, validate_event_body, \
-    validate_payload
-from modules.visitors.update_favorites_visitor.connect_db import get_db_connection,get_secrets
-from modules.visitors.update_favorites_visitor.authorization import authorizate_user
+from modules.visitors.update_favorites_visitor.app import validate_connection, validate_event_body,validate_payload
+from modules.visitors.update_favorites_visitor.app import get_db_connection,get_secrets
+from modules.visitors.update_favorites_visitor.app import authorizate_user
 
 def simulate_valid_validations(mock_validate_connection, mock_validate_event_body, mock_validate_payload):
     mock_validate_connection.return_value = None
     mock_validate_event_body.return_value = None
     mock_validate_payload.return_value = None
+
+headers = {
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'PUT'
+}
 
 class FakeConnection:
     """Clase que simula una conexión de psycopg2"""
@@ -338,25 +343,25 @@ class TestValidations(TestCase):
     def test_validate_payload_missing_id(self):
         payload = self.valid_payload.copy()
         del payload["id"]
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id'"})}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id'"}),'headers': headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
 
     def test_validate_payload_missing_username(self):
         payload = self.valid_payload.copy()
         del payload["favorites"]
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'favorites'"})}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'favorites'"}),'headers': headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_invalid_username(self):
         payload = self.valid_payload.copy()
         payload["favorites"] = "Invalid123!"
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'favorites'"})}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'favorites'"}),'headers': headers}
 
 
 class TestConnectDB(TestCase):
-    @patch('modules.visitors.update_favorites_visitor.connect_db.psycopg2.connect')
-    @patch('modules.visitors.update_favorites_visitor.connect_db.get_secrets')
+    @patch('modules.visitors.update_favorites_visitor.app.psycopg2.connect')
+    @patch('modules.visitors.update_favorites_visitor.app.get_secrets')
     def test_get_db_connection(self, mock_get_secrets, mock_psycopg2_connect):
         # Simula la respuesta de get_secrets
         mock_get_secrets.return_value = {
