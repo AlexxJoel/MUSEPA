@@ -61,6 +61,13 @@ jobs:
       - name: Install SAM CLI
         run: pip install aws-sam-cli
 
+      - name: Echo parameters (for debugging)
+        run: |
+          echo "PostgresHost=${{ secrets.POSTGRES_HOST }}"
+          echo "PostgresDatabase=${{ secrets.POSTGRES_DATABASE }}"
+          echo "UserPoolId=${{ secrets.USER_POOL_ID }}"
+            
+
       - name: Build SAM application with Debugging
         run: sam build --use-container --debug
 
