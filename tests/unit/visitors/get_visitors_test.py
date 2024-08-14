@@ -25,7 +25,7 @@ class FakeConnection:
 class FakeSecretsManagerClient:
     """Simula el cliente de Secrets Manager de boto3."""
     def get_secret_value(self, SecretId):
-        if SecretId == "prod/musepa/vercel/postgres":
+        if SecretId == "prod/musepa":
             return {
                 'SecretString': json.dumps({
                     'POSTGRES_HOST': 'localhost',

@@ -72,7 +72,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: secretsmanager:GetSecretValue
-                Resource: 'arn:aws:secretsmanager:us-west-1:471112501035:secret:prod/musepa/vercel/postgres-REotkz'
+                Resource: 'arn:aws:secretsmanager:us-west-1:471112501035:secret:prod/musepa-REotkz'
         - PolicyName: manage-cognito-users-pool-policy
           PolicyDocument:
             Version: '2012-10-17'

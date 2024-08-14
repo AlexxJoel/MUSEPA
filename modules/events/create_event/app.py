@@ -132,7 +132,7 @@ def get_binary_data_and_name_file_to_upload(base64_data):
 
 
 def get_secrets():
-    secret_name = "prod/musepa/vercel/postgres"
+    secret_name = "prod/musepa"
     region_name = "us-west-1"
 
     # Create a Secrets Manager client
@@ -186,7 +186,7 @@ def get_db_connection():
 
 
 def get_secrets():
-    secret_name = "prod/musepa/vercel/postgres"
+    secret_name = "prod/musepa"
     region_name = "us-west-1"
 
     # Create a Secrets Manager client
