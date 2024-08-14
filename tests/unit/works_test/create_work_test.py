@@ -64,10 +64,23 @@ class TestCreateEvent(TestCase):
     @patch("modules.works.create_work.app.validate_connection")
     @patch("modules.works.create_work.app.validate_event_body")
     @patch("modules.works.create_work.app.validate_payload")
-    def test_create_work_success(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection,
+    @patch("modules.works.create_work.app.get_secrets")  # Mocking get_secrets
+    @patch("modules.works.create_work.app.get_client_s3")  # Mocking get_client_s3
+    @patch("modules.works.create_work.app.upload_image_to_s3")  # Mocking upload_image_to_s3
+    def test_create_work_success(self, mock_upload_image_to_s3, mock_get_client_s3, mock_get_secrets,
+                                 mock_validate_payload, mock_validate_event_body, mock_validate_connection,
                                  mock_authorizate_user, mock_get_db_connection):
         mock_authorizate_user.return_value = None
         mock_get_db_connection.return_value = self.mock_connection
+
+        # Mock AWS secrets and S3 operations
+        mock_get_secrets.return_value = {
+            'AWS_ACCESS_KEY_ID': 'fake_access_key',
+            'AWS_SECRET_ACCESS_KEY': 'fake_secret_key',
+            'BUCKET_NAME': 'fake_bucket'
+        }
+        mock_get_client_s3.return_value = MagicMock()
+        mock_upload_image_to_s3.return_value = 'https://fake-s3-url.com/fake_image.jpg'
 
         # Crear un token de prueba
         token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
@@ -87,9 +100,9 @@ class TestCreateEvent(TestCase):
                 'description': 'Description',
                 'creation_date': '2024-01-01',
                 'technique': 'puntos',
-                'artists': 'more',
-                'id_museum': '1',
-                'pictures': 'pic1,pic2'
+                'artists': ['more'],
+                'id_museum': 1,
+                'pictures': ['pic1', 'pic2']  # Aquí asegúrate que sea una lista
             })
         }
         result = lambda_handler(work, None)
@@ -205,23 +218,33 @@ class TestCreateEvent(TestCase):
     @patch("modules.works.create_work.app.validate_connection")
     @patch("modules.works.create_work.app.validate_event_body")
     @patch("modules.works.create_work.app.validate_payload")
-    def test_lambda_handler_500_error(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection,
+    @patch("modules.works.create_work.app.get_secrets")  # Mocking get_secrets
+    @patch("modules.works.create_work.app.get_client_s3")  # Mocking get_client_s3
+    @patch("modules.works.create_work.app.upload_image_to_s3")  # Mocking upload_image_to_s3
+    def test_lambda_handler_500_error(self, mock_upload_image_to_s3, mock_get_client_s3, mock_get_secrets,
+                                      mock_validate_payload, mock_validate_event_body, mock_validate_connection,
                                       mock_authorizate_user, mock_get_db_connection):
         mock_authorizate_user.return_value = None
         mock_get_db_connection.return_value = self.mock_connection
 
+        # Mocking AWS secrets and S3 operations
+        mock_get_secrets.return_value = {
+            'AWS_ACCESS_KEY_ID': 'fake_access_key',
+            'AWS_SECRET_ACCESS_KEY': 'fake_secret_key',
+            'BUCKET_NAME': 'fake_bucket'
+        }
+        mock_get_client_s3.return_value = MagicMock()
+        mock_upload_image_to_s3.side_effect = Exception("Simulated database error")
+
         # Crear un token de prueba
         token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
-        # Simulate successful validations
+        # Simular validaciones exitosas
         mock_validate_connection.return_value = None
         mock_validate_event_body.return_value = None
         mock_validate_payload.return_value = None
 
-        # Simulate an exception when executing the SQL query
-        self.mock_cursor.execute.side_effect = Exception("Simulated database error")
-
-        # Create a test event
+        # Crear un evento de prueba
         work = {
             'headers': {
                 'Authorization': f'Bearer {token}'
@@ -240,6 +263,7 @@ class TestCreateEvent(TestCase):
 
         self.assertEqual(result['statusCode'], 500)
         self.assertEqual(result["body"], json.dumps({"error": "Simulated database error"}))
+
 
 class TestValidations(TestCase):
     def setUp(self):

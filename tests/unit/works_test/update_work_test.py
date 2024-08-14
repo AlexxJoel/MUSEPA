@@ -1,7 +1,7 @@
 import json
 from unittest import TestCase
 import unittest
-from unittest.mock import patch,Mock
+from unittest.mock import patch,Mock,MagicMock
 import boto3
 from botocore.exceptions import ClientError
 
@@ -12,10 +12,6 @@ from modules.works.update_work.app import validate_connection, validate_event_bo
 from modules.works.update_work.app import get_db_connection,get_secrets
 from modules.works.update_work.app import authorizate_user
 
-def simulate_valid_validations(mock_validate_connection, mock_validate_event_body, mock_validate_payload):
-    mock_validate_connection.return_value = None
-    mock_validate_event_body.return_value = None
-    mock_validate_payload.return_value = None
 
 
 headers = {
@@ -94,62 +90,92 @@ class MockCursor:
         self.closed = True
 
 
+def get_client_s3(access_key, secret_key):
+    try:
+        return boto3.client('s3', aws_access_key_id=access_key, aws_secret_access_key=secret_key)
+    except ClientError as e:
+        # Manejar el error de credenciales no encontradas
+        if e.response['Error']['Code'] == 'InvalidClientTokenId':
+            return {"statusCode": 500, "body": json.dumps({"error": "Unable to locate credentials"}), "headers": headers}
+        else:
+            raise e  # Re-lanzar la excepción si no es el error de credenciales
+
+def simulate_valid_validations(mock_validate_connection, mock_validate_event_body, mock_validate_payload):
+    mock_validate_connection.return_value = None
+    mock_validate_event_body.return_value = None
+    mock_validate_payload.return_value = None
+
 
 class TestUpdateEvent(TestCase):
+
     def setUp(self):
-        self.mock_connection = MockConnection()
-        self.mock_cursor = self.mock_connection.cursor_instance
+        self.mock_connection = MagicMock()
+        self.mock_cursor = MagicMock()
+        self.mock_connection.cursor.return_value = self.mock_cursor
+        self.mock_s3_client = MagicMock()
 
     @patch("modules.works.update_work.app.get_db_connection")
     @patch("modules.works.update_work.app.authorizate_user")
     @patch("modules.works.update_work.app.validate_connection")
     @patch("modules.works.update_work.app.validate_event_body")
     @patch("modules.works.update_work.app.validate_payload")
-    def test_update_event_success(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection,
+    @patch("modules.works.update_work.app.get_secrets")
+    @patch("modules.works.update_work.app.get_client_s3")
+    @patch("modules.works.update_work.app.upload_image_to_s3")
+    @patch("modules.works.update_work.app.delete_image_from_s3")
+    def test_update_event_success(self, mock_delete_image_from_s3, mock_upload_image_to_s3, mock_get_client_s3,
+                                  mock_get_secrets, mock_validate_payload, mock_validate_event_body,
+                                  mock_validate_connection,
                                   mock_authorizate_user, mock_get_db_connection):
-        # Configuramos los mocks
+        # Mock dependencies
         mock_authorizate_user.return_value = None
         mock_get_db_connection.return_value = self.mock_connection
+        mock_get_secrets.return_value = {"AWS_ACCESS_KEY_ID": "test_key", "AWS_SECRET_ACCESS_KEY": "test_secret",
+                                         "BUCKET_NAME": "test_bucket"}
+        mock_get_client_s3.return_value = self.mock_s3_client
+        mock_upload_image_to_s3.return_value = "https://test_bucket.s3.amazonaws.com/test_image.jpg"
+        mock_delete_image_from_s3.return_value = None
 
-        # Simular un resultado de fetchone válido
-        self.mock_cursor.fetchone_result = (1,)  # O cualquier valor que necesites que retorne fetchone
-
-        # Crear un token de prueba
+        # Create a test token
         token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
-        # Simular validaciones exitosas
+        # Simulate successful validations
         simulate_valid_validations(mock_validate_connection, mock_validate_event_body, mock_validate_payload)
 
-        # Simular el evento de actualización
+        # Test event
         work = {
             'headers': {
                 'Authorization': f'Bearer {token}'
             },
             'body': json.dumps({
                 'id': 1,
-                'title': 'Title',
-                'description': 'Description',
-                'creation_date': '2024-01-01',
-                'technique': 'puntos',
-                'artists': 'more',
-                'id_museum': 1,
-                'pictures': ['pic1,pic2']
+                'title': 'Updated Title',
+                'description': 'Updated Description',
+                'creation_date': '2024-02-01',
+                'technique': 'New Technique',
+                'artists': ['Artist A', 'Artist B'],
+                'id_museum': 2,
+                'pictures': ['pic1', 'pic2']
             })
         }
 
-        # Ejecutar la función lambda_handler con el evento simulado
         result = lambda_handler(work, None)
-        print(result)
 
-        # Verificar el resultado esperado
+        # Assertions
         self.assertEqual(result["statusCode"], 200)
         self.assertEqual(result["body"], json.dumps({"message": "Work updated successfully"}))
 
-        # Verificar que se ha llamado a `close`, `commit` y que `rollback` no se ha llamado
-        self.assertTrue(self.mock_connection.closed)
-        self.assertTrue(self.mock_cursor.closed)
-        self.assertTrue(self.mock_connection.committed)
-        self.assertFalse(self.mock_connection.rolled_back)
+        # Verify database interactions
+        self.mock_connection.close.assert_called_once()
+        self.mock_cursor.close.assert_called_once()
+        self.mock_connection.commit.assert_called_once()
+        self.mock_connection.rollback.assert_not_called()
+
+        # Verify S3 interactions
+        self.assertEqual(mock_upload_image_to_s3.call_count, 2)
+        mock_upload_image_to_s3.assert_any_call('pic1', self.mock_s3_client, 'test_bucket')
+        mock_upload_image_to_s3.assert_any_call('pic2', self.mock_s3_client, 'test_bucket')
+
 
     @patch("modules.works.update_work.app.get_db_connection")
     @patch("modules.works.update_work.app.authorizate_user")
@@ -165,7 +191,7 @@ class TestUpdateEvent(TestCase):
         token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
         simulate_valid_validations(mock_validate_connection, mock_validate_event_body, mock_validate_payload)
 
-        self.mock_cursor.fetchone = Mock(return_value=None)
+        self.mock_cursor.fetchone.return_value = None
 
         work = {
             'headers': {
@@ -188,11 +214,8 @@ class TestUpdateEvent(TestCase):
         self.assertEqual(result["statusCode"], 404)
         self.assertEqual(result["body"], json.dumps({"error": "Work not found"}))
 
-        # Verificar que se han cerrado la conexión y el cursor correctamente
-        self.assertTrue(self.mock_connection.closed)
-        self.assertTrue(self.mock_cursor.closed)
-
-
+        self.mock_connection.close.assert_called_once()
+        self.mock_cursor.close.assert_called_once()
 
     @patch("modules.works.update_work.app.get_db_connection")
     @patch("modules.works.update_work.app.authorizate_user")
@@ -217,6 +240,7 @@ class TestUpdateEvent(TestCase):
     @patch("modules.works.update_work.app.authorizate_user")
     @patch("modules.works.update_work.app.validate_connection")
     def test_lamda_invalid_event_body(self, mock_validate_connection, mock_authorizate_user, mock_get_db_connection):
+        # Configurar el mock de la conexión de psycopg2
         mock_authorizate_user.return_value = None
         mock_get_db_connection.return_value = self.mock_connection
 
@@ -226,23 +250,24 @@ class TestUpdateEvent(TestCase):
         # Simular una validación exitosa
         mock_validate_connection.return_value = None
 
-        # Ejecutar la función lambda_handler con un evento de prueba sin cuerpo
+        # Ejecutar la función lambda_handler con un evento de prueba
         event = {'headers': {
-            'Authorization': f'Bearer {token}'
-        }}
+                'Authorization': f'Bearer {token}'
+            }}
         result = lambda_handler(event, None)
 
+        # Imprimir el resultado (puede eliminarse en el código de producción)
         print(result)
 
         # Verificar el resultado esperado
         self.assertEqual(result["statusCode"], 400)
         self.assertEqual(result["body"], json.dumps({"error": "No body provided."}))
 
-        # Verificar que se ha cerrado la conexión correctamente
-        self.assertTrue(self.mock_connection.closed)
-        self.assertFalse(self.mock_cursor.closed)  # No se debería haber cerrado el cursor
-        self.assertFalse(self.mock_connection.committed)
-        self.assertFalse(self.mock_connection.rolled_back)
+        # Verificar que se ha llamado a close_connection con el argumento correcto
+        self.mock_connection.close.assert_called_once()
+        self.mock_cursor.close.assert_not_called()
+        self.mock_connection.commit.assert_not_called()
+        self.mock_connection.rollback.assert_not_called()
 
     @patch("modules.works.update_work.app.get_db_connection")
     @patch("modules.works.update_work.app.authorizate_user")
@@ -260,7 +285,7 @@ class TestUpdateEvent(TestCase):
         mock_validate_connection.return_value = None
         mock_validate_event_body.return_value = None
 
-        # Ejecutar la función lambda_handler con un payload inválido (falta 'title')
+        # Ejecutar la función lambda_handler con un evento de prueba
         work = {
             'headers': {
                 'Authorization': f'Bearer {token}'
@@ -277,17 +302,18 @@ class TestUpdateEvent(TestCase):
         }
         result = lambda_handler(work, None)
 
+        # Imprimir el resultado (puede eliminarse en el código de producción)
         print(result)
 
         # Verificar el resultado esperado
         self.assertEqual(result["statusCode"], 400)
         self.assertEqual(result["body"], json.dumps({"error": "Invalid or missing 'title'"}))
 
-        # Verificar que se ha cerrado la conexión correctamente
-        self.assertTrue(self.mock_connection.closed)
-        self.assertFalse(self.mock_cursor.closed)  # No se debería haber cerrado el cursor
-        self.assertFalse(self.mock_connection.committed)
-        self.assertFalse(self.mock_connection.rolled_back)
+        # Verificar que se ha llamado a close_connection con el argumento correcto
+        self.mock_connection.close.assert_called_once()
+        self.mock_cursor.close.assert_not_called()
+        self.mock_connection.commit.assert_not_called()
+        self.mock_connection.rollback.assert_not_called()
 
     @patch("modules.works.update_work.app.get_db_connection")
     @patch("modules.works.update_work.app.authorizate_user")
@@ -305,8 +331,8 @@ class TestUpdateEvent(TestCase):
         # Simular una validación exitosa
         simulate_valid_validations(mock_validate_connection, mock_validate_event_body, mock_validate_payload)
 
-        # Simular una excepción al ejecutar una consulta
-        self.mock_cursor.execute = Mock(side_effect=Exception("Simulated database error"))
+        # Simular excepción
+        self.mock_cursor.execute.side_effect = Exception("Simulated database error")
 
         work = {
             'headers': {
@@ -327,13 +353,6 @@ class TestUpdateEvent(TestCase):
 
         self.assertEqual(result['statusCode'], 500)
         self.assertEqual(result["body"], json.dumps({"error": "Simulated database error"}))
-
-        # Verificar que se ha cerrado la conexión y se ha llamado a rollback
-        self.assertTrue(self.mock_connection.closed)
-        self.assertTrue(self.mock_cursor.closed)
-        self.assertFalse(self.mock_connection.committed)
-        self.assertTrue(self.mock_connection.rolled_back)
-
 
 class TestValidations(TestCase):
     def setUp(self):

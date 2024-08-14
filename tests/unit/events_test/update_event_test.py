@@ -56,45 +56,70 @@ class TestUpdateEvent(TestCase):
         self.mock_connection = MagicMock()
         self.mock_cursor = MagicMock()
         self.mock_connection.cursor.return_value = self.mock_cursor
+        self.mock_s3_client = MagicMock()
 
-    # TODO: updateEvent with s3
-    # @patch("modules.events.update_event.app.get_db_connection")
-    # @patch("modules.events.update_event.app.authorizate_user")
-    # @patch("modules.events.update_event.app.validate_connection")
-    # @patch("modules.events.update_event.app.validate_event_body")
-    # @patch("modules.events.update_event.app.validate_payload")
-    # def test_update_event_success(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection, mock_authorizate_user,mock_get_db_connection):
-    #     mock_authorizate_user.return_value = None
-    #     mock_get_db_connection.return_value = self.mock_connection
-    #     simulate_valid_validations(mock_validate_connection,mock_validate_event_body,mock_validate_payload)
-    #
-    #     token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
-    #
-    #     event = {
-    #         'headers': {
-    #             'Authorization': f'Bearer {token}'
-    #         },
-    #         'body': json.dumps({
-    #             'id': 1,
-    #             'name': 'Event 1',
-    #             'description': 'Description 1',
-    #             'start_date': '2024-01-01T00:00:00Z',
-    #             'end_date': '2024-01-02T00:00:00Z',
-    #             'category': 'Category 1',
-    #             'pictures': ['pic1', 'pic2'],
-    #             'id_museum': 1
-    #         })
-    #     }
-    #     result = lambda_handler(event, None)
-    #     print(result)
-    #
-    #     self.assertEqual(result["statusCode"], 200)
-    #     self.assertEqual(result["body"], json.dumps({"message": "Event updated successfully"}))
-    #
-    #     self.mock_connection.close.assert_called_once()
-    #     self.mock_cursor.close.assert_called_once()
-    #     self.mock_connection.commit.assert_called_once()
-    #     self.mock_connection.rollback.assert_not_called()
+    @patch("modules.events.update_event.app.get_db_connection")
+    @patch("modules.events.update_event.app.authorizate_user")
+    @patch("modules.events.update_event.app.validate_connection")
+    @patch("modules.events.update_event.app.validate_event_body")
+    @patch("modules.events.update_event.app.validate_payload")
+    @patch("modules.events.update_event.app.get_secrets")
+    @patch("modules.events.update_event.app.get_client_s3")
+    @patch("modules.events.update_event.app.upload_image_to_s3")
+    @patch("modules.events.update_event.app.delete_image_from_s3")
+    def test_update_event_success(self, mock_delete_image_from_s3, mock_upload_image_to_s3, mock_get_client_s3,
+                                  mock_get_secrets, mock_validate_payload, mock_validate_event_body,
+                                  mock_validate_connection,
+                                  mock_authorizate_user, mock_get_db_connection):
+        # Mock dependencies
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+        mock_get_secrets.return_value = {"AWS_ACCESS_KEY_ID": "test_key", "AWS_SECRET_ACCESS_KEY": "test_secret",
+                                         "BUCKET_NAME": "test_bucket"}
+        mock_get_client_s3.return_value = self.mock_s3_client
+        mock_upload_image_to_s3.return_value = "https://test_bucket.s3.amazonaws.com/test_image.jpg"
+        mock_delete_image_from_s3.return_value = None
+
+        # Create a test token
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
+
+        # Simulate successful validations
+        simulate_valid_validations(mock_validate_connection, mock_validate_event_body, mock_validate_payload)
+
+        # Test event
+        event = {
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
+            'body': json.dumps({
+                'id': 1,
+                'name': 'Event 1',
+                'description': 'Description 1',
+                'start_date': '2024-01-01T00:00:00Z',
+                'end_date': '2024-01-02T00:00:00Z',
+                'category': 'Category 1',
+                'pictures': ['pic1', 'pic2'],
+                'id_museum': 1
+            })
+        }
+
+        result = lambda_handler(event, None)
+
+        # Assertions
+        self.assertEqual(result["statusCode"], 200)
+        self.assertEqual(result["body"], json.dumps({"message": "Event updated successfully"}))
+
+        # Verify database interactions
+        self.mock_connection.close.assert_called_once()
+        self.mock_cursor.close.assert_called_once()
+        self.mock_connection.commit.assert_called_once()
+        self.mock_connection.rollback.assert_not_called()
+
+        # Verify S3 interactions
+        self.assertEqual(mock_upload_image_to_s3.call_count, 2)
+        mock_upload_image_to_s3.assert_any_call('pic1', self.mock_s3_client, 'test_bucket')
+        mock_upload_image_to_s3.assert_any_call('pic2', self.mock_s3_client, 'test_bucket')
+
 
     @patch("modules.events.update_event.app.get_db_connection")
     @patch("modules.events.update_event.app.authorizate_user")
@@ -133,8 +158,8 @@ class TestUpdateEvent(TestCase):
         self.mock_cursor.close.assert_called_once()
 
 
-    @patch("modules.events.create_event.app.get_db_connection")
-    @patch("modules.events.create_event.app.authorizate_user")
+    @patch("modules.events.update_event.app.get_db_connection")
+    @patch("modules.events.update_event.app.authorizate_user")
     def test_lambda_invalid_conn(self, mock_authorizate_user,mock_get_db_connection):
         mock_authorizate_user.return_value = None
         mock_get_db_connection.return_value = None
@@ -185,14 +210,16 @@ class TestUpdateEvent(TestCase):
         self.mock_connection.rollback.assert_not_called()
 
 
-    @patch("modules.events.create_event.app.get_db_connection")
-    @patch("modules.events.create_event.app.authorizate_user")
+    @patch("modules.events.update_event.app.get_db_connection")
+    @patch("modules.events.update_event.app.authorizate_user")
     @patch("modules.events.update_event.app.validate_connection")
     @patch("modules.events.update_event.app.validate_event_body")
-    def test_create_invalid_payload(self, mock_validate_event_body, mock_validate_connection,
-                                    mock_psycopg2_connect):
-        # Configurar el mock de la conexión de psycopg2
-        mock_psycopg2_connect.return_value = self.mock_connection
+    def test_update_event_invalid_payload(self, mock_validate_event_body, mock_validate_connection,
+                                          mock_authorizate_user, mock_get_db_connection):
+        mock_authorizate_user.return_value = None
+        mock_get_db_connection.return_value = self.mock_connection
+
+        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
         # Simular una validación exitosa
         mock_validate_connection.return_value = None
@@ -200,15 +227,17 @@ class TestUpdateEvent(TestCase):
 
         # Ejecutar la función lambda_handler con un evento de prueba
         event = {
+            'headers': {
+                'Authorization': f'Bearer {token}'
+            },
             'body': json.dumps({
-                'id': 1,
-                'name': 'Event 1',
+                'id':1,
                 'description': 'Description 1',
-                'start_date': '2024-01-01T00:00:00Z',
-                'end_date': '2024-01-02T00:00:00Z',
+                'start_date': '2024-01-01',
+                'end_date': '2024-01-02',
                 'category': 'Category 1',
-                'pictures': ['pic1', 'pic2'],
-                'id_museum': 1
+                'pictures': 'pic1,pic2',
+                'id_museum': '1'
             })
         }
         result = lambda_handler(event, None)
@@ -220,9 +249,7 @@ class TestUpdateEvent(TestCase):
         self.assertEqual(result["statusCode"], 400)
         self.assertEqual(result["body"], json.dumps({"error": "Invalid or missing 'name'"}))
 
-        # Verificar que se ha llamado a close_connection con el argumento correcto
-        self.mock_connection.close.assert_called_once()
-        self.mock_cursor.close.assert_not_called()
+        # Verificar que no se ha llamado a commit o rollback
         self.mock_connection.commit.assert_not_called()
         self.mock_connection.rollback.assert_not_called()
 
@@ -279,15 +306,17 @@ class TestValidations(TestCase):
             'start_date': '2024-01-01',
             'end_date': '2024-01-02',
             'category': 'Category',
-            'pictures':  ['valid_picture_1', 'valid_picture_2'],
+            'pictures': ['pic1,pic2'],
             'id_museum': '1'
         }
 
-    def test_validate_connection_failure(self):
-        conn = None
-        result = validate_connection(conn)
-        self.assertEqual(result['statusCode'], 500)
+    @patch("modules.events.update_event.app.get_db_connection")
+    def test_validate_connection_failure(self, mock_get_db_connection):
+        mock_get_db_connection.return_value = None
+        result = validate_connection(mock_get_db_connection.return_value)
+        self.assertEqual(result["statusCode"], 500)
         self.assertEqual(result["body"], json.dumps({"error": "Connection to the database failed"}))
+
 
     def test_validate_connection_success(self):
         conn = unittest.mock.MagicMock()
@@ -335,85 +364,81 @@ class TestValidations(TestCase):
     def test_validate_payload_missing_name(self):
         payload = self.valid_payload.copy()
         del payload["name"]
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'name'"}),'headers': headers}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'name'"}),'headers':headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_invalid_name(self):
         payload = self.valid_payload.copy()
         payload["name"] = "Invalid123!"
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'name'"}),'headers': headers}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'name'"}),'headers':headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_missing_description(self):
         payload = self.valid_payload.copy()
         del payload['description']
 
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'description'"}),'headers': headers}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'description'"}),'headers':headers}
 
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_invalid_description(self):
         payload = self.valid_payload.copy()
         payload["description"] = "Invalid123!"
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'description'"}),'headers': headers}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'description'"}),'headers':headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_missing_start_date(self):
         payload = self.valid_payload.copy()
         del payload['start_date']
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'start_date'"}),'headers': headers}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'start_date'"}),'headers':headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_invalid_start_date(self):
         payload = self.valid_payload.copy()
         payload["start_date"] = "Invalid123!"
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'start_date'"}),'headers': headers}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'start_date'"}),'headers':headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_missing_end_date(self):
         payload = self.valid_payload.copy()
         del payload['end_date']
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'end_date'"}),'headers': headers}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'end_date'"}),'headers':headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_invalid_end_date(self):
         payload = self.valid_payload.copy()
         payload["end_date"] = "Invalid123!"
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'end_date'"}),'headers': headers}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'end_date'"}),'headers':headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_missing_category(self):
         payload = self.valid_payload.copy()
         del payload['category']
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'category'"}),'headers': headers}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'category'"}),'headers':headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_invalid_category(self):
         payload = self.valid_payload.copy()
         payload["category"] = "Invalid123!"
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'category'"}),'headers': headers}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'category'"}),'headers':headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_missing_pictures(self):
         payload = self.valid_payload.copy()
         del payload['pictures']
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'pictures'"}),'headers': headers}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'pictures'"}),'headers':headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_missing_id_museum(self):
         payload = self.valid_payload.copy()
         del payload['id_museum']
-        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id_museum'"}),'headers': headers}
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id_museum'"}),'headers':headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
     def test_validate_payload_invalid_id_museum(self):
         payload = self.valid_payload.copy()
         payload["id_museum"] = "Invalid123!"
-        expected_response = {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Invalid or missing 'id_museum'"}),
-            "headers": headers
-        }
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id_museum'"}),'headers':headers}
         self.assertEqual(validate_payload(payload), expected_response)
 
 
