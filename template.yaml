@@ -70,14 +70,14 @@ Resources:
                 Action:
                   - s3:PutObject
                   - s3:GetObject
-                  - s3:ListBucket
                   - s3:DeleteObject
-                Resource: 'arn:aws:s3:::museepa-bucket/*'
+                Resource: !Sub 'arn:aws:s3:::${MusepaBucket}/*'
               - Effect: Allow
                 Action:
                   - s3:ListBucket
-                Resource: 'arn:aws:s3:::museepa-bucket'
-
+                Resource: !Sub 'arn:aws:s3:::${MusepaBucket}'
+  # ----------------------------------------------
+  # Configuring Cognito
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
@@ -91,8 +91,7 @@ Resources:
           RequireNumbers: true
           RequireSymbols: true
           RequireUppercase: true
-
-
+  # Groups for Cognito
   ManagerGroup:
     Type: AWS::Cognito::UserPoolGroup
     Properties:
@@ -100,7 +99,6 @@ Resources:
       UserPoolId: !Ref UserPool
       Description: "Manager Group"
       Precedence: 1
-
   VisitorGroup:
     Type: AWS::Cognito::UserPoolGroup
     Properties:
@@ -108,8 +106,7 @@ Resources:
       UserPoolId: !Ref UserPool
       Description: "Visitor Group"
       Precedence: 2
-
-
+  # Cognito App Client
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
@@ -133,6 +130,43 @@ Resources:
         - ALLOW_REFRESH_TOKEN_AUTH
         - ALLOW_USER_SRP_AUTH
         - ALLOW_USER_PASSWORD_AUTH
+  # Cognito configuration --> Api Authorization --> Function Authorization
+  # ----------------------------------------------
+  # Configuration s3 bucket
+  MusepaBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: musepa-bucket-v1
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - DELETE
+              - HEAD
+            AllowedOrigins:
+              - "*"
+            ExposedHeaders:
+                - "ETag"
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref MusepaBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action: 's3:*'
+            Principal: '*'
+            Effect: Allow
+            Resource: !Sub 'arn:aws:s3:::${MusepaBucket}/*'
 
   # API Gateway
   EventApi:
