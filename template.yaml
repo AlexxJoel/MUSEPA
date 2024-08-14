@@ -78,6 +78,61 @@ Resources:
                   - s3:ListBucket
                 Resource: 'arn:aws:s3:::museepa-bucket'
 
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: museepa-users
+      AutoVerifiedAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          RequireUppercase: true
+
+
+  ManagerGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: manager
+      UserPoolId: !Ref UserPool
+      Description: "Manager Group"
+      Precedence: 1
+
+  VisitorGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: visitor
+      UserPoolId: !Ref UserPool
+      Description: "Visitor Group"
+      Precedence: 2
+
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: museepa
+      UserPoolId: !Ref UserPool
+      GenerateSecret: false
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthScopes:
+        - email
+        - openid
+        - profile
+      CallbackURLs:
+        - 'https://${AuthApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/callback'
+      LogoutURLs:
+        - 'https://${AuthApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/logout'
+      ExplicitAuthFlows:
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_USER_PASSWORD_AUTH
 
   # API Gateway
   EventApi:
@@ -89,7 +144,11 @@ Resources:
         AllowMethods: "'GET,POST,PUT,DELETE'"
         AllowHeaders: "'*'"
         AllowOrigin: "'*'"
-
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt UserPool.Arn
+            IdentitySource: method.request.header.Authorization
   MuseumApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -99,7 +158,11 @@ Resources:
         AllowMethods: "'GET,POST,PUT,DELETE'"
         AllowHeaders: "'*'"
         AllowOrigin: "'*'"
-
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt UserPool.Arn
+            IdentitySource: method.request.header.Authorization
   WorkApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -109,7 +172,11 @@ Resources:
         AllowMethods: "'GET,POST,PUT,DELETE'"
         AllowHeaders: "'*'"
         AllowOrigin: "'*'"
-
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt UserPool.Arn
+            IdentitySource: method.request.header.Authorization
   VisitorApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -119,7 +186,11 @@ Resources:
         AllowMethods: "'GET,POST,PUT,DELETE'"
         AllowHeaders: "'*'"
         AllowOrigin: "'*'"
-
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt UserPool.Arn
+            IdentitySource: method.request.header.Authorization
   ManagerApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -129,7 +200,11 @@ Resources:
         AllowMethods: "'GET,POST,PUT,DELETE'"
         AllowHeaders: "'*'"
         AllowOrigin: "'*'"
-
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt UserPool.Arn
+            IdentitySource: method.request.header.Authorization
   AuthApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -173,6 +248,8 @@ Resources:
             RestApiId: !Ref EventApi
             Path: /events
             Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
   DeleteDataEventFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -189,6 +266,8 @@ Resources:
             RestApiId: !Ref EventApi
             Path: /events/{id}
             Method: DELETE
+            Auth:
+              Authorizer: CognitoAuthorizer
   UpdateDataEventFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -205,6 +284,8 @@ Resources:
             RestApiId: !Ref EventApi
             Path: /events
             Method: PUT
+            Auth:
+              Authorizer: CognitoAuthorizer
   FindDataEventFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -221,7 +302,6 @@ Resources:
             RestApiId: !Ref EventApi
             Path: /events/{id}
             Method: GET
-
   # ------------ Museum ------------
   GetDataMuseumFunction:
     Type: AWS::Serverless::Function
@@ -255,6 +335,8 @@ Resources:
             RestApiId: !Ref MuseumApi
             Path: /museums
             Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
   DeleteDataMuseumFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -271,6 +353,8 @@ Resources:
             RestApiId: !Ref MuseumApi
             Path: /museums/{id}
             Method: DELETE
+            Auth:
+              Authorizer: CognitoAuthorizer
   UpdateDataMuseumFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -287,6 +371,8 @@ Resources:
             RestApiId: !Ref MuseumApi
             Path: /museums
             Method: PUT
+            Auth:
+              Authorizer: CognitoAuthorizer
   FindDataMuseumFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -303,9 +389,7 @@ Resources:
             RestApiId: !Ref MuseumApi
             Path: /museums/{id}
             Method: GET
-
   # ------------ Visitor ------------
-
   GetDataVisitorFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -338,6 +422,8 @@ Resources:
             RestApiId: !Ref VisitorApi
             Path: /visitors
             Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
   DeleteDataVisitorFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -354,6 +440,8 @@ Resources:
             RestApiId: !Ref VisitorApi
             Path: /visitors/{id}
             Method: DELETE
+            Auth:
+              Authorizer: CognitoAuthorizer
   UpdateDataVisitorFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -370,6 +458,8 @@ Resources:
             RestApiId: !Ref VisitorApi
             Path: /visitors
             Method: PUT
+            Auth:
+              Authorizer: CognitoAuthorizer
   FindDataVisitorFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -402,8 +492,8 @@ Resources:
             RestApiId: !Ref VisitorApi
             Path: /visitors/{id}/favorite
             Method: PUT
-
-
+            Auth:
+              Authorizer: CognitoAuthorizer
   # ------------ Work ------------
   GetDataWorkFunction:
     Type: AWS::Serverless::Function
@@ -437,6 +527,8 @@ Resources:
             RestApiId: !Ref WorkApi
             Path: /works
             Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
   DeleteDataWorkFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -453,6 +545,8 @@ Resources:
             RestApiId: !Ref WorkApi
             Path: /works/{id}
             Method: DELETE
+            Auth:
+              Authorizer: CognitoAuthorizer
   UpdateDataWorkFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -469,6 +563,8 @@ Resources:
             RestApiId: !Ref WorkApi
             Path: /works
             Method: PUT
+            Auth:
+              Authorizer: CognitoAuthorizer
   FindDataWorkFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -485,7 +581,6 @@ Resources:
             RestApiId: !Ref WorkApi
             Path: /works/{id}
             Method: GET
-
   # ------------ Manager ------------
   GetDataManagerFunction:
     Type: AWS::Serverless::Function
@@ -503,6 +598,8 @@ Resources:
             RestApiId: !Ref ManagerApi
             Path: /managers
             Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
   CreateDataManagerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -519,6 +616,8 @@ Resources:
             RestApiId: !Ref ManagerApi
             Path: /managers
             Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
   DeleteDataManagerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -535,6 +634,8 @@ Resources:
             RestApiId: !Ref ManagerApi
             Path: /managers/{id}
             Method: DELETE
+            Auth:
+              Authorizer: CognitoAuthorizer
   UpdateDataManagerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -551,6 +652,8 @@ Resources:
             RestApiId: !Ref ManagerApi
             Path: /managers
             Method: PUT
+            Auth:
+              Authorizer: CognitoAuthorizer
   FindDataManagerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -567,7 +670,8 @@ Resources:
             RestApiId: !Ref ManagerApi
             Path: /managers/{id}
             Method: GET
-
+            Auth:
+              Authorizer: CognitoAuthorizer
   # ------------ Auth ------------
   InsertUserPoolFunction:
     Type: AWS::Serverless::Function
@@ -618,8 +722,16 @@ Resources:
             Path: /auth/set_password
             Method: POST
 
-
 Outputs:
+  UserPoolId:
+    Description: "Cognito User Pool ID"
+    Value: !Ref UserPool
+
+  UserPoolClientId:
+    Description: "Cognito User Pool Client ID"
+    Value: !Ref UserPoolClient
+
+
   EventApi:
     Description: "API Gateway endpoint URL for Prod stage for museepa function"
     Value: !Sub "https://${EventApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
@@ -642,7 +754,6 @@ Outputs:
   LambdaExecutionRoleArn:
     Description: "Implicit IAM Role created for Lambda function"
     Value: !GetAtt LambdaExecutionRole.Arn
-
   GetDataEventFunctionArn:
     Description: "GetDataEventFunction Lambda function ARN"
     Value: !GetAtt GetDataEventFunction.Arn
@@ -735,4 +846,3 @@ Outputs:
   SetPasswordFunction:
     Description: "SetPasswordFunction Lambda function ARN"
     Value: !GetAtt SetPasswordFunction.Arn
-
