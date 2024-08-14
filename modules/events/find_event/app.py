@@ -37,7 +37,7 @@ def lambda_handler(event, _context):
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
         # Find event by id
-        sql = """SELECT id, name, description, start_date, end_date FROM events WHERE id = %s"""
+        sql = """SELECT * FROM events WHERE id = %s"""
         cur.execute(sql, (request_id,))
         event = cur.fetchone()
 
