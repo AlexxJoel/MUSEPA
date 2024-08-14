@@ -28,6 +28,11 @@ def lambda_handler(event, _context):
         # Database connection
         conn = get_db_connection()
 
+        # Authorize
+        authorization_response = authorizate_user(event)
+        if authorization_response is not None:
+            return authorization_response
+
         # Validate connection
         valid_conn_res = validate_connection(conn)
         if valid_conn_res is not None:
