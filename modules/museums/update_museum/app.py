@@ -1,8 +1,8 @@
 import json
-
-from connect_db import get_db_connection
-from validations import validate_connection, validate_event_body, validate_payload
-from authorization import authorizate_user
+import jwt
+import boto3
+import psycopg2
+import re
 
 headers = {
     'Access-Control-Allow-Headers': '*',
@@ -81,3 +81,132 @@ def lambda_handler(event, _context):
             conn.close()
         if cur is not None:
             cur.close()
+
+
+# ------------------------AUTHORIZER------------------------
+
+def authorizate_user(_event):
+    token = _event['headers']['Authorization'].split(' ')[1]
+    decoded_token = jwt.decode(token, options={"verify_signature": False})
+    roles = decoded_token.get('cognito:groups')
+    role = roles[0]
+
+    if role is None:
+        return {'statusCode': 400, 'body': json.dumps({"error": "Role not found in token"}), 'headers': headers}
+
+    if len(roles) <= 0:
+        return {'statusCode': 400, 'body': json.dumps({"error": "Role not found in token"}), 'headers': headers}
+
+    if role == "visitor":
+        return {'statusCode': 403, 'body': json.dumps({"error": "Access denied: insufficient permissions"}),
+                'headers': headers}
+
+    return None
+
+
+# ------------------------CONNECT_DB------------------------
+
+def get_db_connection():
+    secrets = get_secrets()
+    host = secrets['POSTGRES_HOST']
+    user = 'default'
+    password = secrets['POSTGRES_PASSWORD']
+    database = secrets['POSTGRES_DATABASE']
+    return psycopg2.connect(
+        host=host,
+        user=user,
+        password=password,
+        database=database
+    )
+
+
+def get_secrets():
+    secret_name = "prod/musepa/vercel/postgres"
+    region_name = "us-west-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except Exception as e:
+        raise e
+
+    secret = get_secret_value_response['SecretString']
+    return json.loads(secret)
+
+# ------------------------VALIDATIONS------------------------
+
+def validate_connection(conn):
+    # check if the connection is successful
+    if conn is None:
+        return {"statusCode": 500, "body": json.dumps({"error": "Connection to the database failed"}),
+                "headers": headers}
+    return None
+
+
+def validate_event_body(event):
+    # Check if the event has a body
+    if "body" not in event:
+        return {"statusCode": 400, "body": json.dumps({"error": "No body provided."}), "headers": headers}
+
+    # Check if the event body is not None
+    if event["body"] is None:
+        return {"statusCode": 400, "body": json.dumps({"error": "Body is null."}), "headers": headers}
+
+    # Check if the event body is not empty
+    if not event["body"]:
+        return {"statusCode": 400, "body": json.dumps({"error": "Body is empty."}), "headers": headers}
+
+    # Check if the event body is not a list
+    if isinstance(event["body"], list):
+        return {"statusCode": 400, "body": json.dumps({"error": "Body can not be a list."}), "headers": headers}
+
+    # Try to load the JSON body from the event
+    try:
+        json.loads(event['body'])
+    except json.JSONDecodeError:
+        return {"statusCode": 400, "body": json.dumps({"error": "The request body is not valid JSON"}),
+                "headers": headers}
+
+    return None
+
+
+def validate_payload(payload):
+    letters_regex = re.compile(r"^[a-zA-Z\s]+$")
+    pay_regex = re.compile(r"^[0-9]+(?:\.[0-9]+)?$")
+    numbers_regex = re.compile(r"^\d+$")
+    phoneNumber_regex = re.compile(r"^\+?[1-9]\d{1,14}|\(\d{1,4}\)\s*\d{1,4}(-|\s)?\d{1,4}$")
+    if "name" not in payload or not isinstance(payload["name"], str) or not letters_regex.match(payload["name"]):
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'name'"}), "headers": headers}
+
+    if "location" not in payload or not isinstance(payload["location"], str) or not letters_regex.match(
+            payload["location"]):
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'location'"}), "headers": headers}
+
+    if "tariffs" not in payload or not isinstance(payload["tariffs"], str) or not pay_regex.match(payload["tariffs"]):
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'tariffs'"}), "headers": headers}
+
+    if "schedules" not in payload or not isinstance(payload["schedules"], str) or not payload["schedules"].strip():
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'schedules'"}), "headers": headers}
+
+    if "contact_number" not in payload or not isinstance(payload["contact_number"], str) or not phoneNumber_regex.match(
+            payload["contact_number"]):
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'contact_number'"}),
+                "headers": headers}
+
+    if "contact_email" not in payload or not isinstance(payload["contact_email"], str) or not email_regex.match(
+            payload["contact_email"]):
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'contact_email'"}),
+                "headers": headers}
+
+    if "pictures" not in payload or not isinstance(payload["pictures"], str) or not payload["pictures"].strip():
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'pictures'"}), "headers": headers}
+
+    return None

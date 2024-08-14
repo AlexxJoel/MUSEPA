@@ -1,10 +1,8 @@
 import json
-
+import psycopg2
+import boto3
+import jwt
 from psycopg2.extras import RealDictCursor
-
-from connect_db import get_db_connection
-from validations import validate_connection, validate_event_path_params
-from authorization import authorizate_user
 
 headers = {
     'Access-Control-Allow-Headers': '*',
@@ -12,7 +10,7 @@ headers = {
     'Access-Control-Allow-Methods': 'DELETE'
 }
 
-
+# -------------------LAMBDA----------------------------
 def lambda_handler(event, _context):
     conn = None
     cur = None
@@ -69,3 +67,94 @@ def lambda_handler(event, _context):
             conn.close()
         if cur is not None:
             cur.close()
+
+# -------------------AUTHORIZATION----------------------------
+def authorizate_user(_event):
+    token = _event['headers']['Authorization'].split(' ')[1]
+    decoded_token = jwt.decode(token, options={"verify_signature": False})
+    roles = decoded_token.get('cognito:groups')
+    role = roles[0]
+
+    if role is None:
+        return {'statusCode': 400, 'body': json.dumps({"error": "Role not found in token"}), "headers": headers}
+
+    if len(roles) <= 0:
+        return {'statusCode': 400, 'body': json.dumps({"error": "Role not found in token"}), "headers": headers}
+
+    if role == "visitor":
+        return {'statusCode': 403, 'body': json.dumps({"error": "Access denied: insufficient permissions"}),
+                "headers": headers}
+
+    return None
+
+# -------------------CONNECT_DB----------------------------
+
+def get_db_connection():
+    secrets = get_secrets()
+    host = secrets['POSTGRES_HOST']
+    user = 'default'
+    password = secrets['POSTGRES_PASSWORD']
+    database = secrets['POSTGRES_DATABASE']
+    return psycopg2.connect(
+        host=host,
+        user=user,
+        password=password,
+        database=database
+    )
+
+# -------------------SECRETS----------------------------
+def get_secrets():
+    secret_name = "prod/musepa/vercel/postgres"
+    region_name = "us-west-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except Exception as e:
+        raise e
+
+    secret = get_secret_value_response['SecretString']
+    return json.loads(secret)
+
+
+# -------------------VALIDATIONS----------------------------
+def validate_connection(conn):
+    # check if the connection is successful
+    if conn is None:
+        return {"statusCode": 500, "body": json.dumps({"error": "Connection to the database failed"}),
+                "headers": headers}
+    return None
+
+
+def validate_event_path_params(event):
+    if "pathParameters" not in event:
+        return {"statusCode": 400, "body": json.dumps({"error": "Path parameters is missing from the request."}),
+                "headers": headers}
+
+    if event["pathParameters"] is None:
+        return {"statusCode": 400, "body": json.dumps({"error": "Path parameters is null."}), "headers": headers}
+
+    if "id" not in event["pathParameters"]:
+        return {"statusCode": 400, "body": json.dumps({"error": "Request ID is missing from the path parameters."}),
+                "headers": headers}
+
+    if event["pathParameters"]["id"] is None:
+        return {"statusCode": 400, "body": json.dumps({"error": "Request ID is missing from the path parameters."}),
+                "headers": headers}
+
+    try:
+        event['pathParameters']['id'] = int(event['pathParameters']['id'])
+    except ValueError:
+        return {"statusCode": 400, "body": json.dumps({"error": "Request ID data type is wrong."}), "headers": headers}
+
+    if event['pathParameters']['id'] <= 0:
+        return {"statusCode": 400, "body": json.dumps({"error": "Request ID invalid value."}), "headers": headers}
+    return None
