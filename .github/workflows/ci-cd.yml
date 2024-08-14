@@ -64,6 +64,12 @@ jobs:
       - name: Build SAM application with Debugging
         run: sam build --use-container --debug
 
+      - name: Echo parameters (for debugging)
+        run: |
+          echo "PostgresHost=${{ secrets.POSTGRES_HOST }}"
+          echo "PostgresDatabase=${{ secrets.POSTGRES_DATABASE }}"
+          echo "UserPoolId=${{ secrets.USER_POOL_ID }}"
+
       - name: Deploy SAM application
         run: | 
           sam deploy \
@@ -73,8 +79,6 @@ jobs:
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
             --resolve-s3 \
-            --config-env GitHubActions
-            --capabilities CAPABILITY_IAM \
             --parameter-overrides \
               PostgresHost=${{ secrets.POSTGRES_HOST }} \
               PostgresPassword=${{ secrets.POSTGRES_PASSWORD }} \
