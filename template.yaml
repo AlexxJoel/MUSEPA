@@ -65,7 +65,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: 'arn:aws:logs:*:*:*'
+                Resource: 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}-muspea:*'
         - PolicyName: get-secrets-db-policy
           PolicyDocument:
             Version: '2012-10-17'
@@ -316,9 +316,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         GetEvent:
           Type: Api
@@ -335,9 +332,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         CreateEvent:
           Type: Api
@@ -356,9 +350,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         DeleteEvent:
           Type: Api
@@ -377,9 +368,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         UpdateEvent:
           Type: Api
@@ -398,9 +386,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         FindEvent:
           Type: Api
@@ -418,9 +403,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         GetMuseum:
           Type: Api
@@ -437,9 +419,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         CreateMuseum:
           Type: Api
@@ -458,9 +437,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         DeleteMuseum:
           Type: Api
@@ -479,9 +455,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         UpdateMuseum:
           Type: Api
@@ -500,9 +473,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         FindMuseum:
           Type: Api
@@ -520,9 +490,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         GetVisitor:
           Type: Api
@@ -542,9 +509,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         CreateVisitor:
           Type: Api
@@ -563,9 +527,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         DeleteVisitor:
           Type: Api
@@ -584,9 +545,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         UpdateVisitor:
           Type: Api
@@ -605,9 +563,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         FindVisitor:
           Type: Api
@@ -624,9 +579,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         UpdateFavoriteVisitor:
           Type: Api
@@ -646,9 +598,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         GetEvent:
           Type: Api
@@ -665,9 +614,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         CreateEvent:
           Type: Api
@@ -686,9 +632,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         DeleteEvent:
           Type: Api
@@ -707,9 +650,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         UpdateEvent:
           Type: Api
@@ -728,9 +668,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         FindEvent:
           Type: Api
@@ -748,9 +685,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         GetManagers:
           Type: Api
@@ -769,9 +703,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         CreateManager:
           Type: Api
@@ -790,9 +721,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         DeleteManager:
           Type: Api
@@ -811,9 +739,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         UpdateManager:
           Type: Api
@@ -832,9 +757,6 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         FindManager:
           Type: Api
@@ -854,9 +776,6 @@ Resources:
       Architectures:
         - x86_64
       Role: !GetAtt LambdaExecutionRole.Arn
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         InsertUserPool:
           Type: Api
@@ -873,9 +792,6 @@ Resources:
       Architectures:
         - x86_64
       Role: !GetAtt LambdaExecutionRole.Arn
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         Login:
           Type: Api
@@ -892,9 +808,6 @@ Resources:
       Architectures:
         - x86_64
       Role: !GetAtt LambdaExecutionRole.Arn
-      Environment:
-        Variables:
-          LOG_GROUP_NAME: !Ref MusepaLogGroup
       Events:
         SetPassword:
           Type: Api
