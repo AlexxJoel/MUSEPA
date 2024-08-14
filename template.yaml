@@ -15,7 +15,34 @@ Globals:
       AllowMethods: "'GET,POST,PUT,DELETE'"
       AllowHeaders: "'*'"
       AllowOrigin: "'*'"
-
+Parameters:
+  PostgresHost:
+    Type: String
+    Description: "The host of the Postgres database"
+  PostgresPassword:
+    Type: String
+    Description: "The password for the Postgres database"
+  PostgresDatabase:
+    Type: String
+    Description: "The name of the Postgres database"
+  UserPoolId:
+    Type: String
+    Description: "The ID of the Cognito User Pool"
+  ClientId:
+    Type: String
+    Description: "The Client ID for Cognito"
+  RegionName:
+    Type: String
+    Description: "The AWS region"
+  AwsAccessKeyId:
+    Type: String
+    Description: "The AWS Access Key ID"
+  AwsSecretAccessKey:
+    Type: String
+    Description: "The AWS Secret Access Key"
+  BucketName:
+    Type: String
+    Description: "The S3 bucket name"
 Resources:
 
   LambdaExecutionRole:
@@ -167,6 +194,29 @@ Resources:
             Principal: '*'
             Effect: Allow
             Resource: !Sub 'arn:aws:s3:::${MusepaBucket}/*'
+# ----------------------------------------------
+# SEcrets
+  DataSecrets:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: prod/musepa
+      Description: "Secrets for musepa"
+      SecretString: !Sub |
+        {
+          "POSTGRES_HOST": "${PostgresHost}",
+          "POSTGRES_PASSWORD": "${PostgresPassword}",
+          "POSTGRES_DATABASE": "${PostgresDatabase}",
+          "USER_POOL_ID": "${UserPoolId}",
+          "CLIENT_ID": "${ClientId}",
+          "REGION_NAME": "${RegionName}",
+          "AWS_ACCESS_KEY_ID": "${AwsAccessKeyId}",
+          "AWS_SECRET_ACCESS_KEY": "${AwsSecretAccessKey}",
+          "BUCKET_NAME": "${BucketName}"
+        }
+      Tags:
+        - Key: Name
+          Value: !Sub "MySecrets-${AWS::StackName}"
+  
 
   # API Gateway
   EventApi:
