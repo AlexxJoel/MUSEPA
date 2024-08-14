@@ -72,7 +72,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: secretsmanager:GetSecretValue
-                Resource: 'arn:aws:secretsmanager:us-west-1:471112501035:secret:prod/musepa-REotkz'
+                Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:prod/musepa-*'
         - PolicyName: manage-cognito-users-pool-policy
           PolicyDocument:
             Version: '2012-10-17'
