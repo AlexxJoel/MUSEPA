@@ -65,7 +65,26 @@ jobs:
         run: sam build --use-container --debug
 
       - name: Deploy SAM application
-        run: sam deploy --stack-name museepa --region us-west-1 --capabilities CAPABILITY_IAM --no-confirm-changeset --no-fail-on-empty-changeset --resolve-s3 --config-env GitHubActions
+        run: | 
+          sam deploy \
+          --stack-name museepa \
+          --region ${{ secrets.REGION_NAME }} \
+          --capabilities CAPABILITY_IAM \
+          --no-confirm-changeset \
+          --no-fail-on-empty-changeset \
+          --resolve-s3 \
+          --config-env GitHubActions
+          --capabilities CAPABILITY_IAM \
+          --parameter-overrides \
+            PostgresHost=${{ secrets.POSTGRES_HOST }} \
+            PostgresPassword=${{ secrets.POSTGRES_PASSWORD }} \
+            PostgresDatabase=${{ secrets.POSTGRES_DATABASE }} \
+            UserPoolId=${{ secrets.USER_POOL_ID }} \
+            ClientId=${{ secrets.CLIENT_ID }} \
+            RegionName=${{ secrets.REGION_NAME }} \
+            AwsAccessKeyId=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            AwsSecretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            BucketName=${{ secrets.BUCKET_NAME }}
 
       - name: Cache pip dependencies
         uses: actions/cache@v2
