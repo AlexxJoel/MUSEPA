@@ -71,13 +71,13 @@ class TestFindEvent(TestCase):
 
         self.assertEqual(result["statusCode"], 200)
         expected_body = {
-            "data": json.dumps({
+            "data": {
                 "id": 1,
                 "name": "Event 1",
                 "description": "Description 1",
                 "start_date": "2024-01-01T00:00:00Z",
                 "end_date": "2024-01-02T00:00:00Z"
-            }, default=datetime_serializer)
+            }
         }
         self.assertEqual(result["body"], json.dumps(expected_body))
         self.mock_connection.close.assert_called_once()
