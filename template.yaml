@@ -162,8 +162,9 @@ Resources:
   # Configuration s3 bucket
   MusepaBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
     Properties:
-      BucketName: musepa-bucket-v1
+      BucketName: musepa-bucket-v2
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
@@ -218,10 +219,11 @@ Resources:
           Value: !Sub "MySecrets-${AWS::StackName}"
     # ----------------------------------------------
 #  cloudwatch logs
-  MusepaLogGroup:
+  MuseepaLogGroup:
     Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${AWS::StackName}-museepa"
+      LogGroupName: !Sub "/aws/lambda/${AWS::StackName}-logs"
       RetentionInDays: 14
 
 
