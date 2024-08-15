@@ -57,6 +57,7 @@ jobs:
           with:
             args: >
               -Dsonar.python.coverage.reportPaths=coverage-reports/coverage-python.xml
+              -X
 
 
   deploy:
