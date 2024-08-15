@@ -65,7 +65,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}-*'
+                Resource: !Sub 'arn:aws:logs:*:*:*'
         - PolicyName: get-secrets-db-policy
           PolicyDocument:
             Version: '2012-10-17'
