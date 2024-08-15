@@ -3,6 +3,7 @@ import jwt
 import boto3
 import psycopg2
 import re
+import logging
 
 headers = {
     'Access-Control-Allow-Headers': '*',
@@ -136,6 +137,7 @@ def get_secrets():
             SecretId=secret_name
         )
     except Exception as e:
+        logging.exception('Error get_secrets')
         raise e
 
     secret = get_secret_value_response['SecretString']

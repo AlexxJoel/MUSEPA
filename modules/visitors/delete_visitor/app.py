@@ -2,6 +2,7 @@ import json
 import boto3
 import jwt
 import psycopg2
+import logging
 from botocore.exceptions import ClientError
 from psycopg2.extras import RealDictCursor
 
@@ -139,6 +140,7 @@ def get_secrets():
             SecretId=secret_name
         )
     except Exception as e:
+        logging.exception('Error get_secrets')
         raise e
 
     secret = get_secret_value_response['SecretString']

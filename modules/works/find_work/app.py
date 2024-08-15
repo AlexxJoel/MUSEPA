@@ -1,6 +1,7 @@
 import json
 import psycopg2
 import boto3
+import logging
 from psycopg2.extras import RealDictCursor
 from datetime import datetime, date
 
@@ -85,6 +86,7 @@ def get_secrets():
             SecretId=secret_name
         )
     except Exception as e:
+        logging.exception('Error get_secrets')
         raise e
 
     secret = get_secret_value_response['SecretString']
