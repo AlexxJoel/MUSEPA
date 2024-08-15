@@ -145,7 +145,7 @@ def get_secrets():
         get_secret_value_response = client.get_secret_value(SecretId=secret_name)
         logging.debug(f"Secret value response: {get_secret_value_response}")
     except Exception as e:
-        logging.exception('Error get_secrets', e)
+        logging.exception('Error get_secrets')
         raise e
     secret = get_secret_value_response['SecretString']
     return json.loads(secret)
@@ -155,7 +155,7 @@ def get_secrets():
 
 def authorizate_user(_event):
     token = _event['headers']['Authorization'].split(' ')[1]
-    decoded_token = jwt.decode(token, algorithms="HS256")
+    decoded_token = jwt.decode(token, key="secret", algorithms="HS256")
     roles = decoded_token.get('cognito:groups')
     role = roles[0]
 
