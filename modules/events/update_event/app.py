@@ -186,6 +186,7 @@ def img_to_base64(img):
     with open(img, "rb") as image:
         return base64.b64encode(image.read())
 
+
 # ------------AUTHORIZATION------------------
 
 def authorizate_user(_event):
@@ -205,6 +206,7 @@ def authorizate_user(_event):
                 'headers': headers}
 
     return None
+
 
 # ------------CONNECT_DB------------------
 
@@ -238,10 +240,12 @@ def get_secrets():
             SecretId=secret_name
         )
     except Exception as e:
+        logging.exception('Error get_secrets', e)
         raise e
 
     secret = get_secret_value_response['SecretString']
     return json.loads(secret)
+
 
 # ------------VALIDATIONS------------------
 

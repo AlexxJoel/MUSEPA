@@ -4,6 +4,7 @@ import jwt
 import psycopg2
 import re
 from botocore.exceptions import ClientError
+import logging
 
 headers = {
     'Access-Control-Allow-Headers': '*',
@@ -195,6 +196,7 @@ def get_secrets():
             SecretId=secret_name
         )
     except Exception as e:
+        logging.exception('Error get_secrets', e)
         raise e
 
     secret = get_secret_value_response['SecretString']
