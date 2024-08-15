@@ -191,7 +191,7 @@ def img_to_base64(img):
 
 def authorizate_user(_event):
     token = _event['headers']['Authorization'].split(' ')[1]
-    decoded_token = jwt.decode(token, options={"verify_signature": False})
+    decoded_token = jwt.decode(token, key="secret", algorithms="HS256")
     roles = decoded_token.get('cognito:groups')
     role = roles[0]
 
