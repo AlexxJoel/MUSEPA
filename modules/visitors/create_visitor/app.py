@@ -163,9 +163,7 @@ def get_secrets():
     )
 
     try:
-        get_secret_value_response = client.get_secret_value(
-            SecretId=secret_name
-        )
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
     except Exception as e:
         logging.exception('Error get_secrets')
         raise e

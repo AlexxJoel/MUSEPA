@@ -462,10 +462,7 @@ class TestConnectDB(TestCase):
         try:
             class FailingSecretsManagerClient:
                 def get_secret_value(self, SecretId):
-                    raise ClientError(
-                        {"Error": {"Code": "ResourceNotFoundException"}},
-                        "get_secret_value"
-                    )
+                    raise ClientError({"Error": {"Code": "ResourceNotFoundException"}},"get_secret_value")
 
             class FailingSession:
                 def client(self, service_name, region_name):
