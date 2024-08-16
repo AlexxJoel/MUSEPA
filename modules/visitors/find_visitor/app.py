@@ -182,13 +182,3 @@ def validate_payload(payload):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'email'"}), "headers": headers}
 
     return None
-
-if __name__ == '__main__':
-    print(lambda_handler({
-        "headers": {
-            "Authorization": "Bearer eyJraWQiOiJiV01sRE5Lc3RzMW9wQ0RCYzdJSFBncW45eVZURWJKbTFhYVJlXC9NRU0yOD0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIzOTI5NDllZS0yMGYxLTcwZWEtOThkMi1mNWQ2ZGNhZDhiMmIiLCJjb2duaXRvOmdyb3VwcyI6WyJtYW5hZ2VyIl0sImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwiaXNzIjoiaHR0cHM6XC9cL2NvZ25pdG8taWRwLnVzLXdlc3QtMS5hbWF6b25hd3MuY29tXC91cy13ZXN0LTFfZ0dIMTdkSlByIiwiY29nbml0bzp1c2VybmFtZSI6ImFkbWluIiwib3JpZ2luX2p0aSI6IjUxYWQzMTM5LTViMTAtNGVkNy1hNjgyLWYyOGRiYjI3ZWM2ZSIsImF1ZCI6Im1ocHI3ODExcXV1Z3Q5YnVmcm9wc3U1anQiLCJldmVudF9pZCI6IjBmYzgxYjU0LWNkMTctNDQyMy1iNGZlLTk2NWFmYjU5ZmEyNiIsInRva2VuX3VzZSI6ImlkIiwiYXV0aF90aW1lIjoxNzIzNzQ2ODM0LCJleHAiOjE3MjM3NTA0MzQsImlhdCI6MTcyMzc0NjgzNCwianRpIjoiNDYyNTE0YjktMDcyMC00NzQyLWE0YWYtMmUzOWJlZGYwNjU5IiwiZW1haWwiOiJmbG9yZXNzYW50YW5hcGFibG9zYW11ZWxAZ21haWwuY29tIn0.SfbTbfgtM9S1yNGlMrudsAK-n8ZYEQyKfvX61msDwJLAMUXQPPxqMauQ52OuB5qms003LpzaK1kCVsT_AL9gJ7urH_tAuxmw6JQoPfjEfLneEFrp8S5F3EEowtLkwhdo3sP00NeHnmA71cmLSHhZtCohgKw7t5TT0ThHvzemtbIIGTg4dOD5-1sytokzhvxfDW7PEbrQ-ftKp_xuwGJ5Wm_w9Z-FoyUIftZuw4bN-5pE6byF282lr03Z7xug_UxSGsNa9s0IxQzXYbaLHC5K-cjYcHSax4TqXMAnoXqHvcD7kryAcU1jySrCff8jWGVoZDSCukHMnDLP1ojlVsOA6A"
-        },
-        "body": json.dumps({
-            "email": "jose@example.com",
-        })
-    }, None))
