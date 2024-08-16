@@ -203,7 +203,7 @@ def validate_payload(payload):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'contact_email'"}),
                 "headers": headers}
 
-    if "pictures" not in payload or not isinstance(payload["pictures"], str) or not payload["pictures"].strip():
+    if "pictures" not in payload or not isinstance(payload["pictures"], list):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'pictures'"}), "headers": headers}
 
     return None
