@@ -1,7 +1,11 @@
 import json
 
 import boto3
+import logging
 from botocore.exceptions import ClientError
+
+
+logging.basicConfig(level=None)
 
 headers = {
     'Access-Control-Allow-Headers': '*',
@@ -12,6 +16,7 @@ def lambda_handler(event, __):
     secrets = get_secrets()
     REGION_NAME = secrets['REGION_NAME']
     CLIENT_ID = secrets['CLIENT_ID']
+    USER_POOL_ID = secrets['USER_POOL_ID']
     # Se colocan las credenciales que obtuvimos al generar lo de cognito
     # Configura el cliente de cognito
     client = boto3.client('cognito-idp', region_name=REGION_NAME)
@@ -29,7 +34,6 @@ def lambda_handler(event, __):
                 'PASSWORD': password
             }
         )
-
         if 'ChallengeName' in response and response['ChallengeName'] == 'NEW_PASSWORD_REQUIRED':
             return {
                 'statusCode': 401,
@@ -44,8 +48,10 @@ def lambda_handler(event, __):
         # Obten el grupo de usuarios
         user_groups = client.admin_list_groups_for_user(
             Username=username,
-            UserPoolId='us-west-1_3onWfQPhK'  # Reemplaza las credenciales
+            UserPoolId= USER_POOL_ID
         )
+
+        logging.info(user_groups)
 
         # Determina el rol basado en el grupo
         role = None
