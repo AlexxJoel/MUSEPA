@@ -181,14 +181,11 @@ def validate_event_body(event):
 
 
 def validate_payload(payload):
-    letters_regex = re.compile(r"^[a-zA-Z\s]+$")
-    phoneNumber_regex = re.compile(r"^\+?[1-9]\d{1,14}|\(\d{1,4}\)\s*\d{1,4}(-|\s)?\d{1,4}$")
     email_regex = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
-    if "name" not in payload or not isinstance(payload["name"], str) or not letters_regex.match(payload["name"]):
+    if "name" not in payload or not isinstance(payload["name"], str):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'name'"}), "headers": headers}
 
-    if "location" not in payload or not isinstance(payload["location"], str) or not letters_regex.match(
-            payload["location"]):
+    if "location" not in payload or not isinstance(payload["location"], str):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'location'"}), "headers": headers}
 
     if "tariffs" not in payload or not isinstance(payload["tariffs"], str):
@@ -197,8 +194,7 @@ def validate_payload(payload):
     if "schedules" not in payload or not isinstance(payload["schedules"], str):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'schedules'"}), "headers": headers}
 
-    if "contact_number" not in payload or not isinstance(payload["contact_number"], str) or not phoneNumber_regex.match(
-            payload["contact_number"]):
+    if "contact_number" not in payload or not isinstance(payload["contact_number"], str):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'contact_number'"}),
                 "headers": headers}
 
