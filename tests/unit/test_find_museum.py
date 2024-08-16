@@ -8,6 +8,7 @@ from botocore.exceptions import ClientError
 
 from modules.museums.find_museum.app import lambda_handler
 from modules.museums.find_museum.app import get_db_connection,get_secrets
+from modules.museums.find_museum.app import validate_connection,validate_event_path_params
 
 def simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection):
     mock_validate_connection.return_value = None
@@ -89,6 +90,56 @@ class TestFindMuseum(TestCase):
         self.mock_connection.close.assert_called_once()
         self.mock_cursor.close.assert_called_once()
 
+class TestValidations(TestCase):
+    def test_validate_connection_success(self):
+        conn = MagicMock()
+        result = validate_connection(conn)
+        self.assertIsNone(result)
+
+    def test_validate_connection_failure(self):
+        conn = None
+        result = validate_connection(conn)
+        self.assertEqual(result['statusCode'], 500)
+        self.assertEqual(result["body"], json.dumps({"error": "Connection to the database failed"}))
+
+    def test_validate_event_path_params_success(self):
+        event = {'pathParameters': {'id': '7'}}
+        result = validate_event_path_params(event)
+        self.assertIsNone(result)
+
+    def test_validate_event_path_params_missing_path_parameters(self):
+        event = {}
+        result = validate_event_path_params(event)
+        self.assertEqual(result['statusCode'], 400)
+        self.assertEqual(result["body"], json.dumps({"error": "Path parameters is missing from the request."}))
+
+    def test_validate_event_path_params_null_path_parameters(self):
+        event = {'pathParameters': None}
+        result = validate_event_path_params(event)
+        self.assertEqual(result['statusCode'], 400)
+        self.assertEqual(result["body"], json.dumps({"error": "Path parameters is null."}))
+
+    def test_validate_event_path_params_missing_id(self):
+        event = {'pathParameters': {'id': None}}
+        result = validate_event_path_params(event)
+        self.assertEqual(result['statusCode'], 400)
+        self.assertEqual(result["body"], json.dumps({"error": "Request ID is missing from the path parameters."}))
+
+
+    def test_validate_event_path_params_invalid_id_type(self):
+        event = {'pathParameters': {'id': 'abc'}}
+        result = validate_event_path_params(event)
+        self.assertEqual(result['statusCode'], 400)
+        self.assertEqual(result["body"], json.dumps({"error": "Request ID data type is wrong."}))
+
+    def test_validate_event_path_params_invalid_id_value(self):
+        event = {'pathParameters': {'id': '0'}}
+        result = validate_event_path_params(event)
+        self.assertEqual(result['statusCode'], 400)
+        self.assertEqual(result["body"], json.dumps({"error": "Request ID invalid value."}))
+
+
+
 class TestConnectDB(TestCase):
     @patch('modules.museums.find_museum.app.psycopg2.connect')
     @patch('modules.museums.find_museum.app.get_secrets')
@@ -143,10 +194,7 @@ class TestConnectDB(TestCase):
         try:
             class FailingSecretsManagerClient:
                 def get_secret_value(self, SecretId):
-                    raise ClientError(
-                        {"Error": {"Code": "ResourceNotFoundException"}},
-                        "get_secret_value"
-                    )
+                    raise ClientError({"Error": {"Code": "ResourceNotFoundException"}},"get_secret_value")
 
             class FailingSession:
                 def client(self, service_name, region_name):
