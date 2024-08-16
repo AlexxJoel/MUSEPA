@@ -1,10 +1,11 @@
-import json
 import boto3
+import json
 import jwt
-import psycopg2
+import logging
 import re
 from botocore.exceptions import ClientError
-import logging
+
+import psycopg2
 
 headers = {
     'Access-Control-Allow-Headers': '*',
@@ -73,15 +74,18 @@ def lambda_handler(event, _context):
         update_visitor_query = """ UPDATE visitors SET name = %s, surname = %s, lastname = %s  WHERE id = %s """
         cur.execute(update_visitor_query, (name, surname, lastname, id))
 
+        # Get secrets
+        secrets = get_secrets()
+        USER_POOL_ID = secrets['USER_POOL_ID']
+
         # Cognito Integration
         try:
 
             client = boto3.client('cognito-idp', region_name='us-west-1')
-            user_pool_id = "us-west-1_3onWfQPhK"
 
             # delete user from cognito
             response = client.admin_delete_user(
-                UserPoolId=user_pool_id,
+                UserPoolId=USER_POOL_ID,
                 Username=username
             )
 
@@ -89,7 +93,7 @@ def lambda_handler(event, _context):
 
             # create user in cognito
             response = client.admin_create_user(
-                UserPoolId=user_pool_id,
+                UserPoolId=USER_POOL_ID,
                 Username=username,
                 UserAttributes=[
                     {
@@ -108,7 +112,7 @@ def lambda_handler(event, _context):
 
             # note that the temporary password has to be changed in cognito
             response = client.admin_set_user_password(
-                UserPoolId=user_pool_id,
+                UserPoolId=USER_POOL_ID,
                 Username=username,
                 Password=password,
                 Permanent=True
@@ -117,7 +121,7 @@ def lambda_handler(event, _context):
             print(f"Changed password in cognito: {response}")
 
             response = client.admin_add_user_to_group(
-                UserPoolId=user_pool_id,
+                UserPoolId=USER_POOL_ID,
                 Username=username,
                 GroupName="visitor"
             )
