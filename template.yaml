@@ -497,8 +497,6 @@ Resources:
             RestApiId: !Ref VisitorApi
             Path: /visitors
             Method: GET
-            Auth:
-              Authorizer: CognitoAuthorizer
 
   CreateDataVisitorFunction:
     Type: AWS::Serverless::Function
