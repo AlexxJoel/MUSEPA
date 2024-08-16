@@ -177,11 +177,3 @@ def validate_event_path_params(event):
         return {"statusCode": 400, "body": json.dumps({"error": "Request ID invalid value."}), "headers": headers}
     return None
 
-if __name__ == '__main__':
-    event = {
-        "pathParameters": {
-            "id": "2"
-        },
-    }
-
-    print(lambda_handler(event, None))
