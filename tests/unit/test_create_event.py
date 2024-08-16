@@ -4,12 +4,14 @@ import unittest
 from unittest.mock import patch, MagicMock
 import jwt
 import boto3
+import base64
+import uuid
 from botocore.exceptions import ClientError
 import logging
 from modules.events.create_event.app import lambda_handler
 from modules.events.create_event.app import validate_connection, validate_event_body, validate_payload
 from modules.events.create_event.app import get_db_connection,get_secrets
-from modules.events.create_event.app import authorizate_user
+from modules.events.create_event.app import authorizate_user, get_client_s3, upload_image_to_s3, get_properties_file_from_base64, get_binary_data_and_name_file_to_upload
 def simulate_valid_validations(mock_validate_connection, mock_validate_event_body, mock_validate_payload):
     mock_validate_connection.return_value = None
     mock_validate_event_body.return_value = None
@@ -398,6 +400,84 @@ class TestValidations(TestCase):
         payload["id_museum"] = "Invalid123!"
         expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'id_museum'"}),'headers':headers}
         self.assertEqual(validate_payload(payload), expected_response)
+
+class TestS3Functions(unittest.TestCase):
+    @patch('boto3.client')
+    def test_get_client_s3(self, mock_boto_client):
+        # Configurar el mock para el cliente S3
+        mock_s3_client = MagicMock()
+        mock_boto_client.return_value = mock_s3_client
+
+        # Ejecutar la función
+        client = get_client_s3('test_access_key', 'test_secret_key')
+
+        # Verificaciones
+        self.assertIsNotNone(client)
+        mock_boto_client.assert_called_once_with(
+            's3',
+            aws_access_key_id='test_access_key',
+            aws_secret_access_key='test_secret_key'
+        )
+
+    @patch('boto3.client')
+    @patch('modules.events.create_event.app.get_binary_data_and_name_file_to_upload')
+    def test_upload_image_to_s3(self, mock_get_binary_data_and_name_file_to_upload, mock_boto_client):
+        # Mockear el cliente S3
+        mock_s3_client = MagicMock()
+        mock_boto_client.return_value = mock_s3_client
+
+        # Mockear la función que obtiene los datos binarios y el nombre del archivo
+        mock_get_binary_data_and_name_file_to_upload.return_value = (b'binary_data', 'images/test_image.png')
+
+        # Mock de la respuesta de put_object
+        mock_s3_client.put_object.return_value = {'ResponseMetadata': {'HTTPStatusCode': 200}}
+
+        # Base64 de prueba
+        base64_image = base64.b64encode(b'test_image_data').decode('utf-8')
+        base64_data = f"data:image/png;base64,{base64_image}"
+
+        # Ejecutar la función
+        s3_url = upload_image_to_s3(base64_data, mock_s3_client, 'my-test-bucket')
+
+        # Verificaciones
+        self.assertIn('my-test-bucket', s3_url)
+        mock_get_binary_data_and_name_file_to_upload.assert_called_once_with(base64_data)
+        mock_s3_client.put_object.assert_called_once_with(
+            Bucket='my-test-bucket',
+            Key='images/test_image.png',
+            Body=b'binary_data',
+            ContentType='image/*'
+        )
+
+    def test_get_properties_file_from_base64(self):
+        # Base64 de prueba
+        base64_image = base64.b64encode(b'test_image_data').decode('utf-8')
+        base64_data = f"data:image/png;base64,{base64_image}"
+
+        # Ejecutar la función
+        properties = get_properties_file_from_base64(base64_data)
+
+        # Verificaciones
+        properties = json.loads(properties)
+        self.assertEqual(properties['mime_type'], 'image/png')
+        self.assertEqual(properties['extension'], 'png')
+        self.assertEqual(properties['base64_data'], base64_image)
+
+    @patch('uuid.uuid4')
+    def test_get_binary_data_and_name_file_to_upload(self, mock_uuid):
+        # Mockear uuid para obtener un valor predecible
+        mock_uuid.return_value = uuid.UUID('12345678123456781234567812345678')
+
+        # Base64 de prueba
+        base64_image = base64.b64encode(b'test_image_data').decode('utf-8')
+        base64_data = f"data:image/png;base64,{base64_image}"
+
+        # Ejecutar la función
+        binary_data, file_name = get_binary_data_and_name_file_to_upload(base64_data)
+
+        # Verificaciones
+        self.assertEqual(binary_data, b'test_image_data')
+        self.assertEqual(file_name, 'images/12345678-1234-5678-1234-567812345678.png')
 
 
 class TestConnectDB(TestCase):
