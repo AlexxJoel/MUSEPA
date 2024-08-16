@@ -9,12 +9,13 @@ import jwt
 
 from modules.managers.find_manager.app import lambda_handler
 from modules.managers.find_manager.app import datetime_serializer
-from modules.managers.find_manager.app import validate_connection, validate_event_path_params
+from modules.managers.find_manager.app import validate_connection, validate_event_body, validate_payload
 from modules.managers.find_manager.app import get_db_connection,get_secrets
 from modules.managers.find_manager.app import authorizate_user
-def simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection):
+def simulate_valid_validations(mock_validate_payload, mock_validate_event_body, mock_validate_connection):
     mock_validate_connection.return_value = None
-    mock_validate_event_path_params.return_value = None
+    mock_validate_event_body.return_value = None
+    mock_validate_payload.return_value = None
 
 headers = {
     'Access-Control-Allow-Headers': '*',
@@ -61,17 +62,25 @@ class TestFindManager(TestCase):
     @patch("modules.managers.find_manager.app.get_db_connection")
     @patch("modules.managers.find_manager.app.authorizate_user")
     @patch("modules.managers.find_manager.app.validate_connection")
-    @patch("modules.managers.find_manager.app.validate_event_path_params")
-    def test_find_manager_success(self, mock_validate_event_path_params, mock_validate_connection, mock_authorizate_user,mock_get_db_connection):
+    @patch("modules.managers.find_manager.app.validate_event_body")
+    @patch("modules.managers.find_manager.app.validate_payload")
+    def test_find_manager_success(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection,
+                                  mock_authorizate_user, mock_get_db_connection):
         mock_authorizate_user.return_value = None
         mock_get_db_connection.return_value = self.mock_connection
 
         token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
-
-        simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection)
+        simulate_valid_validations(mock_validate_payload, mock_validate_event_body, mock_validate_connection)
 
         self.mock_cursor.fetchone.side_effect = [
+            {
+                "id": 18,
+                "email": "MORE@example.com",
+                "password": "MORE123",
+                "username": "MORE",
+                "id_role": 1
+            },
             {
                 "id": 7,
                 "name": "Alejandro",
@@ -82,13 +91,6 @@ class TestFindManager(TestCase):
                 "birthdate": "1990-02-01",
                 "id_user": 18,
                 'id_museum': 1
-            },
-            {
-                "id": 18,
-                "email": "MORE@example.com",
-                "password": "MORE123",
-                "username": "MORE",
-                "id_role": 1
             }
         ]
 
@@ -96,7 +98,10 @@ class TestFindManager(TestCase):
             'headers': {
                 'Authorization': f'Bearer {token}'
             },
-            'pathParameters': {'id': '7'}}
+            "body": json.dumps({
+                "email": "MORE@example.com",
+            })
+        }
         result = lambda_handler(event, None)
 
         self.assertEqual(result["statusCode"], 200)
@@ -129,22 +134,35 @@ class TestFindManager(TestCase):
     @patch("modules.managers.find_manager.app.get_db_connection")
     @patch("modules.managers.find_manager.app.authorizate_user")
     @patch("modules.managers.find_manager.app.validate_connection")
-    @patch("modules.managers.find_manager.app.validate_event_path_params")
-    def test_find_manager_not_found(self, mock_validate_event_path_params, mock_validate_connection,
+    @patch("modules.managers.find_manager.app.validate_event_body")
+    @patch("modules.managers.find_manager.app.validate_payload")
+    def test_find_manager_not_found(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection,
                                     mock_authorizate_user,mock_get_db_connection):
         mock_authorizate_user.return_value = None
         mock_get_db_connection.return_value = self.mock_connection
 
         token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
-        simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection)
+        simulate_valid_validations(mock_validate_payload, mock_validate_event_body, mock_validate_connection)
 
-        self.mock_cursor.fetchone.return_value = None
+        self.mock_cursor.fetchone.side_effect = [
+            {
+                "id": 18,
+                "email": "MORE@example.com",
+                "password": "MORE123",
+                "username": "MORE",
+                "id_role": 1
+            },
+            None
+        ]
 
         event = {
             'headers': {
                 'Authorization': f'Bearer {token}'
             },
-            'pathParameters': {'id': '999'}}
+            "body": json.dumps({
+                "email": "MORE@example.com",
+            })
+        }
         result = lambda_handler(event, None)
 
         self.assertEqual(result["statusCode"], 404)
@@ -156,16 +174,18 @@ class TestFindManager(TestCase):
     @patch("modules.managers.find_manager.app.get_db_connection")
     @patch("modules.managers.find_manager.app.authorizate_user")
     @patch("modules.managers.find_manager.app.validate_connection")
-    @patch("modules.managers.find_manager.app.validate_event_path_params")
-    def test_find_user_not_found(self, mock_validate_event_path_params, mock_validate_connection,
+    @patch("modules.managers.find_manager.app.validate_event_body")
+    @patch("modules.managers.find_manager.app.validate_payload")
+    def test_find_user_not_found(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection,
                                  mock_authorizate_user,mock_get_db_connection):
         mock_authorizate_user.return_value = None
         mock_get_db_connection.return_value = self.mock_connection
 
         token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
-        simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection)
+        simulate_valid_validations(mock_validate_payload, mock_validate_event_body, mock_validate_connection)
 
         self.mock_cursor.fetchone.side_effect = [
+            None,
             {
                 "id": 7,
                 "name": "Alejandro",
@@ -177,15 +197,18 @@ class TestFindManager(TestCase):
                 "id_user": 18,
                 "id_museum": 1
             },
-            None
         ]
 
         event = {
             'headers': {
                 'Authorization': f'Bearer {token}'
             },
-            'pathParameters': {'id': '999'}}
+            "body": json.dumps({
+                "email": "MORE@example.com",
+            })
+        }
         result = lambda_handler(event, None)
+        print(result)
 
         self.assertEqual(result["statusCode"], 404)
         self.assertEqual(result["body"], json.dumps({"error": "User not found"}))
@@ -205,7 +228,9 @@ class TestFindManager(TestCase):
             'headers': {
                 'Authorization': f'Bearer {token}'
             },
-            'pathParameters': {'id': '1'}}
+            "body": json.dumps({
+                "email": "jose@example.com",
+            })}
         result = lambda_handler(event, None)
 
         self.assertEqual(result['statusCode'], 500)
@@ -213,7 +238,7 @@ class TestFindManager(TestCase):
 
     @patch("modules.managers.find_manager.app.get_db_connection")
     @patch("modules.managers.find_manager.app.authorizate_user")
-    def test_lambda_invalid_path_parameters(self, mock_authorizate_user,mock_get_db_connection):
+    def test_lambda_invalid_body(self, mock_authorizate_user,mock_get_db_connection):
         mock_authorizate_user.return_value = None
         mock_get_db_connection.return_value = self.mock_connection
 
@@ -223,7 +248,7 @@ class TestFindManager(TestCase):
             'headers': {
                 'Authorization': f'Bearer {token}'
             },
-            'pathParameters': None}
+            'body': None}
         result = lambda_handler(event, None)
 
         self.assertEqual(result['statusCode'], 400)
@@ -231,14 +256,15 @@ class TestFindManager(TestCase):
     @patch("modules.managers.find_manager.app.get_db_connection")
     @patch("modules.managers.find_manager.app.authorizate_user")
     @patch("modules.managers.find_manager.app.validate_connection")
-    @patch("modules.managers.find_manager.app.validate_event_path_params")
-    def test_lambda_handler_500_error(self, mock_validate_event_path_params, mock_validate_connection,
+    @patch("modules.managers.find_manager.app.validate_event_body")
+    @patch("modules.managers.find_manager.app.validate_payload")
+    def test_lambda_handler_500_error(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection,
                                       mock_authorizate_user,mock_get_db_connection):
         mock_authorizate_user.return_value = None
         mock_get_db_connection.return_value = self.mock_connection
 
         token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
-        simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection)
+        simulate_valid_validations(mock_validate_payload, mock_validate_event_body, mock_validate_connection)
 
         self.mock_cursor.execute.side_effect = Exception("Simulated database error")
 
@@ -246,7 +272,10 @@ class TestFindManager(TestCase):
             'headers': {
                 'Authorization': f'Bearer {token}'
             },
-            'pathParameters': {'id': '1'}}
+            "body": json.dumps({
+                "email": "MORE@example.com",
+            })
+        }
         result = lambda_handler(event, None)
 
         self.assertEqual(result['statusCode'], 500)
@@ -254,6 +283,11 @@ class TestFindManager(TestCase):
 
 
 class TestValidations(TestCase):
+    def setUp(self):
+        self.valid_payload = {
+            "email": "test@example.com",
+        }
+
     def test_validate_connection_success(self):
         conn = MagicMock()
         result = validate_connection(conn)
@@ -265,46 +299,55 @@ class TestValidations(TestCase):
         self.assertEqual(result['statusCode'], 500)
         self.assertEqual(result["body"], json.dumps({"error": "Connection to the database failed"}))
 
-    def test_validate_event_path_params_success(self):
-        event = {'pathParameters': {'id': '7'}}
-        result = validate_event_path_params(event)
+    def test_validate_event_body_success(self):
+        event = {'body': json.dumps({"key": "value"})}
+        result = validate_event_body(event)
         self.assertIsNone(result)
 
-    def test_validate_event_path_params_missing_path_parameters(self):
+    def test_validate_event_body_missing_body(self):
         event = {}
-        result = validate_event_path_params(event)
+        result = validate_event_body(event)
         self.assertEqual(result['statusCode'], 400)
-        self.assertEqual(result["body"], json.dumps({"error": "Path parameters is missing from the request."}))
+        self.assertEqual(result["body"], json.dumps({"error": "No body provided."}))
 
-    def test_validate_event_path_params_null_path_parameters(self):
-        event = {'pathParameters': None}
-        result = validate_event_path_params(event)
+    def test_validate_event_body_null_body(self):
+        event = {'body': None}
+        result = validate_event_body(event)
         self.assertEqual(result['statusCode'], 400)
-        self.assertEqual(result["body"], json.dumps({"error": "Path parameters is null."}))
+        self.assertEqual(result["body"], json.dumps({"error": "Body is null."}))
 
-    def test_validate_event_path_params_missing_id(self):
-        event = {'pathParameters': {}}
-        result = validate_event_path_params(event)
+    def test_validate_event_body_empty_body(self):
+        event = {'body': ""}
+        result = validate_event_body(event)
         self.assertEqual(result['statusCode'], 400)
-        self.assertEqual(result["body"], json.dumps({"error": "Request ID is missing from the path parameters."}))
+        self.assertEqual(result["body"], json.dumps({"error": "Body is empty."}))
 
-    def test_validate_event_path_params_null_id(self):
-        event = {'pathParameters': {'id': None}}
-        result = validate_event_path_params(event)
+    def test_validate_event_body_body_as_list(self):
+        event = {'body': []}
+        result = validate_event_body(event)
         self.assertEqual(result['statusCode'], 400)
-        self.assertEqual(result["body"], json.dumps({"error": "Request ID is missing from the path parameters."}))
+        self.assertEqual(result["body"], json.dumps({"error": "Body can not be a list."}))
 
-    def test_validate_event_path_params_invalid_id_type(self):
-        event = {'pathParameters': {'id': 'abc'}}
-        result = validate_event_path_params(event)
+    def test_validate_event_body_invalid_json(self):
+        event = {'body': "invalid json"}
+        result = validate_event_body(event)
         self.assertEqual(result['statusCode'], 400)
-        self.assertEqual(result["body"], json.dumps({"error": "Request ID data type is wrong."}))
+        self.assertEqual(result["body"], json.dumps({"error": "The request body is not valid JSON"}))
 
-    def test_validate_event_path_params_invalid_id_value(self):
-        event = {'pathParameters': {'id': '0'}}
-        result = validate_event_path_params(event)
-        self.assertEqual(result['statusCode'], 400)
-        self.assertEqual(result["body"], json.dumps({"error": "Request ID invalid value."}))
+    def test_validate_payload_valid(self):
+        self.assertIsNone(validate_payload(self.valid_payload))
+
+    def test_validate_payload_missing_email(self):
+        payload = self.valid_payload.copy()
+        del payload["email"]
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'email'"}),'headers': headers}
+        self.assertEqual(validate_payload(payload), expected_response)
+
+    def test_validate_payload_invalid_email(self):
+        payload = self.valid_payload.copy()
+        payload["email"] = "invalidemail"
+        expected_response = {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'email'"}),'headers': headers}
+        self.assertEqual(validate_payload(payload), expected_response)
 
 
 class TestFunctions(TestCase):

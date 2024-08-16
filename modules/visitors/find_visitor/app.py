@@ -5,6 +5,7 @@ import psycopg2
 import logging
 from psycopg2.extras import RealDictCursor
 from datetime import datetime, date
+import re
 
 headers = {
     'Access-Control-Allow-Headers': '*',
@@ -31,32 +32,38 @@ def lambda_handler(event, _context):
         if valid_conn_res is not None:
             return valid_conn_res
 
-        # Validate path params in event
-        valid_path_params_res = validate_event_path_params(event)
-        if valid_path_params_res is not None:
-            return valid_path_params_res
+        # Validate body in event
+        valid_body_res = validate_event_body(event)
+        if valid_body_res is not None:
+            return valid_body_res
 
-        # Get values from path params
-        request_id = event['pathParameters']['id']
+        # Validate payload
+        request_body = json.loads(event['body'])
+        valid_payload_res = validate_payload(request_body)
+        if valid_payload_res is not None:
+            return valid_payload_res
+
+        # Get values from body
+        request_email = request_body['email']
 
         # Create cursor
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        # Find visitor by id
-        sql = "SELECT * FROM visitors WHERE id = %s"
-        cur.execute(sql, (request_id,))
-        visitor = cur.fetchone()
-
-        if not visitor:
-            return {"statusCode": 404, "body": json.dumps({"error": "Visitor not found"}), "headers": headers}
-
-        # Find user by id
-        sql = "SELECT * FROM users WHERE id = %s"
-        cur.execute(sql, (visitor["id_user"],))
+        # Find user by email
+        sql = "SELECT * FROM users WHERE email = %s LIMIT 1"
+        cur.execute(sql, (request_email,))
         user = cur.fetchone()
 
         if not user:
             return {"statusCode": 404, "body": json.dumps({"error": "User not found"}), "headers": headers}
+
+        # Find visitor by user id
+        sql = "SELECT * FROM visitors WHERE id_user = %s"
+        cur.execute(sql, (user['id'],))
+        visitor = cur.fetchone()
+
+        if not visitor:
+            return {"statusCode": 404, "body": json.dumps({"error": "Visitor not found"}), "headers": headers}
 
         visitor['user'] = user
 
@@ -141,27 +148,35 @@ def validate_connection(conn):
     return None
 
 
-def validate_event_path_params(event):
-    if "pathParameters" not in event:
-        return {"statusCode": 400, "body": json.dumps({"error": "Path parameters is missing from the request."}),
-                "headers": headers}
+def validate_event_body(event):
+    # Check if the event has a body
+    if "body" not in event:
+        return {"statusCode": 400, "body": json.dumps({"error": "No body provided."}), "headers": headers}
 
-    if event["pathParameters"] is None:
-        return {"statusCode": 400, "body": json.dumps({"error": "Path parameters is null."}), "headers": headers}
+    # Check if the event body is not None
+    if event["body"] is None:
+        return {"statusCode": 400, "body": json.dumps({"error": "Body is null."}), "headers": headers}
 
-    if "id" not in event["pathParameters"]:
-        return {"statusCode": 400, "body": json.dumps({"error": "Request ID is missing from the path parameters."}),
-                "headers": headers}
+    # Check if the event body is not a list
+    if isinstance(event["body"], list):
+        return {"statusCode": 400, "body": json.dumps({"error": "Body can not be a list."}), "headers": headers}
 
-    if event["pathParameters"]["id"] is None:
-        return {"statusCode": 400, "body": json.dumps({"error": "Request ID is missing from the path parameters."}),
-                "headers": headers}
+    # Check if the event body is not empty
+    if not event["body"]:
+        return {"statusCode": 400, "body": json.dumps({"error": "Body is empty."}), "headers": headers}
 
+    # Try to load the JSON body from the event
     try:
-        event['pathParameters']['id'] = int(event['pathParameters']['id'])
-    except ValueError:
-        return {"statusCode": 400, "body": json.dumps({"error": "Request ID data type is wrong."}), "headers": headers}
+        json.loads(event['body'])
+    except json.JSONDecodeError:
+        return {"statusCode": 400, "body": json.dumps({"error": "The request body is not valid JSON"}), "headers": headers}
 
-    if event['pathParameters']['id'] <= 0:
-        return {"statusCode": 400, "body": json.dumps({"error": "Request ID invalid value."}), "headers": headers}
+    return None
+
+def validate_payload(payload):
+    email_regex = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+
+    if "email" not in payload or not isinstance(payload["email"], str) or not email_regex.match(payload["email"]):
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid or missing 'email'"}), "headers": headers}
+
     return None
