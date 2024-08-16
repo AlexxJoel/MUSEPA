@@ -18,6 +18,10 @@ def lambda_handler(event, _context):
     cur = None
     try:
 
+        authorization_response = authorizate_user(event)
+        if authorization_response is not None:
+            return authorization_response
+
         # Database connection
         conn = get_db_connection()
 

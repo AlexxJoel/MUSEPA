@@ -58,16 +58,25 @@ class TestFindManager(TestCase):
         self.mock_cursor = MagicMock()
         self.mock_connection.cursor.return_value = self.mock_cursor
 
+    @patch("modules.managers.delete_manager.app.get_secrets")
     @patch("modules.managers.delete_manager.app.get_db_connection")
     @patch("modules.managers.delete_manager.app.authorizate_user")
     @patch("modules.managers.delete_manager.app.validate_connection")
     @patch("modules.managers.delete_manager.app.validate_event_path_params")
     @patch("boto3.client")
     def test_delete_manager_success(self, mock_boto_client, mock_validate_event_path_params, mock_validate_connection,
-                                    mock_authorizate_user, mock_get_db_connection):
+                                    mock_authorizate_user, mock_get_db_connection, mock_get_secrets):
         # Configura los valores de retorno de los mocks
         mock_authorizate_user.return_value = None
         mock_get_db_connection.return_value = self.mock_connection
+
+        # Simula la obtención de secretos
+        mock_get_secrets.return_value = {
+            'POSTGRES_HOST': 'localhost',
+            'POSTGRES_PASSWORD': 'password',
+            'POSTGRES_DATABASE': 'test_db',
+            'USER_POOL_ID': 'us-west-1_XXXXXXXXX'
+        }
 
         token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
         simulate_valid_validations(mock_validate_event_path_params, mock_validate_connection)

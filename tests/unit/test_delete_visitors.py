@@ -52,15 +52,22 @@ class TestFindManager(TestCase):
         self.mock_connection.cursor.return_value = self.mock_cursor
 
     @patch("modules.visitors.delete_visitor.app.get_db_connection")
+    @patch("modules.visitors.delete_visitor.app.get_secrets")
     @patch("modules.visitors.delete_visitor.app.authorizate_user")
     @patch("modules.visitors.delete_visitor.app.validate_connection")
     @patch("modules.visitors.delete_visitor.app.validate_event_path_params")
     @patch("boto3.client")
-    def test_delete_manager_success(self, mock_boto_client, mock_validate_event_path_params,
-                                    mock_validate_connection, mock_authorizate_user, mock_get_db_connection):
-        # Mock AWS Cognito
+    def test_delete_visitor_success(self, mock_boto_client, mock_validate_event_path_params,
+                                    mock_validate_connection, mock_authorizate_user, mock_get_secrets,
+                                    mock_get_db_connection):
+        # Mock AWS Cognito client
         mock_cognito_client = MagicMock()
         mock_boto_client.return_value = mock_cognito_client
+
+        # Mock secrets manager
+        mock_get_secrets.return_value = {
+            'USER_POOL_ID': 'us-west-1_XXXXXXXXX'
+        }
 
         # Simular la autorización y la conexión DB
         mock_authorizate_user.return_value = None
@@ -97,14 +104,22 @@ class TestFindManager(TestCase):
             'pathParameters': {'id': '3'}
         }
 
+        # Ejecutar la función lambda
         result = lambda_handler(event, None)
 
         # Verificar el resultado esperado
         self.assertEqual(result["statusCode"], 200)
         self.assertEqual(result["body"], json.dumps({"message": "Visitor deleted successfully"}))
 
+        # Verificar que los cursores se cierren correctamente
         self.mock_connection.close.assert_called_once()
         self.mock_cursor.close.assert_called_once()
+
+        # Verificar que el usuario fue eliminado en Cognito
+        mock_cognito_client.admin_delete_user.assert_called_once_with(
+            UserPoolId='us-west-1_XXXXXXXXX',
+            Username='alejandro.morellano'
+        )
 
     @patch("modules.visitors.delete_visitor.app.get_db_connection")
     @patch("modules.visitors.delete_visitor.app.authorizate_user")
