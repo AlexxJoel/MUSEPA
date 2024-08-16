@@ -1,18 +1,16 @@
 import json
 import logging
-import psycopg2
-import boto3
 import re
+
+import boto3
+import psycopg2
 from botocore.exceptions import ClientError
-
 logging.basicConfig(level=logging.INFO)
-
 headers = {
     'Access-Control-Allow-Headers': '*',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST'
 }
-
 
 def lambda_handler(event, _context):
     conn = None
@@ -110,10 +108,11 @@ def insert_user_pool(conn, username, email, password):
 
         logging.info(f"User {email} created successfully: {response}")
 
+
         response = client.admin_add_user_to_group(
             UserPoolId=USER_POOL_ID,
-            Username=email,
-            GroupName='visitor'
+            Username=username,
+            GroupName="visitor"
         )
 
         logging.info(f"User {email} added to group 'visitor': {response}")

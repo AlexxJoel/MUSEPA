@@ -341,8 +341,6 @@ Resources:
             RestApiId: !Ref EventApi
             Path: /events
             Method: POST
-            Auth:
-              Authorizer: CognitoAuthorizer
   DeleteDataEventFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -518,8 +516,7 @@ Resources:
             RestApiId: !Ref VisitorApi
             Path: /visitors
             Method: POST
-            Auth:
-              Authorizer: CognitoAuthorizer
+
   DeleteDataVisitorFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -588,8 +585,6 @@ Resources:
             RestApiId: !Ref VisitorApi
             Path: /visitors/{id}/favorite
             Method: PUT
-            Auth:
-              Authorizer: CognitoAuthorizer
   # ------------ Work ------------
   GetDataWorkFunction:
     Type: AWS::Serverless::Function
