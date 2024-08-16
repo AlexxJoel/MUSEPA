@@ -567,8 +567,8 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref VisitorApi
-            Path: /visitors/{id}
-            Method: GET
+            Path: /visitors/details
+            Method: POST
   UpdateFavoriteVisitorFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -759,8 +759,8 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref ManagerApi
-            Path: /managers/{id}
-            Method: GET
+            Path: /managers/details
+            Method: POST
             Auth:
               Authorizer: CognitoAuthorizer
   # ------------ Auth ------------
