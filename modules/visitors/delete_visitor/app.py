@@ -18,11 +18,6 @@ def lambda_handler(event, _context):
     cur = None
     try:
 
-        # Authorizate
-        authorization_response = authorizate_user(event)
-        if authorization_response is not None:
-            return authorization_response
-
         # Database connection
         conn = get_db_connection()
 
@@ -56,17 +51,22 @@ def lambda_handler(event, _context):
         cur.execute("DELETE FROM visitors WHERE id = %s", (request_id,))
 
         # Delete related user
-        cur.execute("DELETE FROM users WHERE id = %s", (visitor['id_user'],))
+        cur.execute("DELETE FROM users WHERE id = %s  RETURNING username", (visitor['id_user'],))
+        user = cur.fetchone()
+        username = user["username"]
+
+        # get secret
+        secrets = get_secrets()
+        USER_POOL_ID = secrets['USER_POOL_ID']
 
         # Cognito Integration
         try:
             # CREDENTIALS
             client = boto3.client('cognito-idp', region_name='us-west-1')
-            user_pool_id = "us-west-1_3onWfQPhK"
 
             client.admin_delete_user(
-                UserPoolId=user_pool_id,
-                Username=visitor['email']
+                UserPoolId=USER_POOL_ID,
+                Username=username
             )
 
             conn.commit()
@@ -176,3 +176,12 @@ def validate_event_path_params(event):
     if event['pathParameters']['id'] <= 0:
         return {"statusCode": 400, "body": json.dumps({"error": "Request ID invalid value."}), "headers": headers}
     return None
+
+if __name__ == '__main__':
+    event = {
+        "pathParameters": {
+            "id": "2"
+        },
+    }
+
+    print(lambda_handler(event, None))

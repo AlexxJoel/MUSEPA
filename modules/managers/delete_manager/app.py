@@ -59,19 +59,24 @@ def lambda_handler(event, _context):
         cur.execute("DELETE FROM managers WHERE id = %s", (request_id,))
 
         # Delete related user
-        cur.execute("DELETE FROM users WHERE id = %s", (manager['id_user'],))
+        cur.execute("DELETE FROM users WHERE id = %s RETURNING username", (manager['id_user'],))
+        user = cur.fetchone()
+        username = user["username"]
+
+        # get secret
+        secret = get_secrets()
+        USER_POOL_ID = secret['USER_POOL_ID']
 
         # Cognito Integration
         try:
             # Se colocan las credenciales que obtuvimos al generar lo de cognito
             # Configura el cliente de cognito
             client = boto3.client('cognito-idp', region_name='us-west-1')
-            user_pool_id = "us-west-1_3onWfQPhK"
 
             # Eliminar el usuario actual
             client.admin_delete_user(
-                UserPoolId=user_pool_id,
-                Username=user["username"]
+                UserPoolId=USER_POOL_ID,
+                Username=username
             )
 
             # Commit query
