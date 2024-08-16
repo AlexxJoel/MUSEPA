@@ -74,22 +74,20 @@ class TestFindManager(TestCase):
         mock_validate_event_path_params.return_value = None
 
         # Simular un visitante existente
-        self.mock_cursor.fetchone.return_value = {
-            "id": 3,
-            "name": "Jose",
-            "surname": "Perez",
-            "lastname": "Lopez",
-            "favorites": [1, 2],
-            "id_user": 10,
-            "email": "jose@example.com",
-            "user": {
-                "id": 10,
-                "email": "jose@example.com",
-                "password": "securepassword123",
-                "username": "usuario",
-                "id_role": 2
+        self.mock_cursor.fetchone.side_effect = [
+            {
+                "id": 3,
+                "name": "Jose",
+                "surname": "Perez",
+                "lastname": "Lopez",
+                "favorites": [1, 2],
+                "id_user": 10,
+                "email": "jose@example.com"
+            },
+            {
+                "username": "alejandro.morellano"
             }
-        }
+        ]
 
         # Crear el evento de prueba
         event = {

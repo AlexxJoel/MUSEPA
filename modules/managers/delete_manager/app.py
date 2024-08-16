@@ -52,9 +52,6 @@ def lambda_handler(event, _context):
         if not manager:
             return {"statusCode": 404, "body": json.dumps({"error": "Manager not found"}), "headers": headers}
 
-        cur.execute("SELECT * FROM users WHERE id = %s", (manager['id_user'],))
-        user = cur.fetchone()
-
         # Delete manager
         cur.execute("DELETE FROM managers WHERE id = %s", (request_id,))
 
