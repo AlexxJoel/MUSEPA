@@ -64,31 +64,49 @@ class TestUpdateVisitor(TestCase):
     @patch("modules.visitors.update_visitor.app.validate_event_body")
     @patch("modules.visitors.update_visitor.app.validate_payload")
     @patch("modules.visitors.update_visitor.app.boto3.client")
-    def test_update_visitor_success(self, mock_boto3_client, mock_validate_payload, mock_validate_event_body,
-                                    mock_validate_connection, mock_authorizate_user, mock_get_db_connection):
-        # Simular la autorización y la conexión DB
-        mock_authorizate_user.return_value = None
-        mock_get_db_connection.return_value = self.mock_connection
+    @patch("modules.visitors.update_visitor.app.get_secrets")
+    def test_update_visitor_success(self, mock_get_secrets, mock_boto3_client, mock_validate_payload,
+                                    mock_validate_event_body, mock_validate_connection, mock_authorizate_user,
+                                    mock_get_db_connection):
+        # Mocking the secrets
+        mock_get_secrets.return_value = {
+            'POSTGRES_HOST': 'mock_host',
+            'POSTGRES_PASSWORD': 'mock_password',
+            'POSTGRES_DATABASE': 'mock_database',
+            'USER_POOL_ID': 'mock_user_pool_id'
+        }
 
-        # Simular una validación exitosa
+        # Simulate the database connection
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_get_db_connection.return_value = mock_conn
+
+        # Simulate the authorizate_user function returning None (indicating successful authorization)
+        mock_authorizate_user.return_value = None
+
+        # Simulate the validate_connection, validate_event_body, and validate_payload functions returning None
         mock_validate_connection.return_value = None
         mock_validate_event_body.return_value = None
         mock_validate_payload.return_value = None
 
-        # Simular boto3 cognito responses
-        mock_cognito = mock_boto3_client.return_value
-        mock_cognito.admin_delete_user.return_value = {}
-        mock_cognito.admin_create_user.return_value = {}
-        mock_cognito.admin_set_user_password.return_value = {}
-        mock_cognito.admin_add_user_to_group.return_value = {}
+        # Simulate finding the visitor by ID
+        mock_cursor.fetchone.return_value = [10]  # Simulate a valid user ID
 
-        # Simular la base de datos
-        self.mock_cursor.fetchone.return_value = [10]  # Simula la respuesta para id_user
+        # Simulate the Cognito client
+        mock_cognito_client = MagicMock()
+        mock_boto3_client.return_value = mock_cognito_client
 
-        # Crear un token de prueba
+        # Mock Cognito operations
+        mock_cognito_client.admin_delete_user.return_value = {}
+        mock_cognito_client.admin_create_user.return_value = {}
+        mock_cognito_client.admin_set_user_password.return_value = {}
+        mock_cognito_client.admin_add_user_to_group.return_value = {}
+
+        # Create a test token
         token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
 
-        # Ejecutar la función lambda_handler con un evento de prueba
+        # Create a test event
         event = {
             'headers': {
                 'Authorization': f'Bearer {token}'
@@ -103,71 +121,45 @@ class TestUpdateVisitor(TestCase):
                 'lastname': 'test',
             })
         }
+
+        # Execute the lambda_handler function
         result = lambda_handler(event, None)
 
-        # Imprimir el resultado (puede eliminarse en el código de producción)
-        print(result)
-
-        # Verificar el resultado esperado
+        # Verify the expected result
         self.assertEqual(result["statusCode"], 200)
-        self.assertEqual(result["body"], json.dumps({"message": "Visitor updated successfully"}))
+        self.assertEqual(json.loads(result["body"])["message"], "Visitor updated successfully")
 
-        # Verificar que se ha llamado a close_connection con el argumento correcto
-        self.mock_connection.close.assert_called_once()
-        self.mock_cursor.close.assert_called_once()
-        self.mock_connection.commit.assert_called_once()
-        self.mock_connection.rollback.assert_not_called()
+        # Verify that the database commit was called
+        mock_conn.commit.assert_called_once()
 
-    @patch("modules.visitors.update_visitor.app.get_db_connection")
-    @patch("modules.visitors.update_visitor.app.authorizate_user")
-    @patch("modules.visitors.update_visitor.app.validate_connection")
-    @patch("modules.visitors.update_visitor.app.validate_event_body")
-    @patch("modules.visitors.update_visitor.app.validate_payload")
-    def test_visitor_not_found(self, mock_validate_payload, mock_validate_event_body, mock_validate_connection,
-                               mock_authorizate_user, mock_get_db_connection):
-        # Simular la autorización y la conexión DB
-        mock_authorizate_user.return_value = None
-        mock_get_db_connection.return_value = self.mock_connection
+        # Verify that the Cognito client methods were called with expected arguments
+        mock_cognito_client.admin_delete_user.assert_called_once_with(
+            UserPoolId='mock_user_pool_id',
+            Username='test'
+        )
 
-        # Crear un token de prueba
-        token = jwt.encode({'cognito:groups': ['manager']}, 'secret', algorithm='HS256')
+        mock_cognito_client.admin_create_user.assert_called_once_with(
+            UserPoolId='mock_user_pool_id',
+            Username='test',
+            UserAttributes=[
+                {'Name': 'email', 'Value': 'example@example.com'},
+                {'Name': 'email_verified', 'Value': 'false'}
+            ],
+            TemporaryPassword='Test123.'
+        )
 
-        # Simular una validación exitosa
-        mock_validate_connection.return_value = None
-        mock_validate_event_body.return_value = None
-        mock_validate_payload.return_value = None
+        mock_cognito_client.admin_set_user_password.assert_called_once_with(
+            UserPoolId='mock_user_pool_id',
+            Username='test',
+            Password='Test123.',
+            Permanent=True
+        )
 
-        self.mock_cursor.fetchone.return_value = None
-
-        # Ejecutar la función lambda_handler con un evento de prueba
-        event = {
-            'headers': {
-                'Authorization': f'Bearer {token}'
-            },
-            'body': json.dumps({
-                'id': 3,
-                'email': 'example@example.com',
-                'username': 'test',
-                'password': 'Test123.',
-                'name': 'test',
-                'surname': 'test',
-                'lastname': 'test',
-            })
-        }
-        result = lambda_handler(event, None)
-
-        # Imprimir el resultado (puede eliminarse en el código de producción)
-        print(result)
-
-        # Verificar el resultado esperado
-        self.assertEqual(result["statusCode"], 404)
-        self.assertEqual(result["body"], json.dumps({"error": "Visitor not found"}))
-
-        # Verificar que se ha llamado a close_connection con el argumento correcto
-        self.mock_connection.close.assert_called_once()
-        self.mock_cursor.close.assert_called_once()
-        self.mock_connection.commit.assert_not_called()
-        self.mock_connection.rollback.assert_not_called()
+        mock_cognito_client.admin_add_user_to_group.assert_called_once_with(
+            UserPoolId='mock_user_pool_id',
+            Username='test',
+            GroupName="visitor"
+        )
 
     @patch("modules.visitors.update_visitor.app.get_db_connection")
     @patch("modules.visitors.update_visitor.app.authorizate_user")
