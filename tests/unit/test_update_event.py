@@ -5,10 +5,11 @@ from unittest.mock import patch, MagicMock
 import boto3
 from botocore.exceptions import ClientError
 import jwt
+import base64
 from modules.events.update_event.app import lambda_handler
 from modules.events.update_event.app import validate_connection, validate_event_body, validate_payload
 from modules.events.update_event.app import get_db_connection,get_secrets
-from modules.events.update_event.app import authorizate_user
+from modules.events.update_event.app import authorizate_user,get_client_s3,upload_image_to_s3,delete_image_from_s3,get_name_from_s3,img_to_base64
 
 def simulate_valid_validations(mock_validate_connection, mock_validate_event_body, mock_validate_payload):
     mock_validate_connection.return_value = None
@@ -298,6 +299,69 @@ class TestUpdateEvent(TestCase):
         self.assertEqual(json.loads(result['body'])["error"], "Simulated database error")
 
 
+
+class TestS3Functions(unittest.TestCase):
+
+    @patch('boto3.client')
+    def test_get_client_s3(self, mock_boto_client):
+        # Configurar el mock para el cliente S3
+        mock_s3_client = MagicMock()
+        mock_boto_client.return_value = mock_s3_client
+
+        client = get_client_s3('test_access_key', 'test_secret_key')
+        self.assertIsNotNone(client)
+        mock_boto_client.assert_called_once_with('s3', aws_access_key_id='test_access_key',
+                                                 aws_secret_access_key='test_secret_key')
+
+    @patch('boto3.client')
+    def test_upload_image_to_s3(self, mock_boto_client):
+        # Configurar el mock para el cliente S3
+        mock_s3_client = MagicMock()
+        mock_boto_client.return_value = mock_s3_client
+
+        # Datos de prueba para subir una imagen
+        base64_image = base64.b64encode(b'test_image_data').decode('utf-8')
+        base64_data = f"data:image/png;base64,{base64_image}"
+
+        # Mock de la respuesta de put_object
+        mock_s3_client.put_object.return_value = {'ResponseMetadata': {'HTTPStatusCode': 200}}
+
+        # Subir la imagen a S3
+        s3_url = upload_image_to_s3(base64_data, mock_s3_client, 'my-test-bucket')
+        self.assertIn('my-test-bucket', s3_url)
+
+    @patch('boto3.client')
+    def test_delete_image_from_s3(self, mock_boto_client):
+        # Configurar el mock para el cliente S3
+        mock_s3_client = MagicMock()
+        mock_boto_client.return_value = mock_s3_client
+
+        # Eliminar la imagen
+        delete_image_from_s3(mock_s3_client, 'my-test-bucket', 'test_image.png')
+
+        # Verificar que delete_object fue llamado
+        mock_s3_client.delete_object.assert_called_once_with(Bucket='my-test-bucket', Key='test_image.png')
+
+    def test_get_name_from_s3(self):
+        # Test de la función get_name_from_s3
+        url = 'https://my-test-bucket.s3.amazonaws.com/images/test_image.png'
+        name = get_name_from_s3(url)
+        self.assertEqual(name, 'images/test_image.png')
+
+    def test_img_to_base64(self):
+        # Crear un archivo de prueba
+        with open('test_image.png', 'wb') as f:
+            f.write(b'test_image_data')
+
+        # Test de la función img_to_base64
+        encoded = img_to_base64('test_image.png')
+        self.assertEqual(encoded, base64.b64encode(b'test_image_data'))
+
+        # Eliminar el archivo de prueba
+        import os
+        os.remove('test_image.png')
+
+
 class TestValidations(TestCase):
     def setUp(self):
         self.valid_payload = {
@@ -496,10 +560,7 @@ class TestConnectDB(TestCase):
         try:
             class FailingSecretsManagerClient:
                 def get_secret_value(self, SecretId):
-                    raise ClientError(
-                        {"Error": {"Code": "ResourceNotFoundException"}},
-                        "get_secret_value"
-                    )
+                    raise ClientError({"Error": {"Code": "ResourceNotFoundException"}},"get_secret_value")
 
             class FailingSession:
                 def client(self, service_name, region_name):
