@@ -516,8 +516,6 @@ Resources:
             RestApiId: !Ref VisitorApi
             Path: /visitors
             Method: POST
-            Auth:
-              Authorizer: CognitoAuthorizer
   DeleteDataVisitorFunction:
     Type: AWS::Serverless::Function
     Properties:
