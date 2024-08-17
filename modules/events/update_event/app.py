@@ -284,7 +284,7 @@ def validate_event_body(event):
 
 
 def validate_payload(payload):
-    letters_regex = re.compile(r"^[a-zA-Z\s]+$")
+    letters_regex = re.compile(r"^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ'’\-\s]+$")
     date_regex = re.compile(r"^\d{4}-\d{2}-\d{2}$")
     numbers_regex = re.compile(r"^\d+$")
     if "name" not in payload or not isinstance(payload["name"], str) or not letters_regex.match(payload["name"]):
