@@ -58,6 +58,7 @@ class TestCreateManager(TestCase):
         self.mock_cursor = MagicMock()
         self.mock_connection.cursor.return_value = self.mock_cursor
 
+    @patch("modules.managers.update_manager.app.get_secrets")
     @patch("modules.managers.update_manager.app.get_db_connection")
     @patch("modules.managers.update_manager.app.authorizate_user")
     @patch("modules.managers.update_manager.app.validate_connection")
@@ -66,7 +67,7 @@ class TestCreateManager(TestCase):
     @patch("modules.managers.update_manager.app.boto3.client")
     def test_create_manager_success(self, mock_boto_client, mock_validate_payload, mock_validate_event_body,
                                     mock_validate_connection,
-                                    mock_authorizate_user, mock_get_db_connection):
+                                    mock_authorizate_user, mock_get_db_connection,mock_get_secrets ):
         # Configura los valores de retorno de los mocks
         mock_authorizate_user.return_value = None
         mock_get_db_connection.return_value = self.mock_connection
@@ -85,6 +86,14 @@ class TestCreateManager(TestCase):
         mock_validate_connection.return_value = None
         mock_validate_event_body.return_value = None
         mock_validate_payload.return_value = None
+
+        # Simula la obtención de secretos
+        mock_get_secrets.return_value = {
+            'POSTGRES_HOST': 'localhost',
+            'POSTGRES_PASSWORD': 'password',
+            'POSTGRES_DATABASE': 'test_db',
+            'USER_POOL_ID': 'us-west-1_XXXXXXXXX'
+        }
 
         # Ejecutar la función lambda_handler con un evento de prueba
         event = {

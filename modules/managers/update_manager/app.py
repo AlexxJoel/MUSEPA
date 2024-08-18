@@ -78,22 +78,25 @@ def lambda_handler(event, _context):
         update_manager_query = """ UPDATE managers SET name = %s, surname = %s, lastname = %s, phone_number = %s, address = %s, birthdate = %s, id_museum = %s  WHERE id = %s """
         cur.execute(update_manager_query, (name, surname, lastname, phone_number, address, birthdate, id_museum, id))
 
+        # Get secret manager
+        secret = get_secrets()
+        USER_POOL_ID = secret['USER_POOL_ID']
+
         # Cognito Integration
         try:
             # Se colocan las credenciales que obtuvimos al generar lo de cognito
             # Configura el cliente de cognito
             client = boto3.client('cognito-idp', region_name='us-west-1')
-            user_pool_id = "us-west-1_3onWfQPhK"
 
             # Eliminar el usuario actual
             client.admin_delete_user(
-                UserPoolId=user_pool_id,
+                UserPoolId=USER_POOL_ID,
                 Username=username
             )
 
             # Crear un nuevo usuario con el nuevo username
             client.admin_create_user(
-                UserPoolId=user_pool_id,
+                UserPoolId=USER_POOL_ID,
                 Username=username,
                 UserAttributes=[
                     {'Name': 'email', 'Value': email},
@@ -104,14 +107,14 @@ def lambda_handler(event, _context):
 
             # Marcar la contraseña temporal como cambiada en Cognito
             client.admin_set_user_password(
-                UserPoolId=user_pool_id,
+                UserPoolId=USER_POOL_ID,
                 Username=username,
                 Password=password,
                 Permanent=True
             )
 
             client.admin_add_user_to_group(
-                UserPoolId=user_pool_id,
+                UserPoolId=USER_POOL_ID,
                 Username=username,
                 GroupName="manager"
             )
